@@ -32,6 +32,20 @@ npx jest path/to/file.test.ts
 - Commit locally after each meaningful change.
 - **Never push** unless explicitly asked to push.
 
+## Tech stack
+
+- Next.js 16 (App Router)
+- TypeScript
+- Tailwind CSS v4
+- Framer Motion
+- React 19
+
+## Coding rules
+
+- Use reusable components
+- Use semantic naming
+- Use CSS variables for design tokens
+
 ## Key conventions
 
 - Use the App Router file conventions: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`.
