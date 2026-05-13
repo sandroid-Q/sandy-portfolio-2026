@@ -27,6 +27,11 @@ npx jest path/to/file.test.ts
 - **Tailwind** — utility-first styling; no separate CSS modules unless a component has complex animation state that Tailwind can't express cleanly.
 - **Static assets** (`public/`) — images, fonts, and other static files served directly.
 
+## Git workflow
+
+- Commit locally after each meaningful change.
+- **Never push** unless explicitly asked to push.
+
 ## Key conventions
 
 - Use the App Router file conventions: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`.
