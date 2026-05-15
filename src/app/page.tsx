@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ElevatorClosed from "@/components/ElevatorClosed";
+import ElevatorOpened from "@/components/ElevatorOpened";
 import ElevatorButton from "@/components/ElevatorButton";
 
 export default function CoverPage() {
@@ -13,6 +14,7 @@ export default function CoverPage() {
       style={{ backgroundColor: "var(--color-bg-secondary)" }}
     >
       <ElevatorClosed />
+      <ElevatorOpened />
       <ElevatorButton isOpen={isOpen} onClick={() => setIsOpen((v) => !v)} />
     </main>
   );
