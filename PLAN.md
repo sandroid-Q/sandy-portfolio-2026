@@ -4,7 +4,7 @@
 
 An elevator metaphor. Visitors arrive at the exterior of the elevator (cover page), click the call button to enter, then navigate to project floors via a physical button pad inside.
 
-Figma reference: https://www.figma.com/design/iALkfSfg2qBwzxAAgRJbwZ/%F0%9F%93%A6-sandyqi?node-id=41-27556
+Figma reference: https://www.figma.com/design/ei8Lyr0WYaI4Bpb6IyCVQI/%F0%9F%93%A6-sandyqi--Copy-?node-id=41-27556
 
 ---
 
@@ -12,14 +12,12 @@ Figma reference: https://www.figma.com/design/iALkfSfg2qBwzxAAgRJbwZ/%F0%9F%93%A
 
 **Colors:**
 ```css
---color-bg:     #F3F2F0   /* warm off-white, main background */
---color-text:   #232122   /* near-black, primary text */
+--color-bg-secondary:     #E5E0D7   /* warm beige, feature background */
+--color-bg-primary: #F3F2F0   /* warm off-white, main background */
+--color-text:   #4E3A34   /* near-black, primary text */
 --color-grey:   #E6E5E2   /* light grey, secondary surfaces */
 --color-red:    #FF3600   /* lanyard card front */
---color-pink:   #FFC6DB   /* SQ initials accent on red card */
---color-yellow: #F9D58C   /* misc accent */
---color-purple: #0D033C   /* floor button active state / AP+ brand */
---color-black:  #000000   /* card borders, outlines */
+--color-brown:  #4E3A34   /* card borders, outlines */
 ```
 
 **Fonts:**
