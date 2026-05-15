@@ -1,26 +1,27 @@
 @import "tailwindcss";
 
+/* Design tokens */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-bg-primary: #F3F2F0;
+  --color-bg-secondary: #E5E0D7;
+  --color-text: #4E3A34;
 }
 
+/* Tailwind color utilities: bg-brown, text-brown, border-brown, etc. */
+@theme {
+  --color-brown: #4E3A34;
+  --color-red: #FF3600;
+  --color-grey: #E6E5E2;
+}
+
+/* Tailwind font utilities: font-silkscreen, font-space-grotesk */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-silkscreen: var(--font-silkscreen);
+  --font-space-grotesk: var(--font-space-grotesk);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
 }
