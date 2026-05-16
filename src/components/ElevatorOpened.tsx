@@ -84,8 +84,7 @@ export default function ElevatorOpened({
     const el = doorAreaRef.current;
     if (!el) return;
     const update = () => {
-      const r = el.getBoundingClientRect();
-      setDoorSize({ w: Math.round(r.width), h: Math.round(r.height) });
+      setDoorSize({ w: el.offsetWidth, h: el.offsetHeight });
     };
     update();
     const ro = new ResizeObserver(update);
@@ -120,7 +119,7 @@ export default function ElevatorOpened({
       <div
         className="relative flex items-center justify-center"
         style={{
-          width: "min(120px, 40%)",
+          width: 120,
           aspectRatio: "2 / 1",
           borderTopLeftRadius: "50% 100%",
           borderTopRightRadius: "50% 100%",
@@ -145,7 +144,7 @@ export default function ElevatorOpened({
       <div
         className="flex flex-col"
         style={{
-          width: "min(340px, calc(100vw - 48px))",
+          width: 340,
           border: `2px solid ${BROWN}`,
           backgroundColor: "var(--color-bg-primary)",
         }}
@@ -166,7 +165,7 @@ export default function ElevatorOpened({
           className="relative overflow-hidden"
           style={{
             height: "min(512px, calc(100vh - 220px))",
-            minHeight: "min(372px, calc(100vw - 48px))",
+            minHeight: 372,
             cursor: "pointer",
           }}
           onMouseEnter={() => setHovered(true)}
