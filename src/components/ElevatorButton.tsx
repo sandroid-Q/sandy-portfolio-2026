@@ -15,15 +15,20 @@ interface ElevatorButtonProps {
 
 export default function ElevatorButton({ isOpen, onClick, className }: ElevatorButtonProps) {
   const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
 
-  const bgColor = isOpen ? BROWN : hovered ? ORANGE : CREAM;
-  const iconColor = isOpen ? CREAM : BROWN;
+  const bgColor = pressed ? BROWN : hovered ? ORANGE : CREAM;
+  const iconColor = pressed ? CREAM : BROWN;
 
   return (
     <motion.button
       onClick={onClick}
       onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
+      onHoverEnd={() => { setHovered(false); setPressed(false); }}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
       animate={{ backgroundColor: bgColor }}
       transition={{ duration: 0.12 }}
       className={className}
