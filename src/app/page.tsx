@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ElevatorClosed from "@/components/ElevatorClosed";
+import Elevator from "@/components/Elevator";
 import ElevatorButton from "@/components/ElevatorButton";
 
 // 340 cabinet + 60 button − 36 right-pilaster overlap cap = 364px natural group width
@@ -42,7 +42,7 @@ export default function CoverPage() {
         }}
       >
         <div className="flex items-center">
-          <ElevatorClosed />
+          <Elevator isOpen={isOpen} />
           <div style={{ marginLeft, position: "relative", zIndex: 10 }}>
             <ElevatorButton isOpen={isOpen} onClick={() => setIsOpen((v) => !v)} />
           </div>
