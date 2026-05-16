@@ -165,8 +165,8 @@ export default function ElevatorOpened({
           ref={doorAreaRef}
           className="relative overflow-hidden"
           style={{
-            height: "min(480px, calc(100vh - 220px))",
-            minHeight: "min(340px, calc(100vw - 48px))",
+            height: "min(512px, calc(100vh - 220px))",
+            minHeight: "min(372px, calc(100vw - 48px))",
             cursor: "pointer",
           }}
           onMouseEnter={() => setHovered(true)}
