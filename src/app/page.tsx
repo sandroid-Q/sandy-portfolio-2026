@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Elevator from "@/components/Elevator";
 import ElevatorButton from "@/components/ElevatorButton";
 
@@ -10,6 +10,11 @@ const NATURAL_GROUP_WIDTH = 364;
 export default function CoverPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [vw, setVw] = useState(1200);
+  const dingRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    dingRef.current = new Audio("/elevator-ding.mp3");
+  }, []);
 
   useEffect(() => {
     const update = () => setVw(window.innerWidth);
@@ -44,7 +49,19 @@ export default function CoverPage() {
         <div className="flex items-center">
           <Elevator isOpen={isOpen} />
           <div style={{ marginLeft, position: "relative", zIndex: 10 }}>
-            <ElevatorButton isOpen={isOpen} onClick={() => setIsOpen((v) => !v)} />
+            <ElevatorButton
+              isOpen={isOpen}
+              onClick={() => {
+                setIsOpen((v) => {
+                  const next = !v;
+                  if (next && dingRef.current) {
+                    dingRef.current.currentTime = 0;
+                    dingRef.current.play().catch(() => {});
+                  }
+                  return next;
+                });
+              }}
+            />
           </div>
         </div>
       </div>
