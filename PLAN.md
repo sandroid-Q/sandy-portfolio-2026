@@ -16,7 +16,7 @@ Figma reference: https://www.figma.com/design/ei8Lyr0WYaI4Bpb6IyCVQI/%F0%9F%93%A
 --color-bg-primary: #F3F2F0   /* warm off-white, main background */
 --color-text:   #4E3A34   /* near-black, primary text */
 --color-grey:   #E6E5E2   /* light grey, secondary surfaces */
---color-red:    #FF3600   /* lanyard card front */
+--color-red:    #DE211D   /* lanyard card front */
 --color-brown:  #4E3A34   /* card borders, outlines */
 --color-text-inverse: #E5E0D7   /* light text on dark/brown backgrounds */
 ```

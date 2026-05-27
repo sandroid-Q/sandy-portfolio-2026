@@ -11,8 +11,9 @@
 /* Tailwind color utilities: bg-brown, text-brown, border-brown, etc. */
 @theme {
   --color-brown: #4E3A34;
-  --color-red: #FF3600;
+  --color-red: #DE211D;
   --color-grey: #E6E5E2;
+  --color-pink: #F4C4DB;
 }
 
 /* Tailwind font utilities: font-silkscreen, font-space-grotesk */

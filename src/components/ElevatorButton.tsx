@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 
 const BROWN = "#4E3A34";
 const CREAM = "#F3F2F0";
-const ORANGE = "#FF3600";
+const RED = "#DE211D";
+const PINK = "#F4C4DB";
 
 interface ElevatorButtonProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ export default function ElevatorButton({ isOpen, onClick, className }: ElevatorB
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
-  const bgColor = pressed ? BROWN : hovered ? ORANGE : CREAM;
+  const bgColor = pressed ? BROWN : hovered ? PINK : CREAM;
   const iconColor = pressed ? CREAM : BROWN;
 
   return (
