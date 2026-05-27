@@ -9,7 +9,7 @@ const silkscreen = Silkscreen({
 });
 
 const spaceGrotesk = Space_Grotesk({
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "700"],
   variable: "--font-space-grotesk",
   subsets: ["latin"],
 });

@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import Elevator from "@/components/Elevator";
 import ElevatorButton from "@/components/ElevatorButton";
+import IDCard from "@/components/IDCard";
+import ElevatorPad from "@/components/ElevatorPad";
 
 // 340 cabinet + 60 button − 36 right-pilaster overlap cap = 364px natural group width
 const NATURAL_GROUP_WIDTH = 364;
@@ -46,8 +48,10 @@ export default function CoverPage() {
           marginRight: -shrink,
         }}
       >
-        <div className="flex items-center">
+        <div className="flex items-center gap-16">
+          <IDCard />
           <Elevator isOpen={isOpen} />
+          <ElevatorPad />
           <div style={{ marginLeft, position: "relative", zIndex: 10 }}>
             <ElevatorButton
               isOpen={isOpen}
