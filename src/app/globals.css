@@ -4,8 +4,8 @@
 :root {
   --color-bg-primary: #F3F2F0;
   --color-bg-secondary: #E5E0D7;
-  --color-text: #4E3A34;
-  --color-text-inverse: #E5E0D7;
+  --color-text: var(--color-brown);
+  --color-text-inverse: var(--color-bg-secondary);
 }
 
 /* Tailwind color utilities: bg-brown, text-brown, border-brown, etc. */
