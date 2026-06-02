@@ -142,9 +142,16 @@ export default function HomePage() {
   const strapExtension = Math.max(0, raw);
   const cardMarginTop = Math.min(0, raw);
 
-  // Scale only for very narrow viewports
+  // IDCard: scale only for very narrow viewports
   const scale = Math.min(1, vw < 340 ? Math.max(SCALE_MIN, vw / 340) : 1);
   const shrink = (276 * (1 - scale)) / 2;
+
+  // ElevatorPad: natural width 392px, minimum 16px margin each side
+  const PAD_W = 392;
+  const PAD_H = 772; // approx: label + gap + border box (5 rows × 104px + 4 × 24px gap + 96px pad + 4px border)
+  const padScale = Math.min(1, (vw - 32) / PAD_W);
+  const padShrinkX = (PAD_W * (1 - padScale)) / 2;
+  const padShrinkY = PAD_H * (1 - padScale);
 
   const scrollToPad = () =>
     padRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -252,11 +259,18 @@ export default function HomePage() {
       >
         <IconButton onClick={scrollToPad} icon={(c) => <ArrowDown color={c} />} />
 
-        <div
-          ref={padRef}
-          style={{ width: "100%", display: "flex", justifyContent: "center", scrollMarginTop: 32 }}
-        >
-          <ElevatorPad />
+        <div ref={padRef} style={{ scrollMarginTop: 32 }}>
+          <div
+            style={{
+              transform: `scale(${padScale})`,
+              transformOrigin: "top center",
+              marginLeft: -padShrinkX,
+              marginRight: -padShrinkX,
+              marginBottom: -padShrinkY,
+            }}
+          >
+            <ElevatorPad />
+          </div>
         </div>
 
         <IconButton onClick={scrollToTop} icon={(c) => <ArrowUp color={c} />} />

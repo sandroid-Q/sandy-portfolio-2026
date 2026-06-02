@@ -32,7 +32,7 @@ const FLOOR_ROWS: PadButtonDef[][] = [
     { variant: "floor", label: "2", href: "/project/2" },
   ],
   [
-    { variant: "floor", label: "G", href: "/home", isActive: true },
+    { variant: "floor", label: "G", href: "/home" },
     { variant: "about", href: "/about" },
   ],
   [{ variant: "contact", href: "/contact" }],
@@ -143,7 +143,14 @@ function PadButton({ btn }: { btn: PadButtonDef }) {
   );
 }
 
-export default function ElevatorPad() {
+export default function ElevatorPad({ activeFloor = "G" }: { activeFloor?: string }) {
+  const rows = FLOOR_ROWS.map((row) =>
+    row.map((btn) => ({
+      ...btn,
+      isActive: btn.variant === "floor" && btn.label === activeFloor,
+    }))
+  );
+
   return (
     <div
       style={{
@@ -173,7 +180,7 @@ export default function ElevatorPad() {
           border: `2px solid ${BROWN}`,
         }}
       >
-        {FLOOR_ROWS.map((row, rowIdx) => (
+        {rows.map((row, rowIdx) => (
           <div
             key={rowIdx}
             style={{
