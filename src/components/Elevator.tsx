@@ -61,12 +61,14 @@ interface ElevatorProps {
   isOpen: boolean;
   logoText?: string;
   welcomeText?: string;
+  onEnter?: () => void;
 }
 
 export default function Elevator({
   isOpen,
   logoText = "SQ",
   welcomeText = "WELCOME",
+  onEnter,
 }: ElevatorProps) {
   const doorAreaRef = useRef<HTMLDivElement>(null);
   const [doorSize, setDoorSize] = useState({ w: 0, h: 0 });
@@ -177,6 +179,7 @@ export default function Elevator({
           onMouseLeave={() => { setHovered(false); setPressed(false); }}
           onPointerDown={() => { if (isOpen) setPressed(true); }}
           onPointerUp={() => setPressed(false)}
+          onClick={() => { if (isOpen) onEnter?.(); }}
         >
           {/* 1. Interior */}
           {w > 0 && h > 0 && (

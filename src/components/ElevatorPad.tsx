@@ -32,7 +32,7 @@ const FLOOR_ROWS: PadButtonDef[][] = [
     { variant: "floor", label: "2", href: "/project/2" },
   ],
   [
-    { variant: "floor", label: "G", href: "/", isActive: true },
+    { variant: "floor", label: "G", href: "/home", isActive: true },
     { variant: "about", href: "/about" },
   ],
   [{ variant: "contact", href: "/contact" }],

@@ -1,22 +1,56 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Elevator from "@/components/Elevator";
 import ElevatorButton from "@/components/ElevatorButton";
-import IDCard from "@/components/IDCard";
-import ElevatorPad from "@/components/ElevatorPad";
+import SoundToggle from "@/components/SoundToggle";
 
-// 340 cabinet + 60 button − 36 right-pilaster overlap cap = 364px natural group width
-const NATURAL_GROUP_WIDTH = 364;
+const SIDE_PADDING = 16; // minimum px each side at small screens
 
 export default function CoverPage() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [muted, setMuted] = useState(false);
   const [vw, setVw] = useState(1200);
   const dingRef = useRef<HTMLAudioElement | null>(null);
+  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     dingRef.current = new Audio("/elevator-ding.mp3");
   }, []);
+
+  useEffect(() => {
+    const audio = new Audio("/jazz-1.mp3");
+    audio.loop = true;
+    bgMusicRef.current = audio;
+
+    audio.play().catch(() => {});
+
+    // Retry on first user gesture if autoplay was blocked
+    const onFirstGesture = () => {
+      audio.play().catch(() => {});
+      window.removeEventListener("pointerdown", onFirstGesture);
+    };
+    window.addEventListener("pointerdown", onFirstGesture);
+
+    return () => {
+      audio.pause();
+      audio.src = "";
+      window.removeEventListener("pointerdown", onFirstGesture);
+    };
+  }, []);
+
+  // Sync muted state → both audio elements
+  useEffect(() => {
+    const vol = muted ? 0 : 1;
+    if (bgMusicRef.current) {
+      bgMusicRef.current.volume = vol;
+      if (muted) bgMusicRef.current.pause();
+      else bgMusicRef.current.play().catch(() => {});
+    }
+    if (dingRef.current) dingRef.current.volume = vol;
+  }, [muted]);
 
   useEffect(() => {
     const update = () => setVw(window.innerWidth);
@@ -25,21 +59,29 @@ export default function CoverPage() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Margin: 12px at ≥460px, slides linearly to −38px at ~377px, stays at −38 below
-  // −38 = PILASTER (36) + right cabinet border (2) — aligns button left edge with right pilaster inner line
-  const marginLeft = Math.max(-38, Math.min(12, 60 * vw / 100 - 264));
+  // 12px gap at ≥420px, slides to −38px at 370px (button overlaps right pilaster)
+  // −38 = PILASTER (36) + right cabinet border (2)
+  const marginLeft = Math.max(-38, Math.min(12, vw - 408));
 
-  // Scale: 1.0 at ≥380px, shrinks to 320/364≈0.879 at 320px, side-scroll below
-  const scale = vw >= 380 ? 1 : Math.max(320 / NATURAL_GROUP_WIDTH, vw / NATURAL_GROUP_WIDTH);
+  // Dynamic group width based on current marginLeft (340 elevator + gap + 60 button)
+  const groupWidth = 340 + marginLeft + 60;
 
-  // Pull in horizontal layout space to match the scaled visual width so flex centering is correct
-  const shrink = (NATURAL_GROUP_WIDTH * (1 - scale)) / 2;
+  // Scale down only when group would overflow with padding; never scale above 1
+  const scale = Math.min(1, (vw - SIDE_PADDING * 2) / groupWidth);
+
+  // Pull in layout space to compensate for CSS transform scale (doesn't affect flow)
+  const shrink = (groupWidth * (1 - scale)) / 2;
 
   return (
     <main
       className="min-h-screen flex items-center justify-center"
       style={{ backgroundColor: "var(--color-bg-secondary)" }}
     >
+      {/* Sound toggle — fixed top right */}
+      <div style={{ position: "fixed", top: 20, right: 20, zIndex: 100 }}>
+        <SoundToggle muted={muted} onClick={() => setMuted((v) => !v)} />
+      </div>
+
       <div
         style={{
           transform: `scale(${scale})`,
@@ -48,10 +90,8 @@ export default function CoverPage() {
           marginRight: -shrink,
         }}
       >
-        <div className="flex items-center gap-16">
-          <IDCard />
-          <Elevator isOpen={isOpen} />
-          <ElevatorPad />
+        <div className="flex items-center">
+          <Elevator isOpen={isOpen} onEnter={() => router.push("/home")} />
           <div style={{ marginLeft, position: "relative", zIndex: 10 }}>
             <ElevatorButton
               isOpen={isOpen}
