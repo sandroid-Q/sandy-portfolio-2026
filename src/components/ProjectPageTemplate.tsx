@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ElevatorPad from "./ElevatorPad";
@@ -111,6 +111,17 @@ function MetaField({ label, value }: { label: string; value: string }) {
 export default function ProjectPageTemplate(project: ProjectData) {
   const topRef = useRef<HTMLDivElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
+  const [vw, setVw] = useState(1280);
+
+  useEffect(() => {
+    const update = () => setVw(window.innerWidth);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const isMobile = vw < 640;
+  const isTablet = vw < 1024;
 
   const scrollToIntro = () => introRef.current?.scrollIntoView({ behavior: "smooth" });
   const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -149,42 +160,59 @@ export default function ProjectPageTemplate(project: ProjectData) {
         <NavLink href="/about">About me</NavLink>
       </div>
 
-      {/* Hero — always (100svh - 48px) tall so the down arrow peeks below */}
+      {/* Hero — (100svh - 48px) on desktop so the down arrow peeks below; auto on mobile */}
       <div ref={topRef}>
         <div
           style={{
             position: "relative",
-            height: "calc(100svh - 48px)",
-            minHeight: 600,
+            ...(isMobile
+              ? { minHeight: "calc(100svh - 48px)" }
+              : { height: "calc(100svh - 48px)", minHeight: 600 }
+            ),
             borderRadius: "0 0 32px 32px",
             overflow: "hidden",
           }}
         >
-          {/* Cover image or placeholder */}
+          {/* Cover image or placeholder — absolute so it fills whatever height the container grows to */}
           {project.coverImage ? (
             <Image src={project.coverImage} fill alt={project.name} style={{ objectFit: "cover" }} priority />
           ) : (
             <div style={{ position: "absolute", inset: 0, backgroundColor: project.coverBg ?? BG_SECONDARY }} />
           )}
 
-          {/* Content overlay: project info (left) + elevator pad (right) */}
+          {/* Content: row on desktop, column on mobile */}
           <div
             style={{
-              position: "absolute", inset: 0,
-              display: "flex", flexDirection: "row",
-              alignItems: "center", justifyContent: "center",
-              gap: 48, padding: "72px 96px",
+              position: isMobile ? "relative" : "absolute",
+              ...(isMobile ? {} : { inset: 0 }),
+              display: "flex",
+              flexDirection: isMobile ? "column" : "row",
+              alignItems: "center",
+              justifyContent: isMobile ? "flex-start" : "center",
+              gap: isMobile ? 32 : 48,
+              padding: isMobile
+                ? "88px 24px 48px"
+                : isTablet
+                ? "72px 48px"
+                : "72px 96px",
             }}
           >
             {/* Project info */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16, width: 320, flexShrink: 0 }}>
+            <div
+              style={{
+                display: "flex", flexDirection: "column", gap: 16,
+                width: isMobile ? "100%" : 320,
+                flexShrink: 0,
+              }}
+            >
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BG }}>
                   {project.year}
                 </span>
                 <span
                   style={{
-                    fontFamily: "var(--font-silkscreen)", fontWeight: 400, fontSize: 32,
+                    fontFamily: "var(--font-silkscreen)", fontWeight: 400,
+                    fontSize: isMobile ? 24 : 32,
                     color: BG, textTransform: "uppercase", lineHeight: 1.1,
                   }}
                 >
@@ -209,8 +237,20 @@ export default function ProjectPageTemplate(project: ProjectData) {
               </div>
             </div>
 
-            {/* Elevator pad */}
-            <ElevatorPad activeFloor={project.floor} />
+            {/* Elevator pad — scale to fit on narrow viewports */}
+            <div
+              style={
+                isMobile
+                  ? {
+                      transform: `scale(${Math.min(1, (vw - 48) / 340)})`,
+                      transformOrigin: "top center",
+                      marginBottom: `${(340 * (1 - Math.min(1, (vw - 48) / 340))) * -0.5}px`,
+                    }
+                  : undefined
+              }
+            >
+              <ElevatorPad activeFloor={project.floor} />
+            </div>
           </div>
         </div>
 
@@ -232,19 +272,23 @@ export default function ProjectPageTemplate(project: ProjectData) {
           ref={introRef}
           style={{
             width: "100%", maxWidth: 1280,
-            display: "flex", flexDirection: "row", justifyContent: "space-between",
-            padding: "32px 96px 0", scrollMarginTop: 72,
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            justifyContent: "space-between",
+            gap: isMobile ? 32 : 0,
+            padding: isMobile ? "32px 24px 0" : isTablet ? "32px 48px 0" : "32px 96px 0",
+            scrollMarginTop: 72,
           }}
         >
           {/* Metadata columns */}
-          <div style={{ display: "flex", flexDirection: "row", gap: 32 }}>
+          <div style={{ display: "flex", flexDirection: "row", gap: 32, flexWrap: "wrap" }}>
             <MetaField label="Role" value={project.role} />
             <MetaField label="Year" value={project.yearRange} />
             <MetaField label="Platform" value={project.platform} />
           </div>
 
           {/* Overview */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, width: 400 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, width: isMobile ? "100%" : 400 }}>
             <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: TEXT }}>
               Project overview
             </span>
@@ -262,7 +306,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
               width: "100%", maxWidth: 1280,
               display: "flex", flexDirection: "column",
               alignItems: "center", gap: 48,
-              padding: "0 96px",
+              padding: isMobile ? "0 24px" : isTablet ? "0 48px" : "0 96px",
             }}
           >
             <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: TEXT, alignSelf: "flex-start" }}>
