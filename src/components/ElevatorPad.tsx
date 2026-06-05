@@ -144,7 +144,7 @@ function PadButton({ btn, onDing }: { btn: PadButtonDef; onDing: () => void }) {
   );
 }
 
-export default function ElevatorPad({ activeFloor = "G" }: { activeFloor?: string }) {
+export default function ElevatorPad({ activeFloor = "G", onHeaderClick }: { activeFloor?: string; onHeaderClick?: () => void }) {
   const { muted } = useAudio();
   const dingRef = useRef<HTMLAudioElement | null>(null);
 
@@ -157,6 +157,15 @@ export default function ElevatorPad({ activeFloor = "G" }: { activeFloor?: strin
     if (!ding || muted) return;
     ding.currentTime = 0;
     ding.play().catch(() => {});
+  };
+
+  const headerContainerVariants = {
+    rest: {},
+    hover: { transition: { staggerChildren: 0.04 } },
+  };
+  const headerLetterVariants = {
+    rest: { y: 0 },
+    hover: { y: -2, transition: { duration: 0.12, ease: "easeOut" } },
   };
 
   const rows = FLOOR_ROWS.map((row) =>
@@ -175,16 +184,31 @@ export default function ElevatorPad({ activeFloor = "G" }: { activeFloor?: strin
         gap: 36,
       }}
     >
-      <span
+      <motion.button
+        onClick={onHeaderClick}
+        initial="rest"
+        whileHover="hover"
+        variants={headerContainerVariants}
         style={{
-          fontFamily: "var(--font-space-grotesk), system-ui, sans-serif",
-          fontWeight: 500,
-          fontSize: 16,
+          background: "none",
+          border: "none",
+          padding: "6px 12px",
+          cursor: onHeaderClick ? "pointer" : "default",
+          fontFamily: "var(--font-space-mono), monospace",
+          fontWeight: 400,
+          fontSize: 14,
           color: BROWN,
+          textTransform: "uppercase",
+          letterSpacing: "0.04em",
+          display: "flex",
         }}
       >
-        Which floor?
-      </span>
+        {"Which floor?".split("").map((char, i) => (
+          <motion.span key={i} variants={headerLetterVariants} style={{ display: "inline-block" }}>
+            {char === " " ? " " : char}
+          </motion.span>
+        ))}
+      </motion.button>
 
       <div
         style={{

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import Link from "next/link";
 import TransitionOverlay from "@/components/TransitionOverlay";
 import SoundToggle from "@/components/SoundToggle";
@@ -12,58 +12,108 @@ import ElevatorPad from "@/components/ElevatorPad";
 
 const BROWN = "#4E3A34";
 const TEXT_NAV = "#232122";
-const RED = "#DE211D";
+const HOVER_COLOR = "#72503C";
+const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 function NavLink({
   href,
   onClick,
   children,
+  menu = false,
 }: {
   href?: string;
   onClick?: () => void;
   children: React.ReactNode;
+  menu?: boolean;
 }) {
+  const originalText = (typeof children === "string" ? children : "").toUpperCase();
+  const fontSize = menu ? 18 : 14;
   const [hovered, setHovered] = useState(false);
+  const [displayChars, setDisplayChars] = useState(originalText.split(""));
+  const [charWidths, setCharWidths] = useState<number[]>([]);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Measure each original character's width using canvas (after fonts load)
+  useEffect(() => {
+    const measure = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.font = `300 ${fontSize}px "Space Grotesk", system-ui, sans-serif`;
+      setCharWidths(originalText.split("").map(ch => ctx.measureText(ch === " " ? " " : ch).width));
+    };
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(measure);
+    } else {
+      measure();
+    }
+  }, [originalText, fontSize]);
+
+  const scramble = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    let frame = 0;
+    const chars = originalText.split("");
+    const STAGGER = 2;
+    const DURATION = 3;
+
+    intervalRef.current = setInterval(() => {
+      setDisplayChars(chars.map((ch, i) => {
+        if (ch === " ") return " ";
+        const start = i * STAGGER;
+        const lock = start + DURATION;
+        if (frame < start) return ch;
+        if (frame < lock) return SCRAMBLE_CHARS[Math.floor(Math.random() * 26)];
+        return ch;
+      }));
+      frame++;
+      if (frame >= chars.length * STAGGER + DURATION) {
+        clearInterval(intervalRef.current!);
+        setDisplayChars(originalText.split(""));
+      }
+    }, 45);
+  };
+
+  useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
+
+  const handleEnter = () => { setHovered(true); scramble(); };
+  const handleLeave = () => {
+    setHovered(false);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setDisplayChars(originalText.split(""));
+  };
+
+  const charStyle: React.CSSProperties = {
+    fontFamily: "var(--font-space-grotesk)",
+    fontWeight: 300,
+    fontSize,
+    color: hovered ? TEXT_NAV : HOVER_COLOR,
+    textTransform: "uppercase",
+    transition: "color 0.15s",
+    display: "inline-block",
+    textAlign: "center",
+  };
 
   const inner = (
-    <div
-      style={{ display: "flex", flexDirection: "column", gap: 4, cursor: "pointer" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <span
-        style={{
-          fontFamily: "var(--font-space-grotesk)",
-          fontWeight: 500,
-          fontSize: 14,
-          color: TEXT_NAV,
-        }}
-      >
-        {children}
-      </span>
-      <div
-        style={{
-          height: 1,
-          backgroundColor: RED,
-          opacity: hovered ? 1 : 0,
-          transition: "opacity 0.15s",
-        }}
-      />
+    <div style={{ cursor: "pointer", display: "flex" }} onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+      {displayChars.map((ch, i) => (
+        <span
+          key={i}
+          style={{
+            ...charStyle,
+            // Lock each slot to the original character's measured width
+            width: charWidths[i] != null ? charWidths[i] : "auto",
+          }}
+        >
+          {ch === " " ? " " : ch}
+        </span>
+      ))}
     </div>
   );
 
   if (onClick) {
-    return (
-      <button onClick={onClick} style={{ background: "none", border: "none", padding: 0 }}>
-        {inner}
-      </button>
-    );
+    return <button onClick={onClick} style={{ background: "none", border: "none", padding: 0 }}>{inner}</button>;
   }
-  return (
-    <Link href={href!} style={{ textDecoration: "none" }}>
-      {inner}
-    </Link>
-  );
+  return <Link href={href!} style={{ textDecoration: "none" }}>{inner}</Link>;
 }
 
 function HamburgerIcon({ open }: { open: boolean }) {
@@ -88,25 +138,57 @@ function HamburgerIcon({ open }: { open: boolean }) {
 const BG_BUTTON = "#F3F2F0";
 const HOVER_BROWN = "#D3BA9F";
 
-function ArrowDown({ color }: { color: string }) {
+function ArrowDown({ color, hovered }: { color: string; hovered: boolean }) {
+  const controls = useAnimation();
+
+  useEffect(() => {
+    if (hovered) {
+      controls.start({
+        y: [0, 52, -52, 0],
+        transition: { duration: 0.4, times: [0, 0.42, 0.43, 1], ease: ["easeIn", "linear", "easeOut"] },
+      });
+    } else {
+      controls.stop();
+      controls.set({ y: 0 });
+    }
+  }, [hovered, controls]);
+
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M12 0.75L12 23.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M1.5 12.75L12 23.25L22.5 12.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <motion.div animate={controls}>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 0.75L12 23.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M1.5 12.75L12 23.25L22.5 12.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </motion.div>
   );
 }
 
-function ArrowUp({ color }: { color: string }) {
+function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
+  const controls = useAnimation();
+
+  useEffect(() => {
+    if (hovered) {
+      controls.start({
+        y: [0, -52, 52, 0],
+        transition: { duration: 0.4, times: [0, 0.42, 0.43, 1], ease: ["easeIn", "linear", "easeOut"] },
+      });
+    } else {
+      controls.stop();
+      controls.set({ y: 0 });
+    }
+  }, [hovered, controls]);
+
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M12 23.25L12 0.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M22.5 11.25L12 0.75L1.5 11.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <motion.div animate={controls}>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 23.25L12 0.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M22.5 11.25L12 0.75L1.5 11.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </motion.div>
   );
 }
 
-function IconButton({ onClick, icon }: { onClick: () => void; icon: (color: string) => React.ReactNode }) {
+function IconButton({ onClick, icon }: { onClick: () => void; icon: (color: string, hovered: boolean) => React.ReactNode }) {
   const [hovered, setHovered] = useState(false);
   return (
     <button
@@ -124,9 +206,10 @@ function IconButton({ onClick, icon }: { onClick: () => void; icon: (color: stri
         alignItems: "center",
         justifyContent: "center",
         transition: "background-color 0.15s",
+        overflow: "hidden",
       }}
     >
-      {icon(BROWN)}
+      {icon(BROWN, hovered)}
     </button>
   );
 }
@@ -233,8 +316,8 @@ export default function HomePage() {
               gap: 48,
             }}
           >
-            <NavLink onClick={scrollToPad}>My work</NavLink>
-            <NavLink href="/about">About me</NavLink>
+            <NavLink onClick={scrollToPad} menu>Projects</NavLink>
+            <NavLink href="/about" menu>About me</NavLink>
           </motion.div>
         )}
       </AnimatePresence>
@@ -300,7 +383,9 @@ export default function HomePage() {
         ) : (
           /* Desktop: my work + sound */
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <NavLink onClick={scrollToPad}>My work</NavLink>
+            <div style={{ position: "relative", top: -2 }}>
+              <NavLink onClick={scrollToPad}>Projects</NavLink>
+            </div>
             <div style={{ position: "relative", top: -2 }}>
               <SoundToggle muted={muted} onClick={() => setMuted(!muted)} />
             </div>
@@ -329,7 +414,9 @@ export default function HomePage() {
               fontFamily: "var(--font-space-grotesk)",
               fontWeight: 300,
               fontSize: 10,
-              color: "#000",
+              color: "#72503C",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
             }}
           >
             © Sandy Qi 2026
@@ -372,7 +459,7 @@ export default function HomePage() {
           paddingBottom: isMobile ? 60 : 168,
         }}
       >
-        <IconButton onClick={scrollToPad} icon={(c) => <ArrowDown color={c} />} />
+        <IconButton onClick={scrollToPad} icon={(c, h) => <ArrowDown color={c} hovered={h} />} />
 
         <div ref={padRef} style={{ scrollMarginTop: 32 }}>
           <div
@@ -384,11 +471,11 @@ export default function HomePage() {
               marginBottom: -padShrinkY,
             }}
           >
-            <ElevatorPad />
+            <ElevatorPad onHeaderClick={scrollToPad} />
           </div>
         </div>
 
-        <IconButton onClick={scrollToTop} icon={(c) => <ArrowUp color={c} />} />
+        <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} />
       </div>
 
       {/* Copyright — mobile only, static at page bottom */}
@@ -405,7 +492,9 @@ export default function HomePage() {
               fontFamily: "var(--font-space-grotesk)",
               fontWeight: 300,
               fontSize: 10,
-              color: "#000",
+              color: "#72503C",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
             }}
           >
             © Sandy Qi 2026

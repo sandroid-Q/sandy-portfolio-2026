@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Silkscreen, Space_Grotesk } from "next/font/google";
+import { Silkscreen, Space_Grotesk, Space_Mono } from "next/font/google";
 import { AudioProvider } from "@/contexts/AudioContext";
 import "./globals.css";
 
@@ -12,6 +12,12 @@ const silkscreen = Silkscreen({
 const spaceGrotesk = Space_Grotesk({
   weight: ["300", "400", "500", "700"],
   variable: "--font-space-grotesk",
+  subsets: ["latin"],
+});
+
+const spaceMono = Space_Mono({
+  weight: ["400", "700"],
+  variable: "--font-space-mono",
   subsets: ["latin"],
 });
 
@@ -28,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${silkscreen.variable} ${spaceGrotesk.variable} h-full`}
+      className={`${silkscreen.variable} ${spaceGrotesk.variable} ${spaceMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col">
         <AudioProvider>{children}</AudioProvider>

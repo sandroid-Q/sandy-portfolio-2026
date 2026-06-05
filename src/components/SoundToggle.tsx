@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 const BROWN = "#4E3A34";
-const MUTED = "#837571";
+const DEFAULT_COLOR = "#72503C";
 const RED = "#DE211D";
 
 const SPEAKER_BODY = "M15.5 15.75V15.7425M15.5 28.2575C16.5252 29.2094 19.0149 31.3368 21.9165 32.4892C22.7438 32.8178 23.5931 32.2331 23.6672 31.3461C23.8126 29.6051 24 26.4898 24 22C24 17.5102 23.8126 14.3949 23.6672 12.6539C23.5931 11.7669 22.7438 11.1822 21.9165 11.5108C19.0149 12.6632 16.5252 14.7905 15.5 15.7425C15.1776 16.0419 15 16.225 15 16.225C15 16.225 13.6071 16.5655 12.4043 16.9786C11.8256 17.1773 11.4105 17.67 11.3076 18.2732C11.1667 19.0992 11 20.412 11 22C11 23.5879 11.1667 24.9008 11.3076 25.7268C11.4105 26.3299 11.8256 26.8227 12.4043 27.0214C13.6071 27.4345 15 27.775 15 27.775C15 27.775 15.1776 27.9581 15.5 28.2575ZM15.5 28.25V28.2575";
@@ -18,7 +18,7 @@ export default function SoundToggle({ muted, onClick }: SoundToggleProps) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
-  const color = pressed ? RED : hovered ? MUTED : BROWN;
+  const color = pressed ? RED : hovered ? BROWN : DEFAULT_COLOR;
 
   return (
     <button
@@ -41,6 +41,8 @@ export default function SoundToggle({ muted, onClick }: SoundToggleProps) {
         outline: "none",
         background: "none",
         WebkitTapHighlightColor: "transparent",
+        transform: hovered ? "rotate(-15deg)" : "rotate(0deg)",
+        transition: "transform 0.35s ease",
       }}
     >
       <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
