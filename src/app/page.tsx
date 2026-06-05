@@ -3,53 +3,41 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Elevator from "@/components/Elevator";
+import TransitionOverlay from "@/components/TransitionOverlay";
 import ElevatorButton from "@/components/ElevatorButton";
 import SoundToggle from "@/components/SoundToggle";
+import { useAudio } from "@/contexts/AudioContext";
 
-const SIDE_PADDING = 16; // minimum px each side at small screens
+const SIDE_PADDING = 16;
 
-export default function CoverPage() {
+function CoverPageInner() {
   const router = useRouter();
+  const [fromHome, setFromHome] = useState(false);
+  const { muted, setMuted } = useAudio();
+
+  useEffect(() => {
+    if (sessionStorage.getItem("fromHome") === "1") {
+      sessionStorage.removeItem("fromHome");
+      setFromHome(true);
+    }
+  }, []);
   const [isOpen, setIsOpen] = useState(false);
-  const [muted, setMuted] = useState(false);
+  const [exiting, setExiting] = useState(false);
   const [vw, setVw] = useState(1200);
   const dingRef = useRef<HTMLAudioElement | null>(null);
-  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleEnter = () => {
+    if (exiting) return;
+    setExiting(true);
+    setTimeout(() => router.push("/home"), 430);
+  };
 
   useEffect(() => {
     dingRef.current = new Audio("/elevator-ding.mp3");
   }, []);
 
   useEffect(() => {
-    const audio = new Audio("/jazz-1.mp3");
-    audio.loop = true;
-    bgMusicRef.current = audio;
-
-    audio.play().catch(() => {});
-
-    // Retry on first user gesture if autoplay was blocked
-    const onFirstGesture = () => {
-      audio.play().catch(() => {});
-      window.removeEventListener("pointerdown", onFirstGesture);
-    };
-    window.addEventListener("pointerdown", onFirstGesture);
-
-    return () => {
-      audio.pause();
-      audio.src = "";
-      window.removeEventListener("pointerdown", onFirstGesture);
-    };
-  }, []);
-
-  // Sync muted state → both audio elements
-  useEffect(() => {
-    const vol = muted ? 0 : 1;
-    if (bgMusicRef.current) {
-      bgMusicRef.current.volume = vol;
-      if (muted) bgMusicRef.current.pause();
-      else bgMusicRef.current.play().catch(() => {});
-    }
-    if (dingRef.current) dingRef.current.volume = vol;
+    if (dingRef.current) dingRef.current.volume = muted ? 0 : 1;
   }, [muted]);
 
   useEffect(() => {
@@ -59,17 +47,9 @@ export default function CoverPage() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // 12px gap at ≥420px, slides to −38px at 370px (button overlaps right pilaster)
-  // −38 = PILASTER (36) + right cabinet border (2)
   const marginLeft = Math.max(-38, Math.min(12, vw - 408));
-
-  // Dynamic group width based on current marginLeft (340 elevator + gap + 60 button)
   const groupWidth = 340 + marginLeft + 60;
-
-  // Scale down only when group would overflow with padding; never scale above 1
   const scale = Math.min(1, (vw - SIDE_PADDING * 2) / groupWidth);
-
-  // Pull in layout space to compensate for CSS transform scale (doesn't affect flow)
   const shrink = (groupWidth * (1 - scale)) / 2;
 
   return (
@@ -77,10 +57,27 @@ export default function CoverPage() {
       className="min-h-screen flex items-center justify-center"
       style={{ backgroundColor: "var(--color-bg-secondary)" }}
     >
-      {/* Sound toggle — fixed top right */}
       <div style={{ position: "fixed", top: 20, right: 20, zIndex: 100 }}>
-        <SoundToggle muted={muted} onClick={() => setMuted((v) => !v)} />
+        <SoundToggle muted={muted} onClick={() => setMuted(!muted)} />
       </div>
+
+      {/* Fade to brown on exit to home */}
+      <TransitionOverlay
+        initial={{ opacity: 0 }}
+        animate={{ opacity: exiting ? 1 : 0 }}
+        transition={{ duration: 0.25 }}
+        zIndex={50}
+      />
+      {/* Fade out from brown on arrival from home */}
+      {fromHome && (
+        <TransitionOverlay
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 0.3, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
+          stagedExit
+          zIndex={50}
+        />
+      )}
 
       <div
         style={{
@@ -91,7 +88,7 @@ export default function CoverPage() {
         }}
       >
         <div className="flex items-center">
-          <Elevator isOpen={isOpen} onEnter={() => router.push("/home")} />
+          <Elevator isOpen={isOpen} onEnter={handleEnter} />
           <div style={{ marginLeft, position: "relative", zIndex: 10 }}>
             <ElevatorButton
               isOpen={isOpen}
@@ -111,4 +108,8 @@ export default function CoverPage() {
       </div>
     </main>
   );
+}
+
+export default function CoverPage() {
+  return <CoverPageInner />;
 }

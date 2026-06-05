@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 
-const RED = "#FF3600";
-const TEXT = "#232122";
+const BROWN = "#4E3A34";
+const GOLD = "#E4C298";
 
 const FLOORS = [
   { key: "G", label: "Ground", href: "/home" },
@@ -19,34 +19,53 @@ const FLOORS = [
 function FloorLink({ label, href, isActive }: { label: string; href: string; isActive: boolean }) {
   const [hovered, setHovered] = useState(false);
 
-  return (
-    <Link href={href} style={{ textDecoration: "none" }}>
-      <div
-        style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: 60, height: 22 }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+  const isBold = isActive || hovered;
+  const textColor = isActive ? BROWN : BROWN;
+  const underlineColor = isActive ? GOLD : BROWN;
+  const underlineHeight = isActive ? 2 : 1;
+  const showUnderline = isActive || hovered;
+
+  const inner = (
+    <span
+      style={{
+        fontFamily: "var(--font-space-grotesk), system-ui, sans-serif",
+        fontWeight: isBold ? 700 : 400,
+        fontSize: 14,
+        color: textColor,
+        whiteSpace: "nowrap",
+        display: "inline-block",
+        // underline via box-shadow so it stays at text-bottom without adding layout height
+        boxShadow: showUnderline
+          ? `0 ${underlineHeight}px 0 ${underlineColor}`
+          : "none",
+        paddingBottom: 3,
+        transition: "box-shadow 0.15s, font-weight 0.1s",
+      }}
+    >
+      {label}
+    </span>
+  );
+
+  if (isActive) {
+    // Not interactive — already on this page
+    return (
+      <span
+        style={{ cursor: "default" }}
+        onMouseEnter={() => setHovered(false)}
       >
-        <span
-          style={{
-            fontFamily: "var(--font-space-grotesk), system-ui, sans-serif",
-            fontWeight: isActive ? 500 : 400,
-            fontSize: 14,
-            color: TEXT,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {label}
-        </span>
-        <div
-          style={{
-            height: 1,
-            width: "100%",
-            backgroundColor: RED,
-            opacity: isActive || hovered ? 1 : 0,
-            transition: "opacity 0.15s",
-          }}
-        />
-      </div>
+        {inner}
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      style={{ textDecoration: "none" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {inner}
     </Link>
   );
 }
@@ -58,26 +77,30 @@ export default function FloorBreadcrumb({ activeFloor }: { activeFloor: string }
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "center",
-        gap: 6,
+        gap: 12,
       }}
     >
       {FLOORS.map((floor, i) => (
-        <div key={floor.key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <React.Fragment key={floor.key}>
           {i > 0 && (
             <span
               style={{
                 fontFamily: "var(--font-space-grotesk), system-ui, sans-serif",
                 fontWeight: 300,
                 fontSize: 14,
-                color: TEXT,
+                color: BROWN,
+                lineHeight: 1,
               }}
             >
               ·
             </span>
           )}
-          <FloorLink label={floor.label} href={floor.href} isActive={floor.key === activeFloor} />
-        </div>
+          <FloorLink
+            label={floor.label}
+            href={floor.href}
+            isActive={floor.key === activeFloor}
+          />
+        </React.Fragment>
       ))}
     </div>
   );

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { useAudio } from "@/contexts/AudioContext";
 
 const BROWN = "#4E3A34";
 const RED = "#DE211D";
@@ -51,7 +52,7 @@ function BellIcon({ color }: { color: string }) {
   );
 }
 
-function PadButton({ btn }: { btn: PadButtonDef }) {
+function PadButton({ btn, onDing }: { btn: PadButtonDef; onDing: () => void }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
@@ -79,7 +80,7 @@ function PadButton({ btn }: { btn: PadButtonDef }) {
           setHovered(false);
           setPressed(false);
         }}
-        onMouseDown={() => setPressed(true)}
+        onMouseDown={() => { setPressed(true); onDing(); }}
         onMouseUp={() => setPressed(false)}
         onTouchStart={() => setPressed(true)}
         onTouchEnd={() => setPressed(false)}
@@ -144,6 +145,20 @@ function PadButton({ btn }: { btn: PadButtonDef }) {
 }
 
 export default function ElevatorPad({ activeFloor = "G" }: { activeFloor?: string }) {
+  const { muted } = useAudio();
+  const dingRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    dingRef.current = new Audio("/elevator-ding.mp3");
+  }, []);
+
+  const playDing = () => {
+    const ding = dingRef.current;
+    if (!ding || muted) return;
+    ding.currentTime = 0;
+    ding.play().catch(() => {});
+  };
+
   const rows = FLOOR_ROWS.map((row) =>
     row.map((btn) => ({
       ...btn,
@@ -192,7 +207,7 @@ export default function ElevatorPad({ activeFloor = "G" }: { activeFloor?: strin
             }}
           >
             {row.map((btn) => (
-              <PadButton key={btn.href} btn={btn} />
+              <PadButton key={btn.href} btn={btn} onDing={playDing} />
             ))}
           </div>
         ))}

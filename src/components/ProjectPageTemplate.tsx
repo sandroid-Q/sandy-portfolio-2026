@@ -77,7 +77,7 @@ function IconButton({ onClick, icon, bg = BG }: { onClick: () => void; icon: (c:
   );
 }
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function NavLink({ href, children, color = TEXT_NAV }: { href: string; children: React.ReactNode; color?: string }) {
   const [hovered, setHovered] = useState(false);
   return (
     <Link href={href} style={{ textDecoration: "none" }}>
@@ -86,7 +86,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: TEXT_NAV }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color, transition: "color 0.3s" }}>
           {children}
         </span>
         <div style={{ height: 1, backgroundColor: RED, opacity: hovered ? 1 : 0, transition: "opacity 0.15s" }} />
@@ -108,10 +108,49 @@ function MetaField({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ProjectInfo({ project, isMobile }: { project: ProjectData; isMobile: boolean }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, width: isMobile ? "100%" : 320 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BG }}>
+          {project.year}
+        </span>
+        <span
+          style={{
+            fontFamily: "var(--font-silkscreen)", fontWeight: 400,
+            fontSize: isMobile ? 24 : 32,
+            color: BG, textTransform: "uppercase", lineHeight: 1.1,
+          }}
+        >
+          {project.name}
+        </span>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BG }}>
+          {project.blurb}
+        </span>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {project.tags.map((tag) => (
+          <span
+            key={tag}
+            style={{
+              fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 14, color: BG,
+              border: `1px solid ${BG}`, borderRadius: 100, padding: "4px 12px",
+            }}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ProjectPageTemplate(project: ProjectData) {
   const topRef = useRef<HTMLDivElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
+  const heroImgRef = useRef<HTMLDivElement>(null);
   const [vw, setVw] = useState(1280);
+  const [pastHero, setPastHero] = useState(false);
 
   useEffect(() => {
     const update = () => setVw(window.innerWidth);
@@ -119,6 +158,19 @@ export default function ProjectPageTemplate(project: ProjectData) {
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (!heroImgRef.current) return;
+      // Switch when the cover photo's bottom edge clears the top nav (72px)
+      setPastHero(heroImgRef.current.getBoundingClientRect().bottom <= 72);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const navColor = pastHero ? TEXT_NAV : BG;
 
   const isMobile = vw < 640;
   const isTablet = vw < 1024;
@@ -139,123 +191,105 @@ export default function ProjectPageTemplate(project: ProjectData) {
       >
         <Link
           href="/"
-          style={{ textDecoration: "none", fontFamily: "var(--font-silkscreen)", fontSize: 24, color: TEXT_NAV, lineHeight: 1 }}
+          style={{
+            textDecoration: "none", fontFamily: "var(--font-silkscreen)", fontSize: 24,
+            color: navColor, lineHeight: 1,
+            transition: "color 0.3s",
+          }}
         >
           SANDY QI
         </Link>
-        <NavLink href="/home">Designs</NavLink>
+        <NavLink href="/home" color={navColor}>Designs</NavLink>
       </div>
 
-      {/* Fixed bottom nav */}
+      {/* Fixed bottom nav — pointer-events: none on the container so the down arrow below
+          the hero stays clickable; re-enabled on the actual links inside */}
       <div
         style={{
           position: "fixed", bottom: 0, left: 0, right: 0, height: 72,
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "0 36px", zIndex: 100,
+          pointerEvents: "none",
         }}
       >
         <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 12, color: TEXT }}>
           © Sandy Qi 2026
         </span>
-        <NavLink href="/about">About me</NavLink>
+        <div style={{ pointerEvents: "auto" }}>
+          <NavLink href="/about">About me</NavLink>
+        </div>
       </div>
 
-      {/* Hero — (100svh - 48px) on desktop so the down arrow peeks below; auto on mobile */}
+      {/* Hero — (100svh - 64px) on desktop so the down arrow peeks below; auto-height on mobile */}
       <div ref={topRef}>
         <div
+          ref={heroImgRef}
           style={{
             position: "relative",
             ...(isMobile
-              ? { minHeight: "calc(100svh - 48px)" }
-              : { height: "calc(100svh - 48px)", minHeight: 600 }
+              ? { minHeight: "calc(100svh - 72px)" }
+              : { height: "calc(100svh - 72px)", minHeight: 600 }
             ),
             borderRadius: "0 0 32px 32px",
             overflow: "hidden",
           }}
         >
-          {/* Cover image or placeholder — absolute so it fills whatever height the container grows to */}
+          {/* Cover image or placeholder */}
           {project.coverImage ? (
             <Image src={project.coverImage} fill alt={project.name} style={{ objectFit: "cover" }} priority />
           ) : (
             <div style={{ position: "absolute", inset: 0, backgroundColor: project.coverBg ?? BG_SECONDARY }} />
           )}
 
-          {/* Content: row on desktop, column on mobile */}
-          <div
-            style={{
-              position: isMobile ? "relative" : "absolute",
-              ...(isMobile ? {} : { inset: 0 }),
-              display: "flex",
-              flexDirection: isMobile ? "column" : "row",
-              alignItems: "center",
-              justifyContent: isMobile ? "flex-start" : "center",
-              gap: isMobile ? 32 : 48,
-              padding: isMobile
-                ? "88px 24px 48px"
-                : isTablet
-                ? "72px 48px"
-                : "72px 96px",
-            }}
-          >
-            {/* Project info */}
+          {isMobile ? (
+            /* Mobile: stack project info → elevator pad */
             <div
               style={{
-                display: "flex", flexDirection: "column", gap: 16,
-                width: isMobile ? "100%" : 320,
-                flexShrink: 0,
+                position: "relative",
+                display: "flex", flexDirection: "column", alignItems: "center",
+                gap: 32, padding: "88px 24px 48px",
               }}
             >
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BG }}>
-                  {project.year}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-silkscreen)", fontWeight: 400,
-                    fontSize: isMobile ? 24 : 32,
-                    color: BG, textTransform: "uppercase", lineHeight: 1.1,
-                  }}
-                >
-                  {project.name}
-                </span>
-                <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BG }}>
-                  {project.blurb}
-                </span>
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {project.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    style={{
-                      fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 14, color: BG,
-                      border: `1px solid ${BG}`, borderRadius: 100, padding: "4px 12px",
-                    }}
-                  >
-                    {tag}
-                  </span>
-                ))}
+              <ProjectInfo project={project} isMobile />
+              <div
+                style={{
+                  transform: `scale(${Math.min(1, (vw - 48) / 340)})`,
+                  transformOrigin: "top center",
+                  marginBottom: `${340 * (1 - Math.min(1, (vw - 48) / 340)) * -0.5}px`,
+                }}
+              >
+                <ElevatorPad activeFloor={project.floor} />
               </div>
             </div>
-
-            {/* Elevator pad — scale to fit on narrow viewports */}
+          ) : (
+            /* Desktop/tablet: CSS grid keeps elevator pad at true horizontal center.
+               1fr | elevator pad (auto) | 1fr — left and right columns are equal so
+               the center column is exactly at 50% of the content area. */
             <div
-              style={
-                isMobile
-                  ? {
-                      transform: `scale(${Math.min(1, (vw - 48) / 340)})`,
-                      transformOrigin: "top center",
-                      marginBottom: `${(340 * (1 - Math.min(1, (vw - 48) / 340))) * -0.5}px`,
-                    }
-                  : undefined
-              }
+              style={{
+                position: "absolute", inset: 0,
+                display: "grid",
+                gridTemplateColumns: "1fr auto 1fr",
+                alignItems: "center",
+                padding: isTablet ? "72px 48px" : "72px 96px",
+              }}
             >
+              {/* Left column: project info, right-aligned so it sits close to the pad */}
+              <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: 48 }}>
+                <ProjectInfo project={project} isMobile={false} />
+              </div>
+
+              {/* Center column: elevator pad — sits at true page center */}
               <ElevatorPad activeFloor={project.floor} />
+
+              {/* Right column: empty mirror so the grid stays symmetric */}
+              <div />
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Down arrow — sits in the 48px gap below the hero, enticing the scroll */}
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: 48 }}>
+        {/* Down arrow — sits in the 72px gap below the hero */}
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: 72 }}>
           <IconButton onClick={scrollToIntro} icon={(c) => <ArrowDown color={c} />} />
         </div>
       </div>
@@ -309,7 +343,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
               padding: isMobile ? "0 24px" : isTablet ? "0 48px" : "0 96px",
             }}
           >
-            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: TEXT, alignSelf: "flex-start" }}>
+            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: TEXT, alignSelf: "center" }}>
               {section.title}
             </span>
             {(section.images ?? []).length === 0 ? (

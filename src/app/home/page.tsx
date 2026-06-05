@@ -1,7 +1,11 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import TransitionOverlay from "@/components/TransitionOverlay";
+import SoundToggle from "@/components/SoundToggle";
+import { useAudio } from "@/contexts/AudioContext";
 import IDCard from "@/components/IDCard";
 import ElevatorPad from "@/components/ElevatorPad";
 
@@ -124,10 +128,22 @@ function IconButton({
 const SCALE_MIN = 0.8;
 
 export default function HomePage() {
+  const router = useRouter();
+  const { muted, setMuted } = useAudio();
   const topRef = useRef<HTMLDivElement>(null);
   const padRef = useRef<HTMLDivElement>(null);
   const [vh, setVh] = useState(900);
   const [vw, setVw] = useState(1200);
+  const [exiting, setExiting] = useState(false);
+
+  const handleLogoClick = () => {
+    if (exiting) return;
+    setExiting(true);
+    setTimeout(() => {
+      sessionStorage.setItem("fromHome", "1");
+      router.push("/");
+    }, 430);
+  };
 
   useEffect(() => {
     const update = () => { setVh(window.innerHeight); setVw(window.innerWidth); };
@@ -165,6 +181,22 @@ export default function HomePage() {
         minHeight: "100vh",
       }}
     >
+
+      {/* Entry: fade out from brown on arrival */}
+      <TransitionOverlay
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.3, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
+        stagedExit
+      />
+      {/* Exit: fade to brown on logo click */}
+      <TransitionOverlay
+        initial={{ opacity: 0 }}
+        animate={{ opacity: exiting ? 1 : 0 }}
+        transition={{ duration: 0.25 }}
+        zIndex={150}
+      />
+
       {/* Top nav — transparent, fixed */}
       <div
         style={{
@@ -176,14 +208,17 @@ export default function HomePage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 36px",
+          padding: "0 18px 0 36px",
           zIndex: 100,
         }}
       >
-        <Link
-          href="/"
+        <button
+          onClick={handleLogoClick}
           style={{
-            textDecoration: "none",
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
             fontFamily: "var(--font-silkscreen)",
             fontSize: 24,
             color: TEXT_NAV,
@@ -191,8 +226,13 @@ export default function HomePage() {
           }}
         >
           SANDY QI
-        </Link>
-        <NavLink onClick={scrollToPad}>My work</NavLink>
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <NavLink onClick={scrollToPad}>My work</NavLink>
+          <div style={{ position: "relative", top: -2 }}>
+            <SoundToggle muted={muted} onClick={() => setMuted(!muted)} />
+          </div>
+        </div>
       </div>
 
       {/* Bottom nav — transparent, fixed */}
