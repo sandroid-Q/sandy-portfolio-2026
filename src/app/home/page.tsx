@@ -253,8 +253,8 @@ export default function HomePage() {
           padding: isMobile ? "0 18px 0 24px" : "0 18px 0 36px",
           zIndex: 100,
           background: isMobile && scrolled ? "rgba(229, 224, 215, 0.75)" : "transparent",
-          backdropFilter: isMobile && scrolled ? "blur(16px)" : "none",
-          WebkitBackdropFilter: isMobile && scrolled ? "blur(16px)" : "none",
+          backdropFilter: isMobile && scrolled ? "blur(8px)" : "none",
+          WebkitBackdropFilter: isMobile && scrolled ? "blur(8px)" : "none",
           transition: "background 0.3s ease, backdrop-filter 0.3s ease",
         }}
       >
