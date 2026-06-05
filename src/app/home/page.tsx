@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import TransitionOverlay from "@/components/TransitionOverlay";
 import SoundToggle from "@/components/SoundToggle";
@@ -53,10 +54,7 @@ function NavLink({
 
   if (onClick) {
     return (
-      <button
-        onClick={onClick}
-        style={{ background: "none", border: "none", padding: 0 }}
-      >
+      <button onClick={onClick} style={{ background: "none", border: "none", padding: 0 }}>
         {inner}
       </button>
     );
@@ -68,9 +66,27 @@ function NavLink({
   );
 }
 
+function HamburgerIcon({ open }: { open: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      {open ? (
+        <>
+          <line x1="5" y1="5" x2="19" y2="19" stroke={BROWN} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="19" y1="5" x2="5" y2="19" stroke={BROWN} strokeWidth="1.5" strokeLinecap="round" />
+        </>
+      ) : (
+        <>
+          <line x1="3" y1="5"  x2="21" y2="5"  stroke={BROWN} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="3" y1="12" x2="19" y2="12" stroke={BROWN} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="3" y1="19" x2="16" y2="19" stroke={BROWN} strokeWidth="1.5" strokeLinecap="round" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 const BG_BUTTON = "#F3F2F0";
 const HOVER_BROWN = "#D3BA9F";
-const BEIGE = "#E5E0D7";
 
 function ArrowDown({ color }: { color: string }) {
   return (
@@ -90,15 +106,8 @@ function ArrowUp({ color }: { color: string }) {
   );
 }
 
-function IconButton({
-  onClick,
-  icon,
-}: {
-  onClick: () => void;
-  icon: (color: string) => React.ReactNode;
-}) {
+function IconButton({ onClick, icon }: { onClick: () => void; icon: (color: string) => React.ReactNode }) {
   const [hovered, setHovered] = useState(false);
-
   return (
     <button
       onClick={onClick}
@@ -122,9 +131,6 @@ function IconButton({
   );
 }
 
-// Card center sits at 442px below the IDCard top (213px to card top + 229px to card center).
-// strapExtension = vh/2 - 442 → grows the strap so card is vertically centered.
-// When negative (small screens) clamp to 0 and shift the whole component up instead.
 const SCALE_MIN = 0.8;
 
 export default function HomePage() {
@@ -135,10 +141,21 @@ export default function HomePage() {
   const [vh, setVh] = useState(900);
   const [vw, setVw] = useState(1200);
   const [exiting, setExiting] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  const isMobile = vw < 768;
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 0);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleLogoClick = () => {
     if (exiting) return;
     setExiting(true);
+    setMenuOpen(false);
     setTimeout(() => {
       sessionStorage.setItem("fromHome", "1");
       router.push("/");
@@ -152,35 +169,33 @@ export default function HomePage() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // strapExtension ≥ 0: grow the strap to center the card on large screens.
-  // cardMarginTop < 0: shift the whole component up on small screens (clips strap at top).
+  // Close menu if viewport grows past breakpoint
+  useEffect(() => {
+    if (!isMobile) setMenuOpen(false);
+  }, [isMobile]);
+
   const raw = vh / 2 - 442;
   const strapExtension = Math.max(0, raw);
   const cardMarginTop = Math.min(0, raw);
 
-  // IDCard: scale only for very narrow viewports
   const scale = Math.min(1, vw < 340 ? Math.max(SCALE_MIN, vw / 340) : 1);
   const shrink = (276 * (1 - scale)) / 2;
 
-  // ElevatorPad: natural width 392px, minimum 16px margin each side
   const PAD_W = 392;
-  const PAD_H = 772; // approx: label + gap + border box (5 rows × 104px + 4 × 24px gap + 96px pad + 4px border)
+  const PAD_H = 772;
   const padScale = Math.min(1, (vw - 32) / PAD_W);
   const padShrinkX = (PAD_W * (1 - padScale)) / 2;
   const padShrinkY = PAD_H * (1 - padScale);
 
-  const scrollToPad = () =>
+  const scrollToPad = () => {
+    setMenuOpen(false);
     padRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
   const scrollToTop = () =>
     topRef.current?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <div
-      style={{
-        backgroundColor: "var(--color-bg-secondary)",
-        minHeight: "100vh",
-      }}
-    >
+    <div style={{ backgroundColor: "var(--color-bg-secondary)", minHeight: "100vh" }}>
 
       {/* Entry: fade out from brown on arrival */}
       <TransitionOverlay
@@ -197,7 +212,34 @@ export default function HomePage() {
         zIndex={150}
       />
 
-      {/* Top nav — transparent, fixed */}
+      {/* Mobile hamburger menu overlay */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              top: 72,
+              backgroundColor: "var(--color-bg-secondary)",
+              zIndex: 90,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 48,
+            }}
+          >
+            <NavLink onClick={scrollToPad}>My work</NavLink>
+            <NavLink href="/about">About me</NavLink>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Top nav */}
       <div
         style={{
           position: "fixed",
@@ -208,8 +250,12 @@ export default function HomePage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 18px 0 36px",
+          padding: isMobile ? "0 18px 0 24px" : "0 18px 0 36px",
           zIndex: 100,
+          background: isMobile && scrolled ? "rgba(229, 224, 215, 0.75)" : "transparent",
+          backdropFilter: isMobile && scrolled ? "blur(16px)" : "none",
+          WebkitBackdropFilter: isMobile && scrolled ? "blur(16px)" : "none",
+          transition: "background 0.3s ease, backdrop-filter 0.3s ease",
         }}
       >
         <button
@@ -227,43 +273,72 @@ export default function HomePage() {
         >
           SANDY QI
         </button>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <NavLink onClick={scrollToPad}>My work</NavLink>
-          <div style={{ position: "relative", top: -2 }}>
-            <SoundToggle muted={muted} onClick={() => setMuted(!muted)} />
+
+        {isMobile ? (
+          /* Mobile: sound + hamburger */
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ position: "relative", top: -2 }}>
+              <SoundToggle muted={muted} onClick={() => setMuted(!muted)} />
+            </div>
+            <button
+              onClick={() => setMenuOpen(v => !v)}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 8,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative",
+                top: -2,
+              }}
+            >
+              <HamburgerIcon open={menuOpen} />
+            </button>
           </div>
-        </div>
+        ) : (
+          /* Desktop: my work + sound */
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <NavLink onClick={scrollToPad}>My work</NavLink>
+            <div style={{ position: "relative", top: -2 }}>
+              <SoundToggle muted={muted} onClick={() => setMuted(!muted)} />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Bottom nav — transparent, fixed */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 72,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 36px",
-          zIndex: 100,
-        }}
-      >
-        <span
+      {/* Bottom nav — desktop only */}
+      {!isMobile && (
+        <div
           style={{
-            fontFamily: "var(--font-space-grotesk)",
-            fontWeight: 300,
-            fontSize: 10,
-            color: "#000",
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 72,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 36px",
+            zIndex: 100,
           }}
         >
-          © Sandy Qi 2026
-        </span>
-        <NavLink href="/about">About me</NavLink>
-      </div>
+          <span
+            style={{
+              fontFamily: "var(--font-space-grotesk)",
+              fontWeight: 300,
+              fontSize: 10,
+              color: "#000",
+            }}
+          >
+            © Sandy Qi 2026
+          </span>
+          <NavLink href="/about">About me</NavLink>
+        </div>
+      )}
 
-      {/* Section 1: IDCard — strap always starts at top of screen, card is centered */}
+      {/* Section 1: IDCard */}
       <div
         ref={topRef}
         style={{
@@ -287,14 +362,14 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Section 2: scroll anchor + ElevatorPad */}
+      {/* Section 2: ElevatorPad */}
       <div
         style={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           gap: 64,
-          paddingBottom: 168,
+          paddingBottom: isMobile ? 60 : 168,
         }}
       >
         <IconButton onClick={scrollToPad} icon={(c) => <ArrowDown color={c} />} />
@@ -315,6 +390,28 @@ export default function HomePage() {
 
         <IconButton onClick={scrollToTop} icon={(c) => <ArrowUp color={c} />} />
       </div>
+
+      {/* Copyright — mobile only, static at page bottom */}
+      {isMobile && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            paddingBottom: 32,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--font-space-grotesk)",
+              fontWeight: 300,
+              fontSize: 10,
+              color: "#000",
+            }}
+          >
+            © Sandy Qi 2026
+          </span>
+        </div>
+      )}
     </div>
   );
 }
