@@ -76,8 +76,11 @@ export default function FloorBreadcrumb({ activeFloor }: { activeFloor: string }
       style={{
         display: "flex",
         flexDirection: "row",
+        flexWrap: "wrap",
         alignItems: "center",
+        justifyContent: "center",
         gap: 12,
+        padding: "0 32px",
       }}
     >
       {FLOORS.map((floor, i) => (

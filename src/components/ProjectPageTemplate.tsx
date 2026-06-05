@@ -95,9 +95,9 @@ function NavLink({ href, children, color = TEXT_NAV }: { href: string; children:
   );
 }
 
-function MetaField({ label, value }: { label: string; value: string }) {
+function MetaField({ label, value, flex }: { label: string; value: string; flex?: boolean }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12, width: 144 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, ...(flex ? { flex: 1, minWidth: 0 } : { width: 144 }) }}>
       <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: TEXT }}>
         {label}
       </span>
@@ -247,7 +247,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
               style={{
                 position: "relative",
                 display: "flex", flexDirection: "column", alignItems: "center",
-                gap: 32, padding: "88px 24px 48px",
+                gap: 32, padding: "88px 32px 48px",
               }}
             >
               <ProjectInfo project={project} isMobile />
@@ -297,7 +297,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
       {/* All scrollable content below hero */}
       <div
         style={{
-          display: "flex", flexDirection: "column", alignItems: "center",
+          display: "flex", flexDirection: "column",
           gap: 144, paddingBottom: 168,
         }}
       >
@@ -305,20 +305,20 @@ export default function ProjectPageTemplate(project: ProjectData) {
         <div
           ref={introRef}
           style={{
-            width: "100%", maxWidth: 1280,
+            width: "100%", maxWidth: 1280, margin: "0 auto",
             display: "flex",
             flexDirection: isMobile ? "column" : "row",
             justifyContent: "space-between",
             gap: isMobile ? 32 : 0,
-            padding: isMobile ? "32px 24px 0" : isTablet ? "32px 48px 0" : "32px 96px 0",
+            padding: isMobile ? "32px 32px 0" : isTablet ? "32px 48px 0" : "32px 96px 0",
             scrollMarginTop: 72,
           }}
         >
           {/* Metadata columns */}
           <div style={{ display: "flex", flexDirection: "row", gap: 32, flexWrap: "wrap" }}>
-            <MetaField label="Role" value={project.role} />
-            <MetaField label="Year" value={project.yearRange} />
-            <MetaField label="Platform" value={project.platform} />
+            <MetaField label="Role" value={project.role} flex={isMobile} />
+            <MetaField label="Year" value={project.yearRange} flex={isMobile} />
+            <MetaField label="Platform" value={project.platform} flex={isMobile} />
           </div>
 
           {/* Overview */}
@@ -337,10 +337,10 @@ export default function ProjectPageTemplate(project: ProjectData) {
           <div
             key={section.title}
             style={{
-              width: "100%", maxWidth: 1280,
+              width: "100%", maxWidth: 1280, margin: "0 auto",
               display: "flex", flexDirection: "column",
               alignItems: "center", gap: 48,
-              padding: isMobile ? "0 24px" : isTablet ? "0 48px" : "0 96px",
+              padding: isMobile ? "0 32px" : isTablet ? "0 48px" : "0 96px",
             }}
           >
             <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: TEXT, alignSelf: "center" }}>
