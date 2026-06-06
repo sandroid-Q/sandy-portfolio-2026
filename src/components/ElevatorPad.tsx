@@ -55,6 +55,19 @@ function BellIcon({ color }: { color: string }) {
 function PadButton({ btn, onDing, dark }: { btn: PadButtonDef; onDing: () => void; dark: boolean }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
+  const { muted } = useAudio();
+  const popRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    popRef.current = new Audio("/button-sound-pop.mp3");
+  }, []);
+
+  const playPop = () => {
+    const pop = popRef.current;
+    if (!pop || muted) return;
+    pop.currentTime = 0;
+    pop.play().catch(() => {});
+  };
 
   const isActive = btn.isActive ?? false;
   const isActivated = pressed || isActive;
@@ -89,7 +102,7 @@ function PadButton({ btn, onDing, dark }: { btn: PadButtonDef; onDing: () => voi
         initial={false}
         animate={outerAnimate}
         transition={{ duration: 0.12 }}
-        onHoverStart={() => setHovered(true)}
+        onHoverStart={() => { setHovered(true); playPop(); }}
         onHoverEnd={() => {
           setHovered(false);
           setPressed(false);
