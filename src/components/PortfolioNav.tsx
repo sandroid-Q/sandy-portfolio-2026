@@ -313,7 +313,7 @@ export default function PortfolioNav({
     ? hexToRgba(mobileBgColor, 0.75)
     : mobileBgColor;
 
-  const showFrost = (isMobile && scrolled) || (!isMobile && isProject && !isLightNav);
+  const showFrost = isProject ? !isLightNav : (isMobile && scrolled);
 
   const projectsNavLink =
     typeof projectsAction === "string" ? (
