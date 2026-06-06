@@ -103,6 +103,13 @@ export default function HomePage() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  useEffect(() => {
+    if (sessionStorage.getItem("scrollToPad") === "1") {
+      sessionStorage.removeItem("scrollToPad");
+      padRef.current?.scrollIntoView();
+    }
+  }, []);
+
   const raw = vh / 2 - 442;
   const strapExtension = Math.max(0, raw);
   const cardMarginTop = Math.min(0, raw);
@@ -173,7 +180,7 @@ export default function HomePage() {
       >
         <IconButton onClick={scrollToPad} icon={(c, h) => <ArrowDown color={c} hovered={h} />} />
 
-        <div ref={padRef} style={{ scrollMarginTop: 32 }}>
+        <div ref={padRef} id="elevator-pad" style={{ scrollMarginTop: 32 }}>
           <div
             style={{
               transform: `scale(${padScale})`,

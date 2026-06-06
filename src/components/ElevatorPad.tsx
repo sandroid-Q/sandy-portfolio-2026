@@ -52,19 +52,32 @@ function BellIcon({ color }: { color: string }) {
   );
 }
 
-function PadButton({ btn, onDing }: { btn: PadButtonDef; onDing: () => void }) {
+function PadButton({ btn, onDing, dark }: { btn: PadButtonDef; onDing: () => void; dark: boolean }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
   const isActive = btn.isActive ?? false;
   const isActivated = pressed || isActive;
 
-  // outer ring: transparent(BG) → red on hover → brown on pressed/active
-  const outerBg = isActivated ? BROWN : hovered ? RED : BG;
-  // inner circle: BG so it masks the outer fill; on active match outer (brown) to show just the ring stroke
-  const innerBg = isActivated ? BROWN : BG;
-  const innerBorderColor = isActivated ? BG : BROWN;
-  const contentColor = isActivated ? BG : BROWN;
+  const stroke         = dark ? BG : BROWN;
+  const defaultFill    = dark ? "transparent" : BG;
+  const activeFill     = dark ? BG : BROWN;
+  const defaultContent = dark ? BG : BROWN;
+  const activeContent  = dark ? BROWN : BG;
+
+  // Light mode: outer bg fill creates the ring (inner circle masks the center).
+  // Dark mode: thick border creates the ring so the center stays transparent on hover;
+  //            bg only changes on active to fill the whole circle.
+  const outerAnimate = dark
+    ? {
+        borderColor: isActivated ? activeFill : hovered ? RED : stroke,
+        backgroundColor: isActivated ? activeFill : "transparent",
+      }
+    : { backgroundColor: isActivated ? activeFill : hovered ? RED : defaultFill };
+
+  const innerBg          = isActivated ? activeFill   : defaultFill;
+  const innerBorderColor = isActivated ? activeContent : stroke;
+  const contentColor     = isActivated ? activeContent : defaultContent;
 
   return (
     <Link
@@ -73,7 +86,7 @@ function PadButton({ btn, onDing }: { btn: PadButtonDef; onDing: () => void }) {
     >
       <motion.div
         initial={false}
-        animate={{ backgroundColor: outerBg }}
+        animate={outerAnimate}
         transition={{ duration: 0.12 }}
         onHoverStart={() => setHovered(true)}
         onHoverEnd={() => {
@@ -86,8 +99,10 @@ function PadButton({ btn, onDing }: { btn: PadButtonDef; onDing: () => void }) {
         onTouchEnd={() => setPressed(false)}
         style={{
           borderRadius: "50%",
-          border: `2px solid ${BROWN}`,
-          padding: 10,
+          borderWidth: dark ? 12 : 2,
+          borderStyle: "solid",
+          borderColor: stroke,
+          padding: dark ? 0 : 10,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -144,7 +159,7 @@ function PadButton({ btn, onDing }: { btn: PadButtonDef; onDing: () => void }) {
   );
 }
 
-export default function ElevatorPad({ activeFloor = "G", onHeaderClick }: { activeFloor?: string; onHeaderClick?: () => void }) {
+export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean }) {
   const { muted } = useAudio();
   const dingRef = useRef<HTMLAudioElement | null>(null);
 
@@ -197,7 +212,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick }: { acti
           fontFamily: "var(--font-space-mono), monospace",
           fontWeight: 400,
           fontSize: 14,
-          color: BROWN,
+          color: dark ? BG : BROWN,
           textTransform: "uppercase",
           letterSpacing: "0.04em",
           display: "flex",
@@ -216,7 +231,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick }: { acti
           flexDirection: "column",
           gap: 24,
           padding: "48px 60px",
-          border: `2px solid ${BROWN}`,
+          border: `2px solid ${dark ? BG : BROWN}`,
         }}
       >
         {rows.map((row, rowIdx) => (
@@ -231,7 +246,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick }: { acti
             }}
           >
             {row.map((btn) => (
-              <PadButton key={btn.href} btn={btn} onDing={playDing} />
+              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} />
             ))}
           </div>
         ))}

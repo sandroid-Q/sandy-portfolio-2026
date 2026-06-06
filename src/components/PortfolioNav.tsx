@@ -14,6 +14,15 @@ const HOVER_COLOR = "#72503C";
 const NAV_LIGHT = "#F3F2F0";
 const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+const PROJECTS = [
+  { name: "Floor 1", href: "/project/1" },
+  { name: "Floor 2", href: "/project/2" },
+  { name: "Floor 3", href: "/project/3" },
+  { name: "Floor 4", href: "/project/4" },
+  { name: "Floor 5", href: "/project/5" },
+  { name: "AP+ Portals", href: "/project/6" },
+] as const;
+
 export interface PortfolioNavProps {
   /** "Projects" link: pass a href string, or a scroll-to handler */
   projectsAction: string | (() => void);
@@ -168,6 +177,32 @@ function HamburgerIcon({ open, color = BROWN }: { open: boolean; color?: string 
   );
 }
 
+function MenuLink({ href, onClick, children }: { href?: string; onClick?: () => void; children: string }) {
+  const [hovered, setHovered] = useState(false);
+  const inner = (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        fontFamily: "var(--font-space-mono), monospace",
+        fontWeight: 400,
+        fontSize: 18,
+        color: hovered ? TEXT_NAV : HOVER_COLOR,
+        textTransform: "uppercase",
+        cursor: "pointer",
+        transition: "color 0.15s",
+        letterSpacing: "0.02em",
+      }}
+    >
+      {children}
+    </div>
+  );
+  if (onClick) {
+    return <button onClick={onClick} style={{ background: "none", border: "none", padding: 0 }}>{inner}</button>;
+  }
+  return <Link href={href!} style={{ textDecoration: "none" }}>{inner}</Link>;
+}
+
 function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace("#", "");
   const r = parseInt(h.slice(0, 2), 16);
@@ -202,6 +237,11 @@ export default function PortfolioNav({
   useEffect(() => {
     if (!isMobile) setMenuOpen(false);
   }, [isMobile]);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 0);
@@ -242,23 +282,6 @@ export default function PortfolioNav({
       </NavLink>
     );
 
-  const projectsMenuLink =
-    typeof projectsAction === "string" ? (
-      <NavLink href={projectsAction} menu>
-        Projects
-      </NavLink>
-    ) : (
-      <NavLink
-        onClick={() => {
-          (projectsAction as () => void)();
-          setMenuOpen(false);
-        }}
-        menu
-      >
-        Projects
-      </NavLink>
-    );
-
   return (
     <>
       {/* Exit overlay — fades to brown when logo is clicked */}
@@ -280,20 +303,37 @@ export default function PortfolioNav({
             style={{
               position: "fixed",
               inset: 0,
-              top: 72,
-              backgroundColor: "var(--color-bg-secondary)",
+              backgroundColor: hexToRgba(mobileBgColor, 0.88),
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
               zIndex: 90,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 48,
+              gap: 44,
             }}
           >
-            {projectsMenuLink}
-            <NavLink href="/about" menu>
-              About me
-            </NavLink>
+            {PROJECTS.map(({ name, href }, i) => (
+              <motion.div
+                key={href}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.22, delay: 0.06 + i * 0.07 }}
+                onClick={() => setMenuOpen(false)}
+              >
+                <MenuLink href={href}>{name}</MenuLink>
+              </motion.div>
+            ))}
+
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, delay: 0.06 + PROJECTS.length * 0.07 }}
+              onClick={() => setMenuOpen(false)}
+            >
+              <MenuLink href="/about">About me</MenuLink>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

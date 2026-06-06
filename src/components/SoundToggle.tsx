@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const BROWN = "#4E3A34";
 const DEFAULT_COLOR = "#72503C";
@@ -17,18 +17,22 @@ interface SoundToggleProps {
 export default function SoundToggle({ muted, onClick }: SoundToggleProps) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
+  const wasTouched = useRef(false);
 
   const color = pressed ? RED : hovered ? BROWN : DEFAULT_COLOR;
 
   return (
     <button
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
+      onMouseEnter={() => {
+        if (wasTouched.current) { wasTouched.current = false; return; }
+        setHovered(true);
+      }}
       onMouseLeave={() => { setHovered(false); setPressed(false); }}
       onMouseDown={() => setPressed(true)}
       onMouseUp={() => setPressed(false)}
-      onTouchStart={() => setPressed(true)}
-      onTouchEnd={() => setPressed(false)}
+      onTouchStart={() => { wasTouched.current = true; setPressed(true); }}
+      onTouchEnd={() => { setPressed(false); }}
       aria-label={muted ? "Unmute" : "Mute"}
       style={{
         width: 44,

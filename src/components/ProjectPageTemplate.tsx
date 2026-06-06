@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ElevatorPad from "./ElevatorPad";
 import FloorBreadcrumb from "./FloorBreadcrumb";
@@ -25,6 +26,7 @@ export interface ProjectData {
   tags: string[];
   coverImage?: string;
   coverBg?: string;
+  darkPad?: boolean;
   role: string;
   yearRange: string;
   platform: string;
@@ -153,14 +155,19 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const isMobile = vw < 640;
   const isTablet = vw < 1024;
 
+  const router = useRouter();
   const scrollToIntro = () => introRef.current?.scrollIntoView({ behavior: "smooth" });
   const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: "smooth" });
+  const goToProjects = () => {
+    sessionStorage.setItem("scrollToPad", "1");
+    router.push("/home");
+  };
 
   return (
     <div style={{ backgroundColor: BG, minHeight: "100vh" }}>
 
       <PortfolioNav
-        projectsAction="/home"
+        projectsAction={goToProjects}
         isLightNav={!pastHero}
         mobileBgColor="#F3F2F0"
       />
@@ -203,7 +210,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
                   marginBottom: `${340 * (1 - Math.min(1, (vw - 48) / 340)) * -0.5}px`,
                 }}
               >
-                <ElevatorPad activeFloor={project.floor} />
+                <ElevatorPad activeFloor={project.floor} dark={project.darkPad} />
               </div>
             </div>
           ) : (
@@ -225,7 +232,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
               </div>
 
               {/* Center column: elevator pad — sits at true page center */}
-              <ElevatorPad activeFloor={project.floor} />
+              <ElevatorPad activeFloor={project.floor} dark={project.darkPad} />
 
               {/* Right column: empty mirror so the grid stays symmetric */}
               <div />
@@ -317,7 +324,9 @@ export default function ProjectPageTemplate(project: ProjectData) {
         ))}
 
         {/* Up arrow */}
-        <IconButton onClick={scrollToTop} icon={(c) => <ArrowUp color={c} />} bg="#E6E5E2" />
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <IconButton onClick={scrollToTop} icon={(c) => <ArrowUp color={c} />} bg="#E6E5E2" />
+        </div>
 
         {/* Floor breadcrumb nav */}
         <FloorBreadcrumb activeFloor={project.floor} />

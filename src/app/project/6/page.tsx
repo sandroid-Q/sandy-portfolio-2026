@@ -9,6 +9,7 @@ export default function Level6Page() {
       blurb="Harmonising AP+'s developer, testing automation and role management experiences"
       tags={["Web", "Design system"]}
       coverBg="#0D033C"
+      darkPad
       role="Lead Designer"
       yearRange="2024–2025"
       platform="Web"
