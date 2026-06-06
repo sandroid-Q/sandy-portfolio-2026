@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion, useAnimation } from "framer-motion";
 import Image from "next/image";
 import ElevatorPad from "./ElevatorPad";
 import FloorBreadcrumb from "./FloorBreadcrumb";
@@ -34,25 +35,57 @@ export interface ProjectData {
   sections?: ProjectSection[];
 }
 
-function ArrowDown({ color }: { color: string }) {
+function ArrowDown({ color, hovered }: { color: string; hovered: boolean }) {
+  const controls = useAnimation();
+
+  useEffect(() => {
+    if (hovered) {
+      controls.start({
+        y: [0, 52, -52, 0],
+        transition: { duration: 0.4, times: [0, 0.42, 0.43, 1], ease: ["easeIn", "linear", "easeOut"] },
+      });
+    } else {
+      controls.stop();
+      controls.set({ y: 0 });
+    }
+  }, [hovered, controls]);
+
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M12 0.75L12 23.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M1.5 12.75L12 23.25L22.5 12.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <motion.div animate={controls}>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 0.75L12 23.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M1.5 12.75L12 23.25L22.5 12.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </motion.div>
   );
 }
 
-function ArrowUp({ color }: { color: string }) {
+function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
+  const controls = useAnimation();
+
+  useEffect(() => {
+    if (hovered) {
+      controls.start({
+        y: [0, -52, 52, 0],
+        transition: { duration: 0.4, times: [0, 0.42, 0.43, 1], ease: ["easeIn", "linear", "easeOut"] },
+      });
+    } else {
+      controls.stop();
+      controls.set({ y: 0 });
+    }
+  }, [hovered, controls]);
+
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M12 23.25L12 0.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M22.5 11.25L12 0.75L1.5 11.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <motion.div animate={controls}>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 23.25L12 0.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M22.5 11.25L12 0.75L1.5 11.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </motion.div>
   );
 }
 
-function IconButton({ onClick, icon, bg = BG }: { onClick: () => void; icon: (c: string) => React.ReactNode; bg?: string }) {
+function IconButton({ onClick, icon, bg = BG }: { onClick: () => void; icon: (c: string, h: boolean) => React.ReactNode; bg?: string }) {
   const [hovered, setHovered] = useState(false);
   return (
     <button
@@ -70,9 +103,10 @@ function IconButton({ onClick, icon, bg = BG }: { onClick: () => void; icon: (c:
         alignItems: "center",
         justifyContent: "center",
         transition: "background-color 0.15s",
+        overflow: "hidden",
       }}
     >
-      {icon(BROWN)}
+      {icon(BROWN, hovered)}
     </button>
   );
 }
@@ -242,7 +276,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
 
         {/* Down arrow — sits in the 72px gap below the hero */}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: 72 }}>
-          <IconButton onClick={scrollToIntro} icon={(c) => <ArrowDown color={c} />} />
+          <IconButton onClick={scrollToIntro} icon={(c, h) => <ArrowDown color={c} hovered={h} />} />
         </div>
       </div>
 
@@ -325,7 +359,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
 
         {/* Up arrow */}
         <div style={{ display: "flex", justifyContent: "center" }}>
-          <IconButton onClick={scrollToTop} icon={(c) => <ArrowUp color={c} />} bg="#E6E5E2" />
+          <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} bg="#E6E5E2" />
         </div>
 
         {/* Floor breadcrumb nav */}

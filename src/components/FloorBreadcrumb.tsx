@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 const BROWN = "#4E3A34";
 const GOLD = "#E4C298";
@@ -20,29 +21,38 @@ function FloorLink({ label, href, isActive }: { label: string; href: string; isA
   const [hovered, setHovered] = useState(false);
 
   const isBold = isActive || hovered;
-  const textColor = isActive ? BROWN : BROWN;
   const underlineColor = isActive ? GOLD : BROWN;
   const underlineHeight = isActive ? 2 : 1;
-  const showUnderline = isActive || hovered;
 
   const inner = (
     <span
       style={{
+        position: "relative",
         fontFamily: "var(--font-space-grotesk), system-ui, sans-serif",
         fontWeight: isBold ? 700 : 400,
         fontSize: 14,
-        color: textColor,
+        color: BROWN,
         whiteSpace: "nowrap",
         display: "inline-block",
-        // underline via box-shadow so it stays at text-bottom without adding layout height
-        boxShadow: showUnderline
-          ? `0 ${underlineHeight}px 0 ${underlineColor}`
-          : "none",
         paddingBottom: 3,
-        transition: "box-shadow 0.15s, font-weight 0.1s",
       }}
     >
       {label}
+      <motion.span
+        initial={{ scaleX: isActive ? 1 : 0 }}
+        animate={{ scaleX: isActive || hovered ? 1 : 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: underlineHeight,
+          backgroundColor: underlineColor,
+          transformOrigin: "left",
+          display: "block",
+        }}
+      />
     </span>
   );
 

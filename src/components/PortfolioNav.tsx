@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import SoundToggle from "./SoundToggle";
 import TransitionOverlay from "./TransitionOverlay";
 import { useAudio } from "@/contexts/AudioContext";
@@ -12,16 +13,8 @@ const BROWN = "#4E3A34";
 const TEXT_NAV = "#232122";
 const HOVER_COLOR = "#72503C";
 const NAV_LIGHT = "#F3F2F0";
+const DARK_RED = "#AE1819";
 const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-const PROJECTS = [
-  { name: "Floor 1", href: "/project/1" },
-  { name: "Floor 2", href: "/project/2" },
-  { name: "Floor 3", href: "/project/3" },
-  { name: "Floor 4", href: "/project/4" },
-  { name: "Floor 5", href: "/project/5" },
-  { name: "AP+ Portals", href: "/project/6" },
-] as const;
 
 export interface PortfolioNavProps {
   /** "Projects" link: pass a href string, or a scroll-to handler */
@@ -177,21 +170,21 @@ function HamburgerIcon({ open, color = BROWN }: { open: boolean; color?: string 
   );
 }
 
-function MenuLink({ href, onClick, children }: { href?: string; onClick?: () => void; children: string }) {
+function MenuLink({ href, onClick, children, active }: { href?: string; onClick?: () => void; children: string; active?: boolean }) {
   const [hovered, setHovered] = useState(false);
   const inner = (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        fontFamily: "var(--font-space-mono), monospace",
-        fontWeight: 400,
-        fontSize: 18,
-        color: hovered ? TEXT_NAV : HOVER_COLOR,
-        textTransform: "uppercase",
+        fontFamily: "var(--font-space-grotesk)",
+        fontWeight: 500,
+        fontSize: 48,
+        letterSpacing: "-0.03em",
+        lineHeight: 1.1,
+        color: active ? DARK_RED : hovered ? BROWN : HOVER_COLOR,
         cursor: "pointer",
         transition: "color 0.15s",
-        letterSpacing: "0.02em",
       }}
     >
       {children}
@@ -201,6 +194,56 @@ function MenuLink({ href, onClick, children }: { href?: string; onClick?: () => 
     return <button onClick={onClick} style={{ background: "none", border: "none", padding: 0 }}>{inner}</button>;
   }
   return <Link href={href!} style={{ textDecoration: "none" }}>{inner}</Link>;
+}
+
+function CoffeeChatButton({ onClick }: { onClick: () => void }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+    >
+      <span style={{
+        fontFamily: "var(--font-space-grotesk)",
+        fontWeight: 300,
+        fontSize: 16,
+        letterSpacing: "0.04em",
+        color: BROWN,
+        textTransform: "uppercase",
+        display: "block",
+        transform: hovered ? "translateY(-3px)" : "translateY(0)",
+        transition: "transform 0.2s ease",
+      }}>
+        ☕️ Coffee chat?
+      </span>
+    </button>
+  );
+}
+
+function MenuElevator({ onClick }: { onClick: () => void }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block" }}
+    >
+      <Image
+        src="/icons/menu-elevator.png"
+        width={92}
+        height={119}
+        alt="Return to entrance"
+        style={{
+          display: "block",
+          transform: hovered ? "translateY(-3px)" : "translateY(0)",
+          transition: "transform 0.2s ease",
+        }}
+      />
+    </button>
+  );
 }
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -219,7 +262,12 @@ export default function PortfolioNav({
   onLogoClick,
 }: PortfolioNavProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { muted, setMuted } = useAudio();
+
+  const isHome = pathname === "/home";
+  const isProject = pathname.startsWith("/project/");
+  const isAbout = pathname === "/about";
   const [exiting, setExiting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -309,30 +357,51 @@ export default function PortfolioNav({
               zIndex: 90,
               display: "flex",
               flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 44,
+              justifyContent: "flex-start",
+              paddingTop: "35vh",
+              paddingLeft: 36,
+              gap: 0,
             }}
           >
-            {PROJECTS.map(({ name, href }, i) => (
+            {[
+              { label: "Home", active: isHome, action: () => { router.push("/home"); setMenuOpen(false); } },
+              {
+                label: "Projects", active: isProject, action: () => {
+                  if (typeof projectsAction === "string") router.push(projectsAction);
+                  else (projectsAction as () => void)();
+                  setMenuOpen(false);
+                },
+              },
+              { label: "About me", active: isAbout, action: () => { router.push("/about"); setMenuOpen(false); } },
+            ].map(({ label, active, action }, i) => (
               <motion.div
-                key={href}
+                key={label}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.22, delay: 0.06 + i * 0.07 }}
-                onClick={() => setMenuOpen(false)}
               >
-                <MenuLink href={href}>{name}</MenuLink>
+                <MenuLink onClick={action} active={active}>{label}</MenuLink>
               </motion.div>
             ))}
 
+            {/* Bottom row: elevator (→ cover page) left, coffee chat right */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.22, delay: 0.06 + PROJECTS.length * 0.07 }}
-              onClick={() => setMenuOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.32 }}
+              style={{
+                position: "absolute",
+                bottom: 40,
+                left: 28,
+                right: 36,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+              }}
             >
-              <MenuLink href="/about">About me</MenuLink>
+              <MenuElevator onClick={handleLogoClick} />
+
+              <CoffeeChatButton onClick={() => { /* TODO: open contact modal */ }} />
             </motion.div>
           </motion.div>
         )}
@@ -349,7 +418,7 @@ export default function PortfolioNav({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: isMobile ? "0 18px 0 24px" : "0 18px 0 36px",
+          padding: isMobile ? "0 18px 0 24px" : "0 36px",
           zIndex: 100,
           background: isMobile && scrolled ? frostBg : "transparent",
           backdropFilter: isMobile && scrolled ? "blur(8px)" : "none",
