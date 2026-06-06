@@ -81,9 +81,9 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
   const containerRef  = useRef<HTMLDivElement>(null);
   const mouseVel      = useRef({ x: 0, t: 0, vx: 0 });
   const hadSwingRef   = useRef(false);
-  const littleSndRef  = useRef<HTMLAudioElement | null>(null);
+  const little1Ref    = useRef<HTMLAudioElement | null>(null);
+  const little2Ref    = useRef<HTMLAudioElement | null>(null);
   const bigSndRef     = useRef<HTMLAudioElement | null>(null);
-  const audioCtxRef   = useRef<AudioContext | null>(null);
 
   // ── Entrance springs ──────────────────────────────────────────────────────
   const y            = useSpring(-680, { stiffness: 80, damping: 12, mass: 1 });
@@ -100,25 +100,9 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
   }, [y, lanyardEntry, cardEntry]);
 
   useEffect(() => {
-    const ctx    = new AudioContext();
-    const little = new Audio("/swipe-little.mp3");
-    const big    = new Audio("/swipe-big.mp3");
-
-    // Boost gain above the 1.0 HTMLAudioElement ceiling
-    const gainNode = ctx.createGain();
-    gainNode.gain.value = 2.2;
-    gainNode.connect(ctx.destination);
-
-    for (const audio of [little, big]) {
-      const src = ctx.createMediaElementSource(audio);
-      src.connect(gainNode);
-    }
-
-    audioCtxRef.current  = ctx;
-    littleSndRef.current = little;
-    bigSndRef.current    = big;
-
-    return () => { ctx.close(); };
+    little1Ref.current = new Audio("/swipe-little.mp3");
+    little2Ref.current = new Audio("/swipe-little.mp3");
+    bigSndRef.current  = new Audio("/swipe-big.mp3");
   }, []);
 
   // ── Hinge 1 — top attachment: strap barely swings ────────────────────────
@@ -190,13 +174,21 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
     const vx = mouseVel.current.vx; // px/sec at exit
     const absVx = Math.abs(vx);
 
-    // Play swipe sound: big for fast exits, little for any meaningful swing
+    // Play swipe sound: big for fast exits, little (doubled) for any meaningful swing
     const playSwipe = (big: boolean) => {
-      const snd = big ? bigSndRef.current : littleSndRef.current;
-      if (!snd || muted) return;
-      const ctx = audioCtxRef.current;
-      const resume = ctx && ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
-      resume.then(() => { snd.currentTime = 0; snd.play().catch(() => {}); });
+      if (muted) return;
+      if (big) {
+        const snd = bigSndRef.current;
+        if (!snd) return;
+        snd.currentTime = 0;
+        snd.play().catch(() => {});
+      } else {
+        for (const snd of [little1Ref.current, little2Ref.current]) {
+          if (!snd) continue;
+          snd.currentTime = 0;
+          snd.play().catch(() => {});
+        }
+      }
     };
     if (absVx > 300) {
       playSwipe(true);
