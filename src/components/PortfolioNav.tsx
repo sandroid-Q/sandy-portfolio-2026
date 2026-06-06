@@ -313,6 +313,8 @@ export default function PortfolioNav({
     ? hexToRgba(mobileBgColor, 0.75)
     : mobileBgColor;
 
+  const showFrost = (isMobile && scrolled) || (!isMobile && isProject && !isLightNav);
+
   const projectsNavLink =
     typeof projectsAction === "string" ? (
       <NavLink href={projectsAction} color={navLinkColor}>
@@ -420,9 +422,9 @@ export default function PortfolioNav({
           justifyContent: "space-between",
           padding: isMobile ? "0 18px 0 24px" : "0 36px",
           zIndex: 100,
-          background: isMobile && scrolled ? frostBg : "transparent",
-          backdropFilter: isMobile && scrolled ? "blur(8px)" : "none",
-          WebkitBackdropFilter: isMobile && scrolled ? "blur(8px)" : "none",
+          background: showFrost ? frostBg : "transparent",
+          backdropFilter: showFrost ? "blur(8px)" : "none",
+          WebkitBackdropFilter: showFrost ? "blur(8px)" : "none",
           transition: "background 0.3s ease, backdrop-filter 0.3s ease",
         }}
       >

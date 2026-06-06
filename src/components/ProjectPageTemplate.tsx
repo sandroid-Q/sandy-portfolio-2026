@@ -187,6 +187,8 @@ export default function ProjectPageTemplate(project: ProjectData) {
 
   const isMobile = vw < 640;
   const isTablet = vw < 1024;
+  // Fluid side padding: 32px at 640px → 96px at 1280px, continuous
+  const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
 
   const router = useRouter();
   const scrollToIntro = () => introRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -256,7 +258,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 display: "grid",
                 gridTemplateColumns: "1fr auto 1fr",
                 alignItems: "center",
-                padding: isTablet ? "72px 48px" : "72px 96px",
+                padding: `72px ${sidePad}`,
               }}
             >
               {/* Left column: project info, right-aligned so it sits close to the pad */}
@@ -295,7 +297,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
             flexDirection: isMobile ? "column" : "row",
             justifyContent: "space-between",
             gap: isMobile ? 32 : 0,
-            padding: isMobile ? "32px 32px 0" : isTablet ? "32px 48px 0" : "32px 96px 0",
+            padding: `32px ${sidePad} 0`,
             scrollMarginTop: 72,
           }}
         >
@@ -325,7 +327,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
               width: "100%",
               display: "flex", flexDirection: "column",
               alignItems: "center", gap: 48,
-              padding: isMobile ? "0 32px" : isTablet ? "0 48px" : "0 96px",
+              padding: `0 ${sidePad}`,
             }}
           >
             <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: BROWN, alignSelf: "center" }}>
