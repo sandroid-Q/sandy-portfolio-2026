@@ -65,24 +65,25 @@ function PadButton({ btn, onDing, dark }: { btn: PadButtonDef; onDing: () => voi
   const defaultContent = dark ? BG : BROWN;
   const activeContent  = dark ? BROWN : BG;
 
-  // Light mode: outer bg fill creates the ring (inner circle masks the center).
-  // Dark mode: thick border creates the ring so the center stays transparent on hover;
-  //            bg only changes on active to fill the whole circle.
+  // Light mode: outer bg animates to RED on hover; inner circle masks center with BG fill.
+  // Dark mode: outer bg only fills on active. Inner circle box-shadow spreads 10px outward
+  //            into the padding gap, clipped by overflow:hidden on the outer circle — so
+  //            only the ring between the two strokes turns red, center stays transparent.
   const outerAnimate = dark
-    ? {
-        borderColor: isActivated ? activeFill : hovered ? RED : stroke,
-        backgroundColor: isActivated ? activeFill : "transparent",
-      }
+    ? { backgroundColor: isActivated ? activeFill : "transparent" }
     : { backgroundColor: isActivated ? activeFill : hovered ? RED : defaultFill };
 
   const innerBg          = isActivated ? activeFill   : defaultFill;
   const innerBorderColor = isActivated ? activeContent : stroke;
   const contentColor     = isActivated ? activeContent : defaultContent;
+  const innerShadow      = dark && hovered && !isActivated
+    ? `0 0 0 10px ${RED}`
+    : "0 0 0 0px transparent";
 
   return (
     <Link
       href={btn.href}
-      style={{ display: "block", outline: "none", WebkitTapHighlightColor: "transparent" }}
+      style={{ display: "block", outline: "none", WebkitTapHighlightColor: "transparent", pointerEvents: isActive ? "none" : "auto" }}
     >
       <motion.div
         initial={false}
@@ -99,20 +100,19 @@ function PadButton({ btn, onDing, dark }: { btn: PadButtonDef; onDing: () => voi
         onTouchEnd={() => setPressed(false)}
         style={{
           borderRadius: "50%",
-          borderWidth: dark ? 12 : 2,
-          borderStyle: "solid",
-          borderColor: stroke,
-          padding: dark ? 0 : 10,
+          border: `2px solid ${stroke}`,
+          padding: 10,
+          overflow: dark ? "hidden" : undefined,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          cursor: "pointer",
+          cursor: isActive ? "default" : "pointer",
           userSelect: "none",
         }}
       >
         <motion.div
           initial={false}
-          animate={{ backgroundColor: innerBg, borderColor: innerBorderColor }}
+          animate={{ backgroundColor: innerBg, borderColor: innerBorderColor, boxShadow: innerShadow }}
           transition={{ duration: 0.12 }}
           style={{
             width: 80,
