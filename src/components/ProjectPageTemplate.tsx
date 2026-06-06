@@ -194,8 +194,10 @@ export default function ProjectPageTemplate(project: ProjectData) {
   // Scale the elevator pad to fit within the hero height on desktop.
   // Natural pad height ≈ 774px (header + gap + 5 rows with padding/gaps).
   // Available height = hero (vh-72) minus grid's 72px top+bottom padding.
+  // Responsiveness stops at 700px screen height.
   const PAD_NATURAL_H = 774;
-  const desktopPadScale = isMobile ? 1 : Math.min(1, (vh - 72 - 144) / PAD_NATURAL_H);
+  const clampedVh = Math.max(700, vh);
+  const desktopPadScale = isMobile ? 1 : Math.min(1, (clampedVh - 72 - 144) / PAD_NATURAL_H);
 
   const router = useRouter();
   const scrollToIntro = () => introRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -264,18 +266,17 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 position: "absolute", inset: 0,
                 display: "grid",
                 gridTemplateColumns: "1fr auto 1fr",
-                gridTemplateRows: "1fr",
-                alignItems: "center",
+                alignItems: "start",
                 padding: `72px ${sidePad}`,
               }}
             >
-              {/* Left column: project info, right-aligned so it sits close to the pad */}
-              <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: 48 }}>
+              {/* Left column: project info — full available height so flexbox can centre it */}
+              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", paddingRight: 48, height: clampedVh - 72 - 144 }}>
                 <ProjectInfo project={project} isMobile={false} />
               </div>
 
               {/* Center column: elevator pad — sits at true page center */}
-              <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "center center" }}>
+              <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "top center" }}>
                 <ElevatorPad activeFloor={project.floor} dark={project.darkPad} />
               </div>
 
