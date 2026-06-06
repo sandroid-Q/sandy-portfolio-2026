@@ -165,10 +165,11 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const introRef = useRef<HTMLDivElement>(null);
   const heroImgRef = useRef<HTMLDivElement>(null);
   const [vw, setVw] = useState(1280);
+  const [vh, setVh] = useState(900);
   const [pastHero, setPastHero] = useState(false);
 
   useEffect(() => {
-    const update = () => setVw(window.innerWidth);
+    const update = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
@@ -189,6 +190,12 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const isTablet = vw < 1024;
   // Fluid side padding: 32px at 640px → 96px at 1280px, continuous
   const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
+
+  // Scale the elevator pad to fit within the hero height on desktop.
+  // Natural pad height ≈ 774px (header + gap + 5 rows with padding/gaps).
+  // Available height = hero (vh-72) minus grid's 72px top+bottom padding.
+  const PAD_NATURAL_H = 774;
+  const desktopPadScale = isMobile ? 1 : Math.min(1, (vh - 72 - 144) / PAD_NATURAL_H);
 
   const router = useRouter();
   const scrollToIntro = () => introRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -257,6 +264,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 position: "absolute", inset: 0,
                 display: "grid",
                 gridTemplateColumns: "1fr auto 1fr",
+                gridTemplateRows: "1fr",
                 alignItems: "center",
                 padding: `72px ${sidePad}`,
               }}
@@ -267,7 +275,9 @@ export default function ProjectPageTemplate(project: ProjectData) {
               </div>
 
               {/* Center column: elevator pad — sits at true page center */}
-              <ElevatorPad activeFloor={project.floor} dark={project.darkPad} />
+              <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "center center" }}>
+                <ElevatorPad activeFloor={project.floor} dark={project.darkPad} />
+              </div>
 
               {/* Right column: empty mirror so the grid stays symmetric */}
               <div />
