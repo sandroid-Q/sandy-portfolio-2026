@@ -2,14 +2,12 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import ElevatorPad from "./ElevatorPad";
 import FloorBreadcrumb from "./FloorBreadcrumb";
+import PortfolioNav from "./PortfolioNav";
 
 const BROWN = "#4E3A34";
 const TEXT = "#000000";
-const TEXT_NAV = "#232122";
-const RED = "#DE211D";
 const BG = "#F3F2F0";
 const BG_SECONDARY = "#E5E0D7";
 const HOVER_BROWN = "#D3BA9F";
@@ -74,24 +72,6 @@ function IconButton({ onClick, icon, bg = BG }: { onClick: () => void; icon: (c:
     >
       {icon(BROWN)}
     </button>
-  );
-}
-
-function NavLink({ href, children, color = TEXT_NAV }: { href: string; children: React.ReactNode; color?: string }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <Link href={href} style={{ textDecoration: "none" }}>
-      <div
-        style={{ display: "flex", flexDirection: "column", gap: 4, cursor: "pointer" }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color, transition: "color 0.3s" }}>
-          {children}
-        </span>
-        <div style={{ height: 1, backgroundColor: RED, opacity: hovered ? 1 : 0, transition: "opacity 0.15s" }} />
-      </div>
-    </Link>
   );
 }
 
@@ -170,8 +150,6 @@ export default function ProjectPageTemplate(project: ProjectData) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const navColor = pastHero ? TEXT_NAV : BG;
-
   const isMobile = vw < 640;
   const isTablet = vw < 1024;
 
@@ -181,44 +159,11 @@ export default function ProjectPageTemplate(project: ProjectData) {
   return (
     <div style={{ backgroundColor: BG, minHeight: "100vh" }}>
 
-      {/* Fixed top nav */}
-      <div
-        style={{
-          position: "fixed", top: 0, left: 0, right: 0, height: 72,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "0 36px", zIndex: 100,
-        }}
-      >
-        <Link
-          href="/"
-          style={{
-            textDecoration: "none", fontFamily: "var(--font-silkscreen)", fontSize: 24,
-            color: navColor, lineHeight: 1,
-            transition: "color 0.3s",
-          }}
-        >
-          SANDY QI
-        </Link>
-        <NavLink href="/home" color={navColor}>Designs</NavLink>
-      </div>
-
-      {/* Fixed bottom nav — pointer-events: none on the container so the down arrow below
-          the hero stays clickable; re-enabled on the actual links inside */}
-      <div
-        style={{
-          position: "fixed", bottom: 0, left: 0, right: 0, height: 72,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "0 36px", zIndex: 100,
-          pointerEvents: "none",
-        }}
-      >
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 12, color: TEXT }}>
-          © Sandy Qi 2026
-        </span>
-        <div style={{ pointerEvents: "auto" }}>
-          <NavLink href="/about">About me</NavLink>
-        </div>
-      </div>
+      <PortfolioNav
+        projectsAction="/home"
+        isLightNav={!pastHero}
+        mobileBgColor="#F3F2F0"
+      />
 
       {/* Hero — (100svh - 64px) on desktop so the down arrow peeks below; auto-height on mobile */}
       <div ref={topRef}>

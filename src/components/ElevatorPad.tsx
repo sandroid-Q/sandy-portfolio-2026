@@ -165,7 +165,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick }: { acti
   };
   const headerLetterVariants = {
     rest: { y: 0 },
-    hover: { y: -2, transition: { duration: 0.12, ease: "easeOut" } },
+    hover: { y: -2, transition: { duration: 0.12, ease: "easeOut" as const } },
   };
 
   const rows = FLOOR_ROWS.map((row) =>
