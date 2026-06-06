@@ -191,13 +191,12 @@ export default function ProjectPageTemplate(project: ProjectData) {
   // Fluid side padding: 32px at 640px → 96px at 1280px, continuous
   const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
 
-  // Scale the elevator pad to fit within the hero height on desktop.
-  // Natural pad height ≈ 774px (header + gap + 5 rows with padding/gaps).
-  // Available height = hero (vh-72) minus grid's 72px top+bottom padding.
-  // Responsiveness stops at 700px screen height.
-  const PAD_NATURAL_H = 774;
+  // Clamp vh for the left-column height calculation (freezes at 700px).
   const clampedVh = Math.max(700, vh);
-  const desktopPadScale = isMobile ? 1 : Math.min(1, (clampedVh - 72 - 144) / PAD_NATURAL_H);
+  // Natural pad height ≈ 774px. Scale = 1 when it fits; shrinks only when
+  // the hero would clip it (available height < pad natural height).
+  const PAD_NATURAL_H = 774;
+  const desktopPadScale = isMobile ? 1 : Math.min(1, (clampedVh - 216) / PAD_NATURAL_H);
 
   const router = useRouter();
   const scrollToIntro = () => introRef.current?.scrollIntoView({ behavior: "smooth" });
