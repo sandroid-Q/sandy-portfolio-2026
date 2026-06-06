@@ -312,8 +312,11 @@ export default function PortfolioNav({
   const frostBg = mobileBgColor.startsWith("#")
     ? hexToRgba(mobileBgColor, 0.75)
     : mobileBgColor;
+  const subtleBg = "transparent";
 
   const showFrost = isProject ? !isLightNav : (isMobile && scrolled);
+  const navBg = showFrost ? frostBg : (isProject ? subtleBg : "transparent");
+  const navBlur = (showFrost || isProject) ? "blur(8px)" : "none";
 
   const projectsNavLink =
     typeof projectsAction === "string" ? (
@@ -422,9 +425,9 @@ export default function PortfolioNav({
           justifyContent: "space-between",
           padding: isMobile ? "0 18px 0 24px" : "0 36px",
           zIndex: 100,
-          background: showFrost ? frostBg : "transparent",
-          backdropFilter: showFrost ? "blur(8px)" : "none",
-          WebkitBackdropFilter: showFrost ? "blur(8px)" : "none",
+          background: navBg,
+          backdropFilter: navBlur,
+          WebkitBackdropFilter: navBlur,
           transition: "background 0.3s ease, backdrop-filter 0.3s ease",
         }}
       >
