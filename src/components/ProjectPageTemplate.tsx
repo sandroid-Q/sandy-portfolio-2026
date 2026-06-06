@@ -9,7 +9,6 @@ import FloorBreadcrumb from "./FloorBreadcrumb";
 import PortfolioNav from "./PortfolioNav";
 
 const BROWN = "#4E3A34";
-const TEXT = "#000000";
 const BG = "#F3F2F0";
 const BG_SECONDARY = "#E5E0D7";
 const HOVER_BROWN = "#D3BA9F";
@@ -113,11 +112,11 @@ function IconButton({ onClick, icon, bg = BG }: { onClick: () => void; icon: (c:
 
 function MetaField({ label, value, flex }: { label: string; value: string; flex?: boolean }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12, ...(flex ? { flex: 1, minWidth: 0 } : { width: 144 }) }}>
-      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: TEXT }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, ...(flex ? { flex: 1, minWidth: 0 } : { width: 144 }) }}>
+      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: BROWN, textTransform: "uppercase", letterSpacing: "0.04em" }}>
         {label}
       </span>
-      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: TEXT }}>
+      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BROWN }}>
         {value}
       </span>
     </div>
@@ -308,11 +307,11 @@ export default function ProjectPageTemplate(project: ProjectData) {
           </div>
 
           {/* Overview */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, width: isMobile ? "100%" : 400 }}>
-            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: TEXT }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, width: isMobile ? "100%" : 400 }}>
+            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: BROWN, textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Project overview
             </span>
-            <p style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: TEXT, margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BROWN, margin: 0, lineHeight: 1.6 }}>
               {project.overview}
             </p>
           </div>
@@ -329,7 +328,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
               padding: isMobile ? "0 32px" : isTablet ? "0 48px" : "0 96px",
             }}
           >
-            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: TEXT, alignSelf: "center" }}>
+            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: BROWN, alignSelf: "center" }}>
               {section.title}
             </span>
             {(section.images ?? []).length === 0 ? (
