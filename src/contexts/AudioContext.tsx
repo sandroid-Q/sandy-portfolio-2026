@@ -11,19 +11,28 @@ interface AudioContextValue {
 const AudioCtx = createContext<AudioContextValue>({ muted: false, setMuted: () => {} });
 
 const MUSIC_ROUTES = new Set(["/", "/home"]);
+const TRACKS = ["/jazz-1.mp3", "/jazz-2.mp3", "/jazz-3.mp3"];
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [muted, setMutedState] = useState(false);
   const bgRef = useRef<HTMLAudioElement | null>(null);
+  const trackIndexRef = useRef(0);
+  const mutedRef = useRef(false);
   const pathname = usePathname();
 
-  // Create the audio element once on mount
   useEffect(() => {
-    const audio = new Audio("/jazz-1.mp3");
-    audio.loop = true;
+    const audio = new Audio(TRACKS[0]);
     bgRef.current = audio;
 
-    // Retry on first user gesture if autoplay was blocked
+    const advanceTrack = () => {
+      trackIndexRef.current = (trackIndexRef.current + 1) % TRACKS.length;
+      audio.src = TRACKS[trackIndexRef.current];
+      if (MUSIC_ROUTES.has(window.location.pathname) && !mutedRef.current) {
+        audio.play().catch(() => {});
+      }
+    };
+    audio.addEventListener("ended", advanceTrack);
+
     const onFirstGesture = () => {
       if (MUSIC_ROUTES.has(window.location.pathname) && bgRef.current) {
         bgRef.current.play().catch(() => {});
@@ -33,13 +42,13 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     window.addEventListener("pointerdown", onFirstGesture);
 
     return () => {
+      audio.removeEventListener("ended", advanceTrack);
       audio.pause();
       audio.src = "";
       window.removeEventListener("pointerdown", onFirstGesture);
     };
   }, []);
 
-  // Play or pause whenever the route or muted state changes
   useEffect(() => {
     const audio = bgRef.current;
     if (!audio) return;
@@ -52,6 +61,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const setMuted = (v: boolean) => {
     setMutedState(v);
+    mutedRef.current = v;
     const audio = bgRef.current;
     if (!audio) return;
     audio.volume = v ? 0 : 1;
