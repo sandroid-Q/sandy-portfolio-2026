@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef, useEffect } from "react";
 import { motion, animate, useMotionValue, useSpring, useVelocity, useTransform, type MotionValue } from "framer-motion";
+import { useAudio } from "@/contexts/AudioContext";
 
 const BROWN = "#4E3A34";
 const CARD_OUTER = "#DCD8D6";
@@ -76,11 +77,13 @@ function ClipTabOverlay({ ext = 0 }: { ext?: number }) {
 }
 
 export default function IDCard({ strapExtension = 0 }: { strapExtension?: number }) {
+  const { muted }     = useAudio();
   const containerRef  = useRef<HTMLDivElement>(null);
   const mouseVel      = useRef({ x: 0, t: 0, vx: 0 });
   const hadSwingRef   = useRef(false);
   const littleSndRef  = useRef<HTMLAudioElement | null>(null);
   const bigSndRef     = useRef<HTMLAudioElement | null>(null);
+  const audioCtxRef   = useRef<AudioContext | null>(null);
 
   // ── Entrance springs ──────────────────────────────────────────────────────
   const y            = useSpring(-680, { stiffness: 80, damping: 12, mass: 1 });
@@ -97,8 +100,25 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
   }, [y, lanyardEntry, cardEntry]);
 
   useEffect(() => {
-    littleSndRef.current = new Audio("/swipe-little.mp3");
-    bigSndRef.current    = new Audio("/swipe-big.mp3");
+    const ctx    = new AudioContext();
+    const little = new Audio("/swipe-little.mp3");
+    const big    = new Audio("/swipe-big.mp3");
+
+    // Boost gain above the 1.0 HTMLAudioElement ceiling
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = 2.2;
+    gainNode.connect(ctx.destination);
+
+    for (const audio of [little, big]) {
+      const src = ctx.createMediaElementSource(audio);
+      src.connect(gainNode);
+    }
+
+    audioCtxRef.current  = ctx;
+    littleSndRef.current = little;
+    bigSndRef.current    = big;
+
+    return () => { ctx.close(); };
   }, []);
 
   // ── Hinge 1 — top attachment: strap barely swings ────────────────────────
@@ -173,9 +193,10 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
     // Play swipe sound: big for fast exits, little for any meaningful swing
     const playSwipe = (big: boolean) => {
       const snd = big ? bigSndRef.current : littleSndRef.current;
-      if (!snd) return;
-      snd.currentTime = 0;
-      snd.play().catch(() => {});
+      if (!snd || muted) return;
+      const ctx = audioCtxRef.current;
+      const resume = ctx && ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
+      resume.then(() => { snd.currentTime = 0; snd.play().catch(() => {}); });
     };
     if (absVx > 300) {
       playSwipe(true);
