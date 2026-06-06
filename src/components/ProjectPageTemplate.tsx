@@ -290,7 +290,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
         <div
           ref={introRef}
           style={{
-            width: "100%", maxWidth: 1280, margin: "0 auto",
+            width: "100%",
             display: "flex",
             flexDirection: isMobile ? "column" : "row",
             justifyContent: "space-between",
@@ -322,7 +322,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
           <div
             key={section.title}
             style={{
-              width: "100%", maxWidth: 1280, margin: "0 auto",
+              width: "100%",
               display: "flex", flexDirection: "column",
               alignItems: "center", gap: 48,
               padding: isMobile ? "0 32px" : isTablet ? "0 48px" : "0 96px",
