@@ -15,6 +15,7 @@ const FLOORS = [
   { key: "4", label: "Floor 4", href: "/project/4" },
   { key: "5", label: "Floor 5", href: "/project/5" },
   { key: "6", label: "Level 6", href: "/project/6" },
+  { key: "about", label: "About me", href: "/about" },
 ];
 
 function FloorLink({ label, href, isActive }: { label: string; href: string; isActive: boolean }) {
