@@ -47,10 +47,10 @@ function CoverPageInner() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const marginLeft = Math.max(-38, Math.min(12, vw - 408));
-  const groupWidth = 340 + marginLeft + 60;
-  const scale = Math.min(1, (vw - SIDE_PADDING * 2) / groupWidth);
-  const shrink = (groupWidth * (1 - scale)) / 2;
+  const ELEVATOR_WIDTH = 340;
+  const buttonMarginLeft = Math.max(-50, Math.min(12, vw - 512));
+  const scale = Math.min(1, (vw - SIDE_PADDING * 2) / ELEVATOR_WIDTH);
+  const shrink = (ELEVATOR_WIDTH * (1 - scale)) / 2;
 
   return (
     <main
@@ -81,29 +81,36 @@ function CoverPageInner() {
 
       <div
         style={{
+          position: "relative",
           transform: `scale(${scale})`,
           transformOrigin: "center center",
           marginLeft: -shrink,
           marginRight: -shrink,
         }}
       >
-        <div className="flex items-center">
-          <Elevator isOpen={isOpen} onEnter={handleEnter} />
-          <div style={{ marginLeft, position: "relative", zIndex: 10 }}>
-            <ElevatorButton
-              isOpen={isOpen}
-              onClick={() => {
-                setIsOpen((v) => {
-                  const next = !v;
-                  if (next && dingRef.current) {
-                    dingRef.current.currentTime = 0;
-                    dingRef.current.play().catch(() => {});
-                  }
-                  return next;
-                });
-              }}
-            />
-          </div>
+        <Elevator isOpen={isOpen} onEnter={handleEnter} />
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: ELEVATOR_WIDTH + buttonMarginLeft,
+            transform: "translateY(-50%)",
+            zIndex: 10,
+          }}
+        >
+          <ElevatorButton
+            isOpen={isOpen}
+            onClick={() => {
+              setIsOpen((v) => {
+                const next = !v;
+                if (next && dingRef.current) {
+                  dingRef.current.currentTime = 0;
+                  dingRef.current.play().catch(() => {});
+                }
+                return next;
+              });
+            }}
+          />
         </div>
       </div>
     </main>
