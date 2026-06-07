@@ -4,16 +4,16 @@ export default function Level6Page() {
   return (
     <ProjectPageTemplate
       floor="6"
-      year="2026"
-      name="Coming soon"
-      blurb="Something new is on the way"
-      tags={["TBD"]}
-      coverBg="#2A2420"
+      year="2025"
+      name="Beem Beeps & Search"
+      blurb="Sound design and search experience for the Beem payments app"
+      tags={["Mobile", "Sound design", "Product design"]}
+      coverBg="#1A0A2E"
       darkPad
-      role="—"
-      yearRange="—"
-      platform="—"
-      overview="This project is coming soon."
+      role="Lead Designer"
+      yearRange="2024–2025"
+      platform="iOS · Android"
+      overview="Work in progress."
       sections={[]}
     />
   );
