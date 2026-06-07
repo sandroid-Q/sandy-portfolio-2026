@@ -319,7 +319,7 @@ export default function HomePage() {
         {isCondensed && (
           <div
             style={{
-              width: isStackedProject ? "min(400px, calc(100vw - 64px))" : "calc(100vw - 64px)",
+              width: isStackedProject ? "min(400px, calc(100vw - 64px))" : "min(768px, calc(100vw - 64px))",
               display: "flex",
               flexDirection: "column",
               gap: isStackedProject ? 96 : 72,
