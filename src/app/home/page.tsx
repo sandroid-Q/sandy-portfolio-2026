@@ -333,7 +333,7 @@ export default function HomePage() {
                   key={floor}
                   style={
                     isStackedProject
-                      ? { display: "flex", flexDirection: "column", gap: 24 }
+                      ? { display: "flex", flexDirection: "column", gap: 24, width: "100%" }
                       : { display: "flex", flexDirection: "row", alignItems: "center", gap: 32 }
                   }
                 >
