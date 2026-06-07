@@ -240,10 +240,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
 
           {isNarrow ? (
             /* Narrow (<800px): project info only, centre-left — pad moves to page bottom */
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+            <div
               style={{
                 position: "absolute", inset: 0,
                 display: "flex",
@@ -252,18 +249,20 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 padding: `72px ${sidePad} 64px`,
               }}
             >
-              <div style={{ maxWidth: 336 }}>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                style={{ maxWidth: 336 }}
+              >
                 <ProjectInfo project={project} isMobile={isMobile} />
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           ) : (
             /* Desktop/tablet: CSS grid keeps elevator pad at true horizontal center.
                1fr | elevator pad (auto) | 1fr — left and right columns are equal so
                the center column is exactly at 50% of the content area. */
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+            <div
               style={{
                 position: "absolute", inset: 0,
                 display: "grid",
@@ -272,19 +271,24 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 padding: `72px ${sidePad}`,
               }}
             >
-              {/* Left column: project info — full available height so flexbox can centre it */}
-              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", paddingRight: 48, height: clampedVh - 72 - 144 }}>
+              {/* Left column: project info fades in; pad has no transition */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", paddingRight: 48, height: clampedVh - 72 - 144 }}
+              >
                 <ProjectInfo project={project} isMobile={false} />
-              </div>
+              </motion.div>
 
-              {/* Center column: elevator pad — sits at true page center */}
+              {/* Center column: elevator pad — no animation, just updates active floor */}
               <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "top center" }}>
                 <ElevatorPad activeFloor={project.floor} dark={project.darkPad} />
               </div>
 
               {/* Right column: empty mirror so the grid stays symmetric */}
               <div />
-            </motion.div>
+            </div>
           )}
         </div>
 
