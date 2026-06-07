@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { motion, useAnimation } from "framer-motion";
+import { motion, useAnimation, AnimatePresence } from "framer-motion";
 import TransitionOverlay from "@/components/TransitionOverlay";
 import PortfolioNav from "@/components/PortfolioNav";
 import IDCard from "@/components/IDCard";
@@ -11,6 +11,23 @@ const BROWN = "#4E3A34";
 const HOVER_BROWN = "#D3BA9F";
 const BG_BUTTON = "#F3F2F0";
 const SCALE_MIN = 0.8;
+
+interface FloorPreview {
+  year: string;
+  name: string;
+  blurb: string;
+  tags: string[];
+  video?: string;
+}
+
+const FLOOR_DATA: Record<string, FloorPreview> = {
+  "1": { year: "2023", name: "MOOMOO: POWER LAUNCH", blurb: "Landing pages, marketing assets & brand strategy for the trading platforms' power launch in Sydney", tags: ["Web", "Mobile", "Brand Direction"] },
+  "2": { year: "2024", name: "INDUSTRY WALLETS", blurb: "Concepts / pitches for industry wallets, powered by Beem", tags: ["Mobile", "Video"] },
+  "3": { year: "2023", name: "BEEM APP", blurb: "Animated stickers, app uplift & more", tags: ["Mobile", "Animation"] },
+  "4": { year: "2024", name: "TOTALLY BEEM", blurb: "Beem's 2024 Year in Review experience with a nostalgic twist", tags: ["Web", "Mobile"] },
+  "5": { year: "2023", name: "BEEMLANTIS", blurb: "Beem's 2023 gamified Year in Review experience with an underwater theme", tags: ["Web", "Mobile"] },
+  "6": { year: "2025", name: "AP+ PORTALS", blurb: "Harmonising AP+'s developer, testing automation and role management experiences", tags: ["Web", "Design system"] },
+};
 
 function ArrowDown({ color, hovered }: { color: string; hovered: boolean }) {
   const controls = useAnimation();
@@ -93,6 +110,7 @@ export default function HomePage() {
   const padRef = useRef<HTMLDivElement>(null);
   const [vh, setVh] = useState(900);
   const [vw, setVw] = useState(1200);
+  const [hoveredFloor, setHoveredFloor] = useState<string | null>(null);
 
   const isMobile = vw < 768;
 
@@ -181,17 +199,99 @@ export default function HomePage() {
         <IconButton onClick={scrollToPad} icon={(c, h) => <ArrowDown color={c} hovered={h} />} />
 
         <div ref={padRef} id="elevator-pad" style={{ scrollMarginTop: 32 }}>
-          <div
-            style={{
-              transform: `scale(${padScale})`,
-              transformOrigin: "top center",
-              marginLeft: -padShrinkX,
-              marginRight: -padShrinkX,
-              marginBottom: -padShrinkY,
-            }}
-          >
-            <ElevatorPad onHeaderClick={scrollToPad} />
-          </div>
+          {isMobile ? (
+            <div
+              style={{
+                transform: `scale(${padScale})`,
+                transformOrigin: "top center",
+                marginLeft: -padShrinkX,
+                marginRight: -padShrinkX,
+                marginBottom: -padShrinkY,
+              }}
+            >
+              <ElevatorPad onHeaderClick={scrollToPad} />
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 48 }}>
+
+              {/* Left: project title-and-blurb */}
+              <div style={{ width: 320, flexShrink: 0 }}>
+                <AnimatePresence mode="wait">
+                  {hoveredFloor && FLOOR_DATA[hoveredFloor] && (
+                    <motion.div
+                      key={hoveredFloor}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      style={{ display: "flex", flexDirection: "column", gap: 16 }}
+                    >
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BROWN }}>
+                          {FLOOR_DATA[hoveredFloor].year}
+                        </span>
+                        <span style={{ fontFamily: "var(--font-silkscreen)", fontSize: 32, color: BROWN, textTransform: "uppercase", lineHeight: 1.1 }}>
+                          {FLOOR_DATA[hoveredFloor].name}
+                        </span>
+                        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BROWN }}>
+                          {FLOOR_DATA[hoveredFloor].blurb}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {FLOOR_DATA[hoveredFloor].tags.map((tag) => (
+                          <span
+                            key={tag}
+                            style={{
+                              fontFamily: "var(--font-space-grotesk)",
+                              fontWeight: 400,
+                              fontSize: 14,
+                              color: BROWN,
+                              border: `1px solid ${BROWN}`,
+                              borderRadius: 100,
+                              padding: "4px 12px",
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Centre: elevator pad */}
+              <ElevatorPad onHeaderClick={scrollToPad} onFloorHover={setHoveredFloor} />
+
+              {/* Right: video preview */}
+              <div style={{ width: 320, height: 320, flexShrink: 0 }}>
+                <AnimatePresence mode="wait">
+                  {hoveredFloor && FLOOR_DATA[hoveredFloor] && (
+                    <motion.div
+                      key={hoveredFloor}
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 8 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      style={{ width: "100%", height: "100%", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}
+                    >
+                      {FLOOR_DATA[hoveredFloor].video && (
+                        <video
+                          src={FLOOR_DATA[hoveredFloor].video}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        />
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+            </div>
+          )}
         </div>
 
         <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} />

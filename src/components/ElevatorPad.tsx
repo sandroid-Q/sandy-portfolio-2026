@@ -52,7 +52,7 @@ function BellIcon({ color }: { color: string }) {
   );
 }
 
-function PadButton({ btn, onDing, dark }: { btn: PadButtonDef; onDing: () => void; dark: boolean }) {
+function PadButton({ btn, onDing, dark, onFloorHover }: { btn: PadButtonDef; onDing: () => void; dark: boolean; onFloorHover?: (floor: string | null) => void }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const { muted } = useAudio();
@@ -102,10 +102,15 @@ function PadButton({ btn, onDing, dark }: { btn: PadButtonDef; onDing: () => voi
         initial={false}
         animate={outerAnimate}
         transition={{ duration: 0.12 }}
-        onHoverStart={() => { setHovered(true); playPop(); }}
+        onHoverStart={() => {
+          setHovered(true);
+          playPop();
+          if (btn.variant === "floor") onFloorHover?.(btn.label ?? null);
+        }}
         onHoverEnd={() => {
           setHovered(false);
           setPressed(false);
+          if (btn.variant === "floor") onFloorHover?.(null);
         }}
         onMouseDown={() => { setPressed(true); onDing(); }}
         onMouseUp={() => setPressed(false)}
@@ -172,7 +177,7 @@ function PadButton({ btn, onDing, dark }: { btn: PadButtonDef; onDing: () => voi
   );
 }
 
-export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean }) {
+export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, onFloorHover }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; onFloorHover?: (floor: string | null) => void }) {
   const { muted } = useAudio();
   const dingRef = useRef<HTMLAudioElement | null>(null);
 
@@ -259,7 +264,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
             }}
           >
             {row.map((btn) => (
-              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} />
+              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} onFloorHover={onFloorHover} />
             ))}
           </div>
         ))}
