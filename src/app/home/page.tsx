@@ -165,7 +165,7 @@ export default function HomePage() {
 
   const isMobile = vw < 768;
   const isCondensed = vw < 1190;    // no hover panels; show list below pad
-  const isStackedProject = vw < 640; // stack video above blurb within each project row
+  const isStackedProject = vw < 768; // stack video above blurb within each project row
 
   useEffect(() => {
     const update = () => { setVh(window.innerHeight); setVw(window.innerWidth); };
@@ -319,10 +319,11 @@ export default function HomePage() {
         {isCondensed && (
           <div
             style={{
-              width: "calc(100vw - 64px)",
+              width: isStackedProject ? "min(400px, calc(100vw - 64px))" : "calc(100vw - 64px)",
               display: "flex",
               flexDirection: "column",
               gap: isStackedProject ? 96 : 72,
+              alignItems: isStackedProject ? "flex-start" : undefined,
             }}
           >
             {(["6", "5", "4", "3", "2", "1"] as const).map((floor) => {
@@ -338,7 +339,7 @@ export default function HomePage() {
                 >
                   {/* Video — on top when stacked */}
                   {isStackedProject && (
-                    <Link href={`/project/${floor}`} style={{ display: "block", width: "100%", minWidth: 280, maxWidth: 400 }}>
+                    <Link href={`/project/${floor}`} style={{ display: "block", width: "100%" }}>
                       <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}>
                         <VideoPreview floor={floor} data={data} />
                       </div>
