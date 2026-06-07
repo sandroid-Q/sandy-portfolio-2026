@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { motion, useAnimation, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import TransitionOverlay from "@/components/TransitionOverlay";
 import PortfolioNav from "@/components/PortfolioNav";
 import IDCard from "@/components/IDCard";
@@ -105,6 +106,56 @@ function IconButton({ onClick, icon }: { onClick: () => void; icon: (color: stri
   );
 }
 
+function ProjectBlurb({ data }: { data: FloorPreview }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BROWN }}>
+          {data.year}
+        </span>
+        <span style={{ fontFamily: "var(--font-silkscreen)", fontSize: 32, color: BROWN, textTransform: "uppercase", lineHeight: 1.1 }}>
+          {data.name}
+        </span>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BROWN }}>
+          {data.blurb}
+        </span>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {data.tags.map((tag) => (
+          <span
+            key={tag}
+            style={{
+              fontFamily: "var(--font-space-grotesk)",
+              fontWeight: 400,
+              fontSize: 14,
+              color: BROWN,
+              border: `1px solid ${BROWN}`,
+              borderRadius: 100,
+              padding: "4px 12px",
+            }}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VideoPreview({ data }: { floor: string; data: FloorPreview }) {
+  if (!data.video) return null;
+  return (
+    <video
+      src={data.video}
+      autoPlay
+      muted
+      loop
+      playsInline
+      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+    />
+  );
+}
+
 export default function HomePage() {
   const topRef = useRef<HTMLDivElement>(null);
   const padRef = useRef<HTMLDivElement>(null);
@@ -113,6 +164,8 @@ export default function HomePage() {
   const [hoveredFloor, setHoveredFloor] = useState<string | null>(null);
 
   const isMobile = vw < 768;
+  const isCondensed = vw < 1190;    // no hover panels; show list below pad
+  const isStackedProject = vw < 640; // stack video above blurb within each project row
 
   useEffect(() => {
     const update = () => { setVh(window.innerHeight); setVw(window.innerWidth); };
@@ -200,6 +253,7 @@ export default function HomePage() {
 
         <div ref={padRef} id="elevator-pad" style={{ scrollMarginTop: 32 }}>
           {isMobile ? (
+            /* Mobile: scaled pad, no panels */
             <div
               style={{
                 transform: `scale(${padScale})`,
@@ -211,7 +265,11 @@ export default function HomePage() {
             >
               <ElevatorPad onHeaderClick={scrollToPad} />
             </div>
+          ) : isCondensed ? (
+            /* Condensed (768–1189px): plain pad, list renders below */
+            <ElevatorPad onHeaderClick={scrollToPad} />
           ) : (
+            /* Wide (≥1190px): three-column hover layout */
             <div style={{ display: "flex", alignItems: "center", gap: 48 }}>
 
               {/* Left: project title-and-blurb */}
@@ -226,35 +284,7 @@ export default function HomePage() {
                       transition={{ duration: 0.2, ease: "easeOut" }}
                       style={{ display: "flex", flexDirection: "column", gap: 16 }}
                     >
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BROWN }}>
-                          {FLOOR_DATA[hoveredFloor].year}
-                        </span>
-                        <span style={{ fontFamily: "var(--font-silkscreen)", fontSize: 32, color: BROWN, textTransform: "uppercase", lineHeight: 1.1 }}>
-                          {FLOOR_DATA[hoveredFloor].name}
-                        </span>
-                        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BROWN }}>
-                          {FLOOR_DATA[hoveredFloor].blurb}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        {FLOOR_DATA[hoveredFloor].tags.map((tag) => (
-                          <span
-                            key={tag}
-                            style={{
-                              fontFamily: "var(--font-space-grotesk)",
-                              fontWeight: 400,
-                              fontSize: 14,
-                              color: BROWN,
-                              border: `1px solid ${BROWN}`,
-                              borderRadius: 100,
-                              padding: "4px 12px",
-                            }}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
+                      <ProjectBlurb data={FLOOR_DATA[hoveredFloor]} />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -275,16 +305,7 @@ export default function HomePage() {
                       transition={{ duration: 0.2, ease: "easeOut" }}
                       style={{ width: "100%", height: "100%", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}
                     >
-                      {FLOOR_DATA[hoveredFloor].video && (
-                        <video
-                          src={FLOOR_DATA[hoveredFloor].video}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        />
-                      )}
+                      <VideoPreview floor={hoveredFloor} data={FLOOR_DATA[hoveredFloor]} />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -293,6 +314,55 @@ export default function HomePage() {
             </div>
           )}
         </div>
+
+        {/* Condensed projects list — shown at <1190px, above the up arrow */}
+        {isCondensed && (
+          <div
+            style={{
+              width: "min(800px, 100vw - 64px)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 64,
+            }}
+          >
+            {(["6", "5", "4", "3", "2", "1"] as const).map((floor) => {
+              const data = FLOOR_DATA[floor];
+              return (
+                <div
+                  key={floor}
+                  style={
+                    isStackedProject
+                      ? { display: "flex", flexDirection: "column", gap: 24 }
+                      : { display: "flex", flexDirection: "row", alignItems: "center", gap: 32 }
+                  }
+                >
+                  {/* Video — on top when stacked, on right when side-by-side */}
+                  {isStackedProject && (
+                    <Link href={`/project/${floor}`} style={{ display: "block", width: "100%", maxWidth: 320, flexShrink: 0 }}>
+                      <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}>
+                        <VideoPreview floor={floor} data={data} />
+                      </div>
+                    </Link>
+                  )}
+
+                  {/* Blurb */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <ProjectBlurb data={data} />
+                  </div>
+
+                  {/* Video — on right when side-by-side */}
+                  {!isStackedProject && (
+                    <Link href={`/project/${floor}`} style={{ display: "block", flexShrink: 0 }}>
+                      <div style={{ width: 240, height: 240, borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}>
+                        <VideoPreview floor={floor} data={data} />
+                      </div>
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} />
       </div>
