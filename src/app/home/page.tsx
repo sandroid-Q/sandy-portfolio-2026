@@ -338,7 +338,7 @@ export default function HomePage() {
                 >
                   {/* Video — on top when stacked */}
                   {isStackedProject && (
-                    <Link href={`/project/${floor}`} style={{ display: "block", width: "100%" }}>
+                    <Link href={`/project/${floor}`} style={{ display: "block", width: "100%", minWidth: 280, maxWidth: 400 }}>
                       <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}>
                         <VideoPreview floor={floor} data={data} />
                       </div>
@@ -352,7 +352,7 @@ export default function HomePage() {
 
                   {/* Video — on right when side-by-side, fills remaining width */}
                   {!isStackedProject && (
-                    <Link href={`/project/${floor}`} style={{ display: "block", flex: 1, minWidth: 0 }}>
+                    <Link href={`/project/${floor}`} style={{ display: "block", flex: 1, minWidth: 280, maxWidth: 400 }}>
                       <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}>
                         <VideoPreview floor={floor} data={data} />
                       </div>
