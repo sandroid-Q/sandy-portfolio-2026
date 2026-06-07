@@ -286,6 +286,8 @@ export default function AboutPage() {
   const introRef = useRef<HTMLDivElement>(null);
   const [vw, setVw] = useState(0);
   const [vh, setVh] = useState(0);
+  const [blurTop, setBlurTop] = useState(false);
+  const [blurBottom, setBlurBottom] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -295,6 +297,20 @@ export default function AboutPage() {
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (introRef.current) {
+        setBlurTop(introRef.current.getBoundingClientRect().top <= 72);
+      }
+      const remaining =
+        document.documentElement.scrollHeight - window.scrollY - window.innerHeight;
+      setBlurBottom(remaining > 72);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const isNarrow = vw < 800;
@@ -313,11 +329,13 @@ export default function AboutPage() {
   };
 
   return (
-    <div style={{ backgroundColor: BG, minHeight: "100vh" }}>
+    <div style={{ backgroundColor: HERO_BG, minHeight: "100vh" }}>
       <PortfolioNav
         projectsAction={goToProjects}
         isLightNav={false}
         mobileBgColor={HERO_BG}
+        blurTop={blurTop}
+        blurBottom={blurBottom}
         showSound
       />
 
@@ -505,7 +523,7 @@ export default function AboutPage() {
         {/* Up arrow — desktop */}
         {!isNarrow && (
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} bg={BG_SECONDARY} />
+            <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} bg={BG} />
           </div>
         )}
 
@@ -529,7 +547,7 @@ export default function AboutPage() {
         {/* Up arrow — narrow only */}
         {isNarrow && (
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} bg={BG_SECONDARY} />
+            <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} bg={BG} />
           </div>
         )}
       </div>
