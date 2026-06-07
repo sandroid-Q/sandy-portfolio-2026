@@ -59,7 +59,7 @@ const VALUE_STYLE: React.CSSProperties = {
 const FIELDS = [
   { label: "ROLE",     value: "SENIOR PRODUCT DESIGNER" },
   { label: "COMPANY",  value: "BEEM · AP+"              },
-  { label: "LOCATION", value: "SYDNEY, AUS"             },
+  { label: "LOCATION", value: "SYDNEY, DHARUG COUNTRY"  },
 ];
 
 function ClipTabOverlay({ ext = 0 }: { ext?: number }) {
