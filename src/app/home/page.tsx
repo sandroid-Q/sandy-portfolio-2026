@@ -22,12 +22,12 @@ interface FloorPreview {
 }
 
 const FLOOR_DATA: Record<string, FloorPreview> = {
-  "1": { year: "2023", name: "MOOMOO: POWER LAUNCH", blurb: "Landing pages, marketing assets & brand strategy for the trading platforms' power launch in Sydney", tags: ["Web", "Mobile", "Brand Direction"] },
-  "2": { year: "2024", name: "INDUSTRY WALLETS", blurb: "Concepts / pitches for industry wallets, powered by Beem", tags: ["Mobile", "Video"] },
-  "3": { year: "2023", name: "BEEM APP", blurb: "Animated stickers, app uplift & more", tags: ["Mobile", "Animation"] },
-  "4": { year: "2024", name: "TOTALLY BEEM", blurb: "Beem's 2024 Year in Review experience with a nostalgic twist", tags: ["Web", "Mobile"] },
-  "5": { year: "2023", name: "BEEMLANTIS", blurb: "Beem's 2023 gamified Year in Review experience with an underwater theme", tags: ["Web", "Mobile"] },
-  "6": { year: "2025", name: "AP+ PORTALS", blurb: "Harmonising AP+'s developer, testing automation and role management experiences", tags: ["Web", "Design system"] },
+  "1": { year: "2021", name: "MOOMOO: POWER LAUNCH", blurb: "Launching moomoo's investment platform into the Australian market", tags: ["Mobile", "Web", "Product design"] },
+  "2": { year: "2022", name: "BEEM APP", blurb: "Designing the core payments experience for Beem's flagship mobile app", tags: ["Mobile", "Product design"] },
+  "3": { year: "2023", name: "BEEMLANTIS", blurb: "Building Beem's internal design system and component library from the ground up", tags: ["Design system", "Web", "Mobile"] },
+  "4": { year: "2024", name: "TOTALLY BEEM", blurb: "A full rebrand and product redesign for Beem's peer-to-peer payments experience", tags: ["Mobile", "Brand", "Product design"] },
+  "5": { year: "2025", name: "AP+ PORTALS", blurb: "Harmonising AP+'s developer, testing automation and role management experiences", tags: ["Web", "Design system"] },
+  "6": { year: "2025", name: "BEEM BEEPS & SEARCH", blurb: "Sound design and search experience for the Beem payments app", tags: ["Mobile", "Sound design", "Product design"] },
 };
 
 function ArrowDown({ color, hovered }: { color: string; hovered: boolean }) {
