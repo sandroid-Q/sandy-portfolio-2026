@@ -319,10 +319,10 @@ export default function HomePage() {
         {isCondensed && (
           <div
             style={{
-              width: "min(800px, 100vw - 64px)",
+              width: "calc(100vw - 64px)",
               display: "flex",
               flexDirection: "column",
-              gap: 64,
+              gap: isStackedProject ? 96 : 72,
             }}
           >
             {(["6", "5", "4", "3", "2", "1"] as const).map((floor) => {
@@ -336,9 +336,9 @@ export default function HomePage() {
                       : { display: "flex", flexDirection: "row", alignItems: "center", gap: 32 }
                   }
                 >
-                  {/* Video — on top when stacked, on right when side-by-side */}
+                  {/* Video — on top when stacked */}
                   {isStackedProject && (
-                    <Link href={`/project/${floor}`} style={{ display: "block", width: "100%", maxWidth: 320, flexShrink: 0 }}>
+                    <Link href={`/project/${floor}`} style={{ display: "block", width: "100%" }}>
                       <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}>
                         <VideoPreview floor={floor} data={data} />
                       </div>
@@ -346,14 +346,14 @@ export default function HomePage() {
                   )}
 
                   {/* Blurb */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={isStackedProject ? {} : { width: 336, flexShrink: 0 }}>
                     <ProjectBlurb data={data} />
                   </div>
 
-                  {/* Video — on right when side-by-side */}
+                  {/* Video — on right when side-by-side, fills remaining width */}
                   {!isStackedProject && (
-                    <Link href={`/project/${floor}`} style={{ display: "block", flexShrink: 0 }}>
-                      <div style={{ width: 240, height: 240, borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}>
+                    <Link href={`/project/${floor}`} style={{ display: "block", flex: 1, minWidth: 0 }}>
+                      <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}>
                         <VideoPreview floor={floor} data={data} />
                       </div>
                     </Link>
