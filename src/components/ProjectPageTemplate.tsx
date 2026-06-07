@@ -164,8 +164,8 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const topRef = useRef<HTMLDivElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
   const heroImgRef = useRef<HTMLDivElement>(null);
-  const [vw, setVw] = useState(1280);
-  const [vh, setVh] = useState(900);
+  const [vw, setVw] = useState(() => typeof window !== "undefined" ? window.innerWidth : 1280);
+  const [vh, setVh] = useState(() => typeof window !== "undefined" ? window.innerHeight : 900);
   const [pastHero, setPastHero] = useState(false);
 
   useEffect(() => {
@@ -240,7 +240,10 @@ export default function ProjectPageTemplate(project: ProjectData) {
 
           {isNarrow ? (
             /* Narrow (<800px): project info only, centre-left — pad moves to page bottom */
-            <div
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
               style={{
                 position: "absolute", inset: 0,
                 display: "flex",
@@ -252,12 +255,15 @@ export default function ProjectPageTemplate(project: ProjectData) {
               <div style={{ maxWidth: 336 }}>
                 <ProjectInfo project={project} isMobile={isMobile} />
               </div>
-            </div>
+            </motion.div>
           ) : (
             /* Desktop/tablet: CSS grid keeps elevator pad at true horizontal center.
                1fr | elevator pad (auto) | 1fr — left and right columns are equal so
                the center column is exactly at 50% of the content area. */
-            <div
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
               style={{
                 position: "absolute", inset: 0,
                 display: "grid",
@@ -278,7 +284,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
 
               {/* Right column: empty mirror so the grid stays symmetric */}
               <div />
-            </div>
+            </motion.div>
           )}
         </div>
 
