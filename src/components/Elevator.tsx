@@ -78,7 +78,9 @@ export default function Elevator({
   const [hasOpened, setHasOpened] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isOpen) setHasOpened(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     else { setHovered(false); setPressed(false); }
   }, [isOpen]);
 

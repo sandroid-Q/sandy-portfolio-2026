@@ -18,6 +18,7 @@ function CoverPageInner() {
   useEffect(() => {
     if (sessionStorage.getItem("fromHome") === "1") {
       sessionStorage.removeItem("fromHome");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFromHome(true);
     }
   }, []);

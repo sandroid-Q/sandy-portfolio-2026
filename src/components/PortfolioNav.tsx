@@ -289,6 +289,7 @@ export default function PortfolioNav({
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isMobile) setMenuOpen(false);
   }, [isMobile]);
 
