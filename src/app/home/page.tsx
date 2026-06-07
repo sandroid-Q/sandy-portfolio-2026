@@ -7,6 +7,7 @@ import TransitionOverlay from "@/components/TransitionOverlay";
 import PortfolioNav from "@/components/PortfolioNav";
 import IDCard from "@/components/IDCard";
 import ElevatorPad from "@/components/ElevatorPad";
+import ContactModal from "@/components/ContactModal";
 
 const BROWN = "#4E3A34";
 const HOVER_BROWN = "#D3BA9F";
@@ -163,6 +164,7 @@ export default function HomePage() {
   const [vh, setVh] = useState(900);
   const [vw, setVw] = useState(1200);
   const [hoveredFloor, setHoveredFloor] = useState<string | null>(null);
+  const [contactOpen, setContactOpen] = useState(false);
   const [topNavBlur, setTopNavBlur] = useState(false);
   const [bottomNavBlur, setBottomNavBlur] = useState(false);
 
@@ -289,7 +291,7 @@ export default function HomePage() {
                 marginBottom: -padShrinkY,
               }}
             >
-              <ElevatorPad onHeaderClick={scrollToPad} />
+              <ElevatorPad onHeaderClick={scrollToPad} onContact={() => setContactOpen(true)} />
             </div>
           ) : isCondensed ? (
             /* Condensed (768–1189px): plain pad, list renders below */
@@ -317,7 +319,7 @@ export default function HomePage() {
               </div>
 
               {/* Centre: elevator pad */}
-              <ElevatorPad onHeaderClick={scrollToPad} onFloorHover={setHoveredFloor} />
+              <ElevatorPad onHeaderClick={scrollToPad} onFloorHover={setHoveredFloor} onContact={() => setContactOpen(true)} />
 
               {/* Right: video preview */}
               <div style={{ width: 320, height: 320, flexShrink: 0 }}>
@@ -412,6 +414,8 @@ export default function HomePage() {
           </span>
         </div>
       )}
+
+      <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </div>
   );
 }

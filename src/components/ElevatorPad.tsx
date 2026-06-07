@@ -52,7 +52,7 @@ function BellIcon({ color }: { color: string }) {
   );
 }
 
-function PadButton({ btn, onDing, dark, onFloorHover }: { btn: PadButtonDef; onDing: () => void; dark: boolean; onFloorHover?: (floor: string | null) => void }) {
+function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadButtonDef; onDing: () => void; dark: boolean; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const { muted } = useAudio();
@@ -93,91 +93,108 @@ function PadButton({ btn, onDing, dark, onFloorHover }: { btn: PadButtonDef; onD
     ? `0 0 0 10px ${RED}`
     : "0 0 0 0px transparent";
 
+  const isContactModal = btn.variant === "contact" && !!onContact;
+
+  const inner = (
+    <motion.div
+      initial={false}
+      animate={outerAnimate}
+      transition={{ duration: 0.12 }}
+      onHoverStart={() => {
+        setHovered(true);
+        playPop();
+        if (btn.variant === "floor") onFloorHover?.(btn.label ?? null);
+      }}
+      onHoverEnd={() => {
+        setHovered(false);
+        setPressed(false);
+        if (btn.variant === "floor") onFloorHover?.(null);
+      }}
+      onMouseDown={() => { setPressed(true); if (!isContactModal) onDing(); }}
+      onMouseUp={() => setPressed(false)}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
+      style={{
+        borderRadius: "50%",
+        border: `2px solid ${stroke}`,
+        padding: 10,
+        overflow: dark ? "hidden" : undefined,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: isActive ? "default" : "pointer",
+        userSelect: "none",
+      }}
+    >
+      <motion.div
+        initial={false}
+        animate={{ backgroundColor: innerBg, borderColor: innerBorderColor, boxShadow: innerShadow }}
+        transition={{ duration: 0.12 }}
+        style={{
+          width: 80,
+          height: 80,
+          borderRadius: "50%",
+          borderWidth: 2,
+          borderStyle: "solid",
+          display: "flex",
+          flexDirection: "column",
+          ...(btn.variant === "floor"
+            ? { justifyContent: "center", alignItems: "center", paddingBottom: 8 }
+            : btn.variant === "about"
+            ? { justifyContent: "flex-end", alignItems: "center", paddingBottom: 2 }
+            : { justifyContent: "center", alignItems: "center" }),
+        }}
+      >
+        {btn.variant === "floor" && (
+          <motion.span
+            initial={false}
+            animate={{ color: contentColor }}
+            transition={{ duration: 0.12 }}
+            style={{
+              fontFamily: "var(--font-silkscreen)",
+              fontSize: 60,
+              lineHeight: 1,
+            }}
+          >
+            {btn.label}
+          </motion.span>
+        )}
+        {btn.variant === "about" && (
+          <Image
+            src="/sandy-avatar.png"
+            alt="About Sandy"
+            width={66}
+            height={66}
+            style={{ borderRadius: 40 }}
+          />
+        )}
+        {btn.variant === "contact" && <BellIcon color={contentColor} />}
+      </motion.div>
+    </motion.div>
+  );
+
+  if (isContactModal) {
+    return (
+      <button
+        onClick={onContact}
+        style={{ display: "block", outline: "none", WebkitTapHighlightColor: "transparent", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+      >
+        {inner}
+      </button>
+    );
+  }
+
   return (
     <Link
       href={btn.href}
       style={{ display: "block", outline: "none", WebkitTapHighlightColor: "transparent", pointerEvents: isActive ? "none" : "auto" }}
     >
-      <motion.div
-        initial={false}
-        animate={outerAnimate}
-        transition={{ duration: 0.12 }}
-        onHoverStart={() => {
-          setHovered(true);
-          playPop();
-          if (btn.variant === "floor") onFloorHover?.(btn.label ?? null);
-        }}
-        onHoverEnd={() => {
-          setHovered(false);
-          setPressed(false);
-          if (btn.variant === "floor") onFloorHover?.(null);
-        }}
-        onMouseDown={() => { setPressed(true); onDing(); }}
-        onMouseUp={() => setPressed(false)}
-        onTouchStart={() => setPressed(true)}
-        onTouchEnd={() => setPressed(false)}
-        style={{
-          borderRadius: "50%",
-          border: `2px solid ${stroke}`,
-          padding: 10,
-          overflow: dark ? "hidden" : undefined,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: isActive ? "default" : "pointer",
-          userSelect: "none",
-        }}
-      >
-        <motion.div
-          initial={false}
-          animate={{ backgroundColor: innerBg, borderColor: innerBorderColor, boxShadow: innerShadow }}
-          transition={{ duration: 0.12 }}
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            borderWidth: 2,
-            borderStyle: "solid",
-            display: "flex",
-            flexDirection: "column",
-            ...(btn.variant === "floor"
-              ? { justifyContent: "center", alignItems: "center", paddingBottom: 8 }
-              : btn.variant === "about"
-              ? { justifyContent: "flex-end", alignItems: "center", paddingBottom: 2 }
-              : { justifyContent: "center", alignItems: "center" }),
-          }}
-        >
-          {btn.variant === "floor" && (
-            <motion.span
-              initial={false}
-              animate={{ color: contentColor }}
-              transition={{ duration: 0.12 }}
-              style={{
-                fontFamily: "var(--font-silkscreen)",
-                fontSize: 60,
-                lineHeight: 1,
-              }}
-            >
-              {btn.label}
-            </motion.span>
-          )}
-          {btn.variant === "about" && (
-            <Image
-              src="/sandy-avatar.png"
-              alt="About Sandy"
-              width={66}
-              height={66}
-              style={{ borderRadius: 40 }}
-            />
-          )}
-          {btn.variant === "contact" && <BellIcon color={contentColor} />}
-        </motion.div>
-      </motion.div>
+      {inner}
     </Link>
   );
 }
 
-export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, onFloorHover }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; onFloorHover?: (floor: string | null) => void }) {
+export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, onFloorHover, onContact }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
   const { muted } = useAudio();
   const dingRef = useRef<HTMLAudioElement | null>(null);
 
@@ -204,7 +221,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
   const rows = FLOOR_ROWS.map((row) =>
     row.map((btn) => ({
       ...btn,
-      isActive: btn.variant === "floor" && btn.label === activeFloor,
+      isActive: (btn.variant === "floor" && btn.label === activeFloor) || (btn.variant === "about" && activeFloor === "about"),
     }))
   );
 
@@ -264,7 +281,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
             }}
           >
             {row.map((btn) => (
-              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} onFloorHover={onFloorHover} />
+              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} onFloorHover={onFloorHover} onContact={onContact} />
             ))}
           </div>
         ))}

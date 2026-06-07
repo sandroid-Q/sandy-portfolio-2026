@@ -164,8 +164,8 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const topRef = useRef<HTMLDivElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
   const heroImgRef = useRef<HTMLDivElement>(null);
-  const [vw, setVw] = useState(() => typeof window !== "undefined" ? window.innerWidth : 1280);
-  const [vh, setVh] = useState(() => typeof window !== "undefined" ? window.innerHeight : 900);
+  const [vw, setVw] = useState(0);
+  const [vh, setVh] = useState(0);
   const [pastHero, setPastHero] = useState(false);
 
   useEffect(() => {
