@@ -27,6 +27,10 @@ export interface PortfolioNavProps {
   showSound?: boolean;
   /** Fired just before logo-click navigation (e.g. for sessionStorage writes) */
   onLogoClick?: () => void;
+  /** Force frosted-glass blur on the top nav */
+  blurTop?: boolean;
+  /** Force frosted-glass blur on the bottom nav */
+  blurBottom?: boolean;
 }
 
 function NavLink({
@@ -260,6 +264,8 @@ export default function PortfolioNav({
   mobileBgColor = "#E5E0D7",
   showSound = false,
   onLogoClick,
+  blurTop = false,
+  blurBottom = false,
 }: PortfolioNavProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -314,7 +320,7 @@ export default function PortfolioNav({
     : mobileBgColor;
   const subtleBg = "transparent";
 
-  const showFrost = isProject ? !isLightNav : (isMobile && scrolled);
+  const showFrost = isProject ? !isLightNav : (blurTop || (isMobile && scrolled));
   const navBg = showFrost ? frostBg : (isProject ? subtleBg : "transparent");
   const navBlur = (showFrost || isProject) ? "blur(8px)" : "none";
 
@@ -499,6 +505,10 @@ export default function PortfolioNav({
             padding: "0 36px",
             zIndex: 100,
             pointerEvents: "none",
+            background: blurBottom ? frostBg : "transparent",
+            backdropFilter: blurBottom ? "blur(8px)" : "none",
+            WebkitBackdropFilter: blurBottom ? "blur(8px)" : "none",
+            transition: "background 0.3s ease, backdrop-filter 0.3s ease",
           }}
         >
           <span

@@ -159,9 +159,12 @@ function VideoPreview({ data }: { floor: string; data: FloorPreview }) {
 export default function HomePage() {
   const topRef = useRef<HTMLDivElement>(null);
   const padRef = useRef<HTMLDivElement>(null);
+  const projectsListRef = useRef<HTMLDivElement>(null);
   const [vh, setVh] = useState(900);
   const [vw, setVw] = useState(1200);
   const [hoveredFloor, setHoveredFloor] = useState<string | null>(null);
+  const [topNavBlur, setTopNavBlur] = useState(false);
+  const [bottomNavBlur, setBottomNavBlur] = useState(false);
 
   const isMobile = vw < 768;
   const isCondensed = vw < 1190;    // no hover panels; show list below pad
@@ -179,6 +182,27 @@ export default function HomePage() {
       sessionStorage.removeItem("scrollToPad");
       padRef.current?.scrollIntoView();
     }
+  }, []);
+
+  useEffect(() => {
+    const check = () => {
+      const el = projectsListRef.current;
+      if (!el) {
+        setTopNavBlur(false);
+        setBottomNavBlur(false);
+        return;
+      }
+      const rect = el.getBoundingClientRect();
+      setBottomNavBlur(rect.top <= window.innerHeight - 72);
+      setTopNavBlur(rect.top <= 72);
+    };
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    check();
+    return () => {
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
   }, []);
 
   const raw = vh / 2 - 442;
@@ -212,6 +236,8 @@ export default function HomePage() {
         projectsAction={scrollToPad}
         showSound
         mobileBgColor="#E5E0D7"
+        blurTop={topNavBlur}
+        blurBottom={bottomNavBlur}
         onLogoClick={() => sessionStorage.setItem("fromHome", "1")}
       />
 
@@ -318,6 +344,7 @@ export default function HomePage() {
         {/* Condensed projects list — shown at <1190px, above the up arrow */}
         {isCondensed && (
           <div
+            ref={projectsListRef}
             style={{
               width: isStackedProject ? "min(400px, calc(100vw - 64px))" : "min(768px, calc(100vw - 64px))",
               display: "flex",
