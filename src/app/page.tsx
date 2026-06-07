@@ -25,19 +25,26 @@ function CoverPageInner() {
   const [exiting, setExiting] = useState(false);
   const [vw, setVw] = useState(1200);
   const dingRef = useRef<HTMLAudioElement | null>(null);
+  const enterRef = useRef<HTMLAudioElement | null>(null);
 
   const handleEnter = () => {
     if (exiting) return;
     setExiting(true);
+    if (enterRef.current) {
+      enterRef.current.currentTime = 0;
+      enterRef.current.play().catch(() => {});
+    }
     setTimeout(() => router.push("/home"), 430);
   };
 
   useEffect(() => {
     dingRef.current = new Audio("/elevator-ding.mp3");
+    enterRef.current = new Audio("/elevator-enter.mp3");
   }, []);
 
   useEffect(() => {
     if (dingRef.current) dingRef.current.volume = muted ? 0 : 1;
+    if (enterRef.current) enterRef.current.volume = muted ? 0 : 1;
   }, [muted]);
 
   useEffect(() => {
