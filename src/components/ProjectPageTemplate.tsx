@@ -187,6 +187,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
   }, []);
 
   const isMobile = vw < 640;
+  const isNarrow = vw < 800;
   const isTablet = vw < 1024;
   // Fluid side padding: 32px at 640px → 96px at 1280px, continuous
   const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
@@ -213,6 +214,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
         projectsAction={goToProjects}
         isLightNav={!pastHero}
         mobileBgColor="#F3F2F0"
+        showSound
       />
 
       {/* Hero — (100svh - 64px) on desktop so the down arrow peeks below; auto-height on mobile */}
@@ -221,7 +223,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
           ref={heroImgRef}
           style={{
             position: "relative",
-            ...(isMobile
+            ...(isNarrow
               ? { minHeight: "calc(100svh - 72px)" }
               : { height: "calc(100svh - 72px)", minHeight: 600 }
             ),
@@ -236,24 +238,19 @@ export default function ProjectPageTemplate(project: ProjectData) {
             <div style={{ position: "absolute", inset: 0, backgroundColor: project.coverBg ?? BG_SECONDARY }} />
           )}
 
-          {isMobile ? (
-            /* Mobile: stack project info → elevator pad */
+          {isNarrow ? (
+            /* Narrow (<800px): project info only, centre-left — pad moves to page bottom */
             <div
               style={{
-                position: "relative",
-                display: "flex", flexDirection: "column", alignItems: "center",
-                gap: 32, padding: "88px 32px 48px",
+                position: "absolute", inset: 0,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                padding: `72px ${sidePad} 64px`,
               }}
             >
-              <ProjectInfo project={project} isMobile />
-              <div
-                style={{
-                  transform: `scale(${Math.min(1, (vw - 48) / 340)})`,
-                  transformOrigin: "top center",
-                  marginBottom: `${340 * (1 - Math.min(1, (vw - 48) / 340)) * -0.5}px`,
-                }}
-              >
-                <ElevatorPad activeFloor={project.floor} dark={project.darkPad} />
+              <div style={{ maxWidth: 336 }}>
+                <ProjectInfo project={project} isMobile={isMobile} />
               </div>
             </div>
           ) : (
@@ -368,13 +365,36 @@ export default function ProjectPageTemplate(project: ProjectData) {
           </div>
         ))}
 
-        {/* Up arrow */}
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} bg="#E6E5E2" />
-        </div>
+        {/* Up arrow — above breadcrumb on wide; moves below pad on narrow */}
+        {!isNarrow && (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} bg="#E6E5E2" />
+          </div>
+        )}
 
-        {/* Floor breadcrumb nav */}
-        <FloorBreadcrumb activeFloor={project.floor} />
+        {/* Floor nav: breadcrumb on wide screens, elevator pad on narrow */}
+        {isNarrow ? (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <div
+              style={{
+                transform: `scale(${Math.min(1, (vw - 48) / 340)})`,
+                transformOrigin: "top center",
+                marginBottom: `${340 * (1 - Math.min(1, (vw - 48) / 340)) * -0.5}px`,
+              }}
+            >
+              <ElevatorPad activeFloor={project.floor} />
+            </div>
+          </div>
+        ) : (
+          <FloorBreadcrumb activeFloor={project.floor} />
+        )}
+
+        {/* Up arrow — below pad on narrow only */}
+        {isNarrow && (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} bg="#E6E5E2" />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -12,14 +12,15 @@ const SPEAKER_FACE = "M15.5 15.7424V15.7499C15.5 15.7499 15 18.5986 15 21.9999C1
 interface SoundToggleProps {
   muted: boolean;
   onClick: () => void;
+  color?: string;
 }
 
-export default function SoundToggle({ muted, onClick }: SoundToggleProps) {
+export default function SoundToggle({ muted, onClick, color: overrideColor }: SoundToggleProps) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const wasTouched = useRef(false);
 
-  const color = pressed ? RED : hovered ? BROWN : DEFAULT_COLOR;
+  const color = pressed ? RED : hovered ? (overrideColor ?? BROWN) : (overrideColor ?? DEFAULT_COLOR);
 
   return (
     <button

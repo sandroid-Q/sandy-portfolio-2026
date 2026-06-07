@@ -452,7 +452,7 @@ export default function PortfolioNav({
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {showSound && (
               <div style={{ position: "relative", top: -2 }}>
-                <SoundToggle muted={muted} onClick={() => setMuted(!muted)} />
+                <SoundToggle muted={muted} onClick={() => setMuted(!muted)} color={navLinkColor} />
               </div>
             )}
             <button
@@ -477,7 +477,7 @@ export default function PortfolioNav({
             <div style={{ position: "relative", top: -2 }}>{projectsNavLink}</div>
             {showSound && (
               <div style={{ position: "relative", top: -2 }}>
-                <SoundToggle muted={muted} onClick={() => setMuted(!muted)} />
+                <SoundToggle muted={muted} onClick={() => setMuted(!muted)} color={navLinkColor} />
               </div>
             )}
           </div>
