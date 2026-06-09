@@ -1,12 +1,67 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudio } from "@/contexts/AudioContext";
 
 const BROWN = "#4E3A34";
 const BG = "#F3F2F0";
 const RED = "#DE211D";
+
+function CoffeeCupDots() {
+  const R = 2.5;
+  const W = 138;
+  const H = 110;
+  const [hovered, setHovered] = useState(false);
+  const { muted } = useAudio();
+  const talkRef = useRef<HTMLAudioElement | null>(null);
+  const talkRef2 = useRef<HTMLAudioElement | null>(null);
+  const talkRef3 = useRef<HTMLAudioElement | null>(null);
+  const talkRef4 = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    talkRef.current = new Audio("/talk.mp3");
+    talkRef2.current = new Audio("/talk.mp3");
+    talkRef3.current = new Audio("/talk.mp3");
+    talkRef4.current = new Audio("/talk.mp3");
+  }, []);
+
+  const positions: [number, number][] = [
+    [12,0],[24,0],[36,0],[48,0],[60,0],[72,0],[84,0],
+    [0,13],[96,13],
+    [0,26],[12,26],[24,26],[36,26],[48,26],[60,26],[72,26],[84,26],[96,26],[108,26],[120,26],
+    [0,39],[12,39],[24,39],[36,39],[48,39],[60,39],[72,39],[84,39],[96,39],[120,39],[132,39],
+    [0,52],[12,52],[24,52],[36,52],[48,52],[60,52],[72,52],[84,52],[96,52],[132,52],
+    [0,65],[12,65],[24,65],[36,65],[48,65],[60,65],[72,65],[84,65],[96,65],[120,65],[132,65],
+    [0,78],[12,78],[24,78],[36,78],[48,78],[60,78],[72,78],[84,78],[96,78],[108,78],[120,78],
+    [12,91],[24,91],[36,91],[48,91],[60,91],[72,91],[84,91],
+    [24,104],[36,104],[48,104],[60,104],[72,104],
+  ];
+
+  const handleClick = () => {
+    if (muted) return;
+    [talkRef, talkRef2, talkRef3, talkRef4].forEach(ref => {
+      const t = ref.current;
+      if (!t) return;
+      t.currentTime = 0;
+      t.play().catch(() => {});
+    });
+  };
+
+  return (
+    <svg
+      width={W} height={H} viewBox={`0 0 ${W} ${H}`}
+      style={{ display: "block", cursor: "pointer", transition: "opacity 0.12s" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={handleClick}
+    >
+      {positions.map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x + R} cy={y + R} r={R} fill={hovered ? RED : "#898989"} style={{ transition: "fill 0.12s" }} />
+      ))}
+    </svg>
+  );
+}
 
 function ClipboardIcon({ color }: { color: string }) {
   return (
@@ -41,7 +96,7 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
       transition={{ duration: 0.12 }}
       style={{
         border: `2px solid ${BROWN}`,
-        fontFamily: "var(--font-space-mono), monospace",
+        fontFamily: "var(--font-space-grotesk)",
         fontWeight: 400,
         fontSize: 13,
         letterSpacing: "0.04em",
@@ -60,6 +115,43 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
   );
 }
 
+function CoffeeRain({ onDone }: { onDone: () => void }) {
+  const screenH = typeof window !== "undefined" ? window.innerHeight : 900;
+
+  const drops = useMemo(() =>
+    Array.from({ length: 36 }, (_, i) => ({
+      id: i,
+      left: (i / 35) * 96 + (Math.random() - 0.5) * 2.5,
+      rotation: Math.random() * 360,
+      rotationDelta: (Math.random() - 0.5) * 540,
+      delay: Math.random() * 0.7,
+      duration: 1.4 + Math.random() * 0.9,
+    }))
+  , []);
+
+  useEffect(() => {
+    const maxMs = Math.max(...drops.map(d => (d.delay + d.duration) * 1000));
+    const t = setTimeout(onDone, maxMs + 200);
+    return () => clearTimeout(t);
+  }, [drops, onDone]);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 500, overflow: "hidden" }}>
+      {drops.map(drop => (
+        <motion.div
+          key={drop.id}
+          initial={{ y: -80, rotate: drop.rotation }}
+          animate={{ y: screenH + 80, rotate: drop.rotation + drop.rotationDelta }}
+          transition={{ duration: drop.duration, delay: drop.delay, ease: "easeIn" }}
+          style={{ position: "absolute", top: 0, left: `${drop.left}vw`, fontSize: 80, lineHeight: 1 }}
+        >
+          ☕️
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 interface ContactModalProps {
   open: boolean;
   onClose: () => void;
@@ -68,10 +160,15 @@ interface ContactModalProps {
 export default function ContactModal({ open, onClose }: ContactModalProps) {
   const { muted } = useAudio();
   const bellRef = useRef<HTMLAudioElement | null>(null);
+  const beansRef = useRef<HTMLAudioElement | null>(null);
+  const beansTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [copied, setCopied] = useState(false);
+  const [rainKey, setRainKey] = useState(0);
 
   useEffect(() => {
     bellRef.current = new Audio("/bell.mp3");
+    beansRef.current = new Audio("/beans.mp3");
+    return () => { if (beansTimerRef.current) clearTimeout(beansTimerRef.current); };
   }, []);
 
   useEffect(() => {
@@ -94,10 +191,20 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
       document.body.removeChild(el);
     }
     setCopied(true);
+    setRainKey(k => k + 1);
+    const beans = beansRef.current;
+    if (beans && !muted) {
+      beans.currentTime = 0;
+      beans.play().catch(() => {});
+      if (beansTimerRef.current) clearTimeout(beansTimerRef.current);
+      beansTimerRef.current = setTimeout(() => { beans.pause(); beans.currentTime = 0; }, 2000);
+    }
     setTimeout(() => setCopied(false), 2500);
   };
 
   return (
+    <>
+    {rainKey > 0 && <CoffeeRain key={rainKey} onDone={() => setRainKey(0)} />}
     <AnimatePresence>
       {open && (
         <>
@@ -138,9 +245,11 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               style={{
                 pointerEvents: "auto",
                 position: "relative",
-                backgroundColor: BG,
+                backgroundColor: "rgba(243, 242, 240, 0.72)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
                 border: `2px solid ${BROWN}`,
-                padding: "48px 60px 52px",
+                padding: "112px 60px 116px",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -177,6 +286,11 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                 ✕
               </button>
 
+              {/* Coffee cup speaker grill */}
+              <div style={{ marginBottom: 40 }}>
+                <CoffeeCupDots />
+              </div>
+
               {/* Headline */}
               <span
                 style={{
@@ -212,5 +326,6 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
         </>
       )}
     </AnimatePresence>
+    </>
   );
 }

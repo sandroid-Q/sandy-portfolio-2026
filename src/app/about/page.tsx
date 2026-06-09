@@ -53,25 +53,47 @@ const EDUCATION_DETAILS = [
   "Extracurricular: NSW Touch State Cup, Vawdon Cup, UNSW South Sydney Rabbitohs Touch Club, Unisports Nationals Div 1, O-Week Yellow Shirts, UNSW Business Society, HPAIR Sydney",
 ];
 
-const DISCIPLINES = [
-  "Product (UX/UI) Design",
-  "Product Strategy",
-  "Project Management",
-  "UX copywriting",
-  "Brand Design",
-  "Animation",
-  "Art Direction",
-  "Digital Design",
-  "Print Design",
+const STICKY_YELLOW = "#FFF1B5";
+const QUOTE_MARK_COLOR = "#E4C298";
+
+const SKILLS = [
+  {
+    label: "Product Design",
+    gemColor: "#00CFE8",
+    items: ["UX/UI Design", "Product Strategy", "Project Management", "Copywriting", "UX Research"],
+  },
+  {
+    label: "Visual / Graphic Design",
+    gemColor: "#F064A8",
+    items: ["Brand Design", "Art Direction", "Animation", "Digital Design", "Print Design"],
+  },
+  {
+    label: "Web Development",
+    gemColor: "#54B87A",
+    items: ["Static Website Development (via prompt-coding)"],
+  },
+  {
+    label: "Software & Tools",
+    gemColor: "#8468C8",
+    items: ["Figma", "Claude Code", "Amazon Kiro", "Adobe Suite (PS, AI, AE, ID)", "Lottie", "Jira/Confluence"],
+  },
 ];
 
-const TOOLS = [
-  "Figma",
-  "Kiro / VS code (WIP)",
-  "Adobe PS / AI / ID / AE",
-  "Lottie",
-  "Jira / Confluence",
-  "Miro",
+const TESTIMONIALS = [
+  {
+    name: "JASON BACKHOUSE",
+    title: "CODO (Chief Operations & Delivery Officer)",
+    company: "AP+ / Beem",
+    photo: "/jb.jpeg",
+    quote: "Sandy is an amazing product focused designer who can bring in the strategic needs of the business into the validation and problem solving of the product problems she solves.\n\nShe works incredibly well with the team, able to communicate and mediate between competing objectives across the business.\n\nI would recommend her for any role where you need an adept problem solver who also happens to know how to design great experiences and create a great vibe.",
+  },
+  {
+    name: "KHALIL YARAK",
+    title: "General Manager of Engineering",
+    company: "AP+",
+    photo: "/ky.jpeg",
+    quote: "Testimonial text here.",
+  },
 ];
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
@@ -127,11 +149,11 @@ function WorkSection() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <SectionHeader>Work</SectionHeader>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
         {WORK.map((job) => (
           <div key={job.company} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <Label>{job.company}</Label>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {job.roles.map((r) => (
                 <Detail key={r.title}>
                   {r.title}
@@ -167,37 +189,108 @@ function EducationSection() {
   );
 }
 
+// Stepped diamond pixel-art gem icon — 7 wide × 11 tall (portrait)
+const GEM_FULL  = "M3,0 L4,0 L4,1 L5,1 L5,2 L6,2 L6,3 L7,3 L7,8 L6,8 L6,9 L5,9 L5,10 L4,10 L4,11 L3,11 L3,10 L2,10 L2,9 L1,9 L1,8 L0,8 L0,3 L1,3 L1,2 L2,2 L2,1 L3,1 Z";
+const GEM_TOP   = "M3,0 L4,0 L4,1 L5,1 L5,2 L6,2 L6,3 L7,3 L7,5 L0,5 L0,3 L1,3 L1,2 L2,2 L2,1 L3,1 Z";
+const GEM_BOT   = "M0,5 L7,5 L7,8 L6,8 L6,9 L5,9 L5,10 L4,10 L4,11 L3,11 L3,10 L2,10 L2,9 L1,9 L1,8 L0,8 Z";
+const GEM_SHINE = "M3,1 L4,1 L4,3 L3,3 Z";
+
+function PixelGem({ color, size = 16 }: { color: string; size?: number }) {
+  return (
+    <svg
+      width={size * (7 / 11)}
+      height={size}
+      viewBox="0 0 7 11"
+      style={{ imageRendering: "pixelated", flexShrink: 0 }}
+    >
+      <path d={GEM_FULL}  fill={color} />
+      <path d={GEM_TOP}   fill="white" opacity={0.22} />
+      <path d={GEM_BOT}   fill="black" opacity={0.18} />
+      <path d={GEM_SHINE} fill="white" opacity={0.72} />
+    </svg>
+  );
+}
+
 function SkillsSection() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <SectionHeader>Skills</SectionHeader>
-      <div style={{ display: "flex", flexDirection: "row", gap: 32 }}>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-          <Label>Disciplinaries</Label>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {DISCIPLINES.map((d) => (
-              <Detail key={d}>{d}</Detail>
-            ))}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px 32px" }}>
+        {SKILLS.map((skill) => (
+          <div key={skill.label} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <PixelGem color={skill.gemColor} size={16} />
+              <Label>{skill.label}</Label>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {skill.items.map((item) => (
+                <Detail key={item}>{item}</Detail>
+              ))}
+            </div>
           </div>
-        </div>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-          <Label>Tools</Label>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {TOOLS.map((t) => (
-              <Detail key={t}>{t}</Detail>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
 }
 
-function ReferencesSection() {
+function StickyNote({ t, rotate, width = 340, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_COLOR }: { t: typeof TESTIMONIALS[0]; rotate: number; width?: number; color?: string; quoteColor?: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <SectionHeader>References</SectionHeader>
-      <Label>Upon request</Label>
+    <div style={{
+      position: "relative",
+      width,
+      backgroundColor: color,
+      padding: 32,
+      display: "flex",
+      flexDirection: "column",
+      gap: 40,
+      transform: `rotate(${rotate}deg)`,
+      borderRadius: 20,
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", position: "relative", flexShrink: 0 }}>
+          <Image src={t.photo} fill alt={t.name} style={{ objectFit: "cover", objectPosition: "center top" }} />
+        </div>
+        <div style={{ padding: "4px 12px", border: `0.5px solid ${BROWN}`, borderRadius: 100 }}>
+          <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 13, color: BROWN }}>
+            {t.company}
+          </span>
+        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <span style={{
+          fontFamily: "var(--font-space-grotesk)",
+          fontWeight: 300,
+          fontSize: 72,
+          letterSpacing: "-0.03em",
+          color: quoteColor,
+          lineHeight: 0.75,
+          display: "block",
+          marginBottom: -20,
+        }}>
+          &ldquo;
+        </span>
+        <p style={{
+          fontFamily: "var(--font-space-grotesk)",
+          fontWeight: 300,
+          fontSize: 13,
+          letterSpacing: "-0.03em",
+          color: BROWN,
+          margin: 0,
+          lineHeight: 1.65,
+          whiteSpace: "pre-wrap",
+        }}>
+          {t.quote}
+        </p>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 13, letterSpacing: "0.04em", color: BROWN }}>
+          {t.name}
+        </span>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 12, letterSpacing: "-0.03em", color: BROWN }}>
+          {t.title}
+        </span>
+      </div>
     </div>
   );
 }
@@ -497,9 +590,8 @@ export default function AboutPage() {
           {isMobile ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
               <WorkSection />
-              <EducationSection />
               <SkillsSection />
-              <ReferencesSection />
+              <EducationSection />
             </div>
           ) : (
             <div
@@ -515,14 +607,21 @@ export default function AboutPage() {
                 <WorkSection />
               </div>
               <div style={{ width: 400, flexShrink: 0, display: "flex", flexDirection: "column" }}>
-                <EducationSection />
-                <div style={{ height: 64 }} />
                 <SkillsSection />
-                <div style={{ height: 32 }} />
-                <ReferencesSection />
+                <div style={{ height: 240 }} />
+                <EducationSection />
               </div>
             </div>
           )}
+        </div>
+
+        {/* Shoutouts */}
+        <div style={{ padding: `0 ${sidePad}`, marginTop: -236 }}>
+          <SectionHeader>Shoutouts</SectionHeader>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 16, alignItems: "stretch", marginTop: 24 }}>
+            <StickyNote t={TESTIMONIALS[0]} rotate={0} width={400} />
+            <StickyNote t={TESTIMONIALS[1]} rotate={0} width={400} color="#D9D0FB" quoteColor="#A994EA" />
+          </div>
         </div>
 
         {/* Up arrow — desktop */}
