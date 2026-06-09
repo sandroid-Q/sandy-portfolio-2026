@@ -7,6 +7,7 @@ import Image from "next/image";
 import ElevatorPad from "@/components/ElevatorPad";
 import FloorBreadcrumb from "@/components/FloorBreadcrumb";
 import PortfolioNav from "@/components/PortfolioNav";
+import ContactModal from "@/components/ContactModal";
 
 const BG = "#F3F2F0";
 const BG_SECONDARY = "#E6E5E2";
@@ -288,6 +289,7 @@ export default function AboutPage() {
   const [vh, setVh] = useState(0);
   const [blurTop, setBlurTop] = useState(false);
   const [blurBottom, setBlurBottom] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -440,7 +442,7 @@ export default function AboutPage() {
 
               {/* Center: elevator pad */}
               <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "top center" }}>
-                <ElevatorPad activeFloor="about" />
+                <ElevatorPad activeFloor="about" onContact={() => setContactOpen(true)} />
               </div>
 
               {/* Right: photo */}
@@ -537,7 +539,7 @@ export default function AboutPage() {
                 marginBottom: `${340 * (1 - Math.min(1, (vw - 48) / 340)) * -0.5}px`,
               }}
             >
-              <ElevatorPad activeFloor="about" />
+              <ElevatorPad activeFloor="about" onContact={() => setContactOpen(true)} />
             </div>
           </div>
         ) : (
@@ -551,6 +553,7 @@ export default function AboutPage() {
           </div>
         )}
       </div>
+      <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </div>
   );
 }

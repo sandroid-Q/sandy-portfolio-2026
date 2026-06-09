@@ -7,6 +7,7 @@ import Image from "next/image";
 import ElevatorPad from "./ElevatorPad";
 import FloorBreadcrumb from "./FloorBreadcrumb";
 import PortfolioNav from "./PortfolioNav";
+import ContactModal from "./ContactModal";
 
 const BROWN = "#4E3A34";
 const BG = "#F3F2F0";
@@ -167,6 +168,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const [vw, setVw] = useState(0);
   const [vh, setVh] = useState(0);
   const [pastHero, setPastHero] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
 
   useEffect(() => {
     const update = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
@@ -283,7 +285,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
 
               {/* Center column: elevator pad — no animation, just updates active floor */}
               <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "top center" }}>
-                <ElevatorPad activeFloor={project.floor} dark={project.darkPad} />
+                <ElevatorPad activeFloor={project.floor} dark={project.darkPad} onContact={() => setContactOpen(true)} />
               </div>
 
               {/* Right column: empty mirror so the grid stays symmetric */}
@@ -392,7 +394,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 marginBottom: `${340 * (1 - Math.min(1, (vw - 48) / 340)) * -0.5}px`,
               }}
             >
-              <ElevatorPad activeFloor={project.floor} />
+              <ElevatorPad activeFloor={project.floor} onContact={() => setContactOpen(true)} />
             </div>
           </div>
         ) : (
@@ -406,6 +408,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
           </div>
         )}
       </div>
+      <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </div>
   );
 }
