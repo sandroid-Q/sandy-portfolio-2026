@@ -55,12 +55,43 @@ function BellIcon({ color }: { color: string }) {
 function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadButtonDef; onDing: () => void; dark: boolean; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
+  const [ringing, setRinging] = useState(false);
+  const [flashOn, setFlashOn] = useState(false);
   const { muted } = useAudio();
   const popRef = useRef<HTMLAudioElement | null>(null);
+  const ringRef = useRef<HTMLAudioElement | null>(null);
+  const flashIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const ringTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     popRef.current = new Audio("/button-sound-pop.mp3");
+    ringRef.current = new Audio("/ring.mp3");
+    ringRef.current.loop = true;
+    ringRef.current.playbackRate = 1.5;
+    return () => {
+      if (flashIntervalRef.current) clearInterval(flashIntervalRef.current);
+      if (ringTimeoutRef.current) clearTimeout(ringTimeoutRef.current);
+    };
   }, []);
+
+  const startRing = () => {
+    if (ringing) return;
+    setRinging(true);
+    setHovered(false);
+    setPressed(false);
+    const ring = ringRef.current;
+    if (ring && !muted) { ring.currentTime = 0; ring.play().catch(() => {}); }
+    let on = true;
+    setFlashOn(on);
+    flashIntervalRef.current = setInterval(() => { on = !on; setFlashOn(on); }, 500);
+    ringTimeoutRef.current = setTimeout(() => {
+      if (flashIntervalRef.current) clearInterval(flashIntervalRef.current);
+      if (ring) { ring.pause(); ring.currentTime = 0; }
+      setRinging(false);
+      setFlashOn(false);
+      onContact?.();
+    }, 2000);
+  };
 
   const playPop = () => {
     const pop = popRef.current;
@@ -70,7 +101,9 @@ function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadBut
   };
 
   const isActive = btn.isActive ?? false;
-  const isActivated = pressed || isActive;
+  const effectiveHovered = ringing ? flashOn : hovered;
+  const effectivePressed = ringing ? false : pressed;
+  const isActivated = effectivePressed || isActive;
 
   const stroke         = dark ? BG : BROWN;
   const defaultFill    = dark ? "transparent" : BG;
@@ -84,12 +117,12 @@ function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadBut
   //            only the ring between the two strokes turns red, center stays transparent.
   const outerAnimate = dark
     ? { backgroundColor: isActivated ? activeFill : "transparent" }
-    : { backgroundColor: isActivated ? activeFill : hovered ? RED : defaultFill };
+    : { backgroundColor: isActivated ? activeFill : effectiveHovered ? RED : defaultFill };
 
   const innerBg          = isActivated ? activeFill   : defaultFill;
   const innerBorderColor = isActivated ? activeContent : stroke;
   const contentColor     = isActivated ? activeContent : defaultContent;
-  const innerShadow      = dark && hovered && !isActivated
+  const innerShadow      = dark && effectiveHovered && !isActivated
     ? `0 0 0 10px ${RED}`
     : "0 0 0 0px transparent";
 
@@ -101,18 +134,20 @@ function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadBut
       animate={outerAnimate}
       transition={{ duration: 0.12 }}
       onHoverStart={() => {
+        if (ringing) return;
         setHovered(true);
         playPop();
         if (btn.variant === "floor") onFloorHover?.(btn.label ?? null);
       }}
       onHoverEnd={() => {
+        if (ringing) return;
         setHovered(false);
         setPressed(false);
         if (btn.variant === "floor") onFloorHover?.(null);
       }}
-      onMouseDown={() => { setPressed(true); if (!isContactModal) onDing(); }}
+      onMouseDown={() => { if (ringing) return; setPressed(true); if (!isContactModal) onDing(); }}
       onMouseUp={() => setPressed(false)}
-      onTouchStart={() => setPressed(true)}
+      onTouchStart={() => { if (ringing) return; setPressed(true); }}
       onTouchEnd={() => setPressed(false)}
       style={{
         borderRadius: "50%",
@@ -122,7 +157,7 @@ function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadBut
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        cursor: isActive ? "default" : "pointer",
+        cursor: isActive ? "default" : ringing ? "wait" : "pointer",
         userSelect: "none",
       }}
     >
@@ -176,8 +211,8 @@ function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadBut
   if (isContactModal) {
     return (
       <button
-        onClick={onContact}
-        style={{ display: "block", outline: "none", WebkitTapHighlightColor: "transparent", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+        onClick={startRing}
+        style={{ display: "block", outline: "none", WebkitTapHighlightColor: "transparent", background: "none", border: "none", padding: 0, cursor: ringing ? "wait" : "pointer" }}
       >
         {inner}
       </button>
