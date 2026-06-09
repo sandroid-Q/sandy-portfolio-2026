@@ -308,7 +308,7 @@ export default function AboutPage() {
       }
       const remaining =
         document.documentElement.scrollHeight - window.scrollY - window.innerHeight;
-      setBlurBottom(remaining > 72);
+      setBlurBottom(remaining > 72 && window.scrollY > 100);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -421,7 +421,7 @@ export default function AboutPage() {
                   display: "flex",
                   justifyContent: "flex-end",
                   alignItems: "center",
-                  paddingRight: 48,
+                  paddingRight: 64,
                   height: clampedVh - 72 - 144,
                 }}
               >
@@ -429,14 +429,17 @@ export default function AboutPage() {
                   style={{
                     fontFamily: "var(--font-space-grotesk)",
                     fontWeight: 500,
-                    fontSize: 42,
-                    lineHeight: "48px",
+                    fontSize: 46,
+                    lineHeight: "54px",
+                    letterSpacing: "-0.02em",
                     color: BROWN,
                     margin: 0,
-                    width: 320,
+                    width: 340,
                   }}
                 >
-                  {INTRO_TEXT}
+                  {"Hello, it's"}
+                  <br />
+                  {INTRO_TEXT.slice("Hello, it's".length)}
                 </p>
               </motion.div>
 
@@ -454,14 +457,14 @@ export default function AboutPage() {
                   display: "flex",
                   justifyContent: "flex-start",
                   alignItems: "center",
-                  paddingLeft: 48,
+                  paddingLeft: 80,
                   height: clampedVh - 72 - 144,
                 }}
               >
                 <div
                   style={{
-                    width: 240,
-                    height: 320,
+                    width: 280,
+                    height: 373,
                     position: "relative",
                     overflow: "hidden",
                   }}
