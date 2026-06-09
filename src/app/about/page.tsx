@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useAnimation } from "framer-motion";
 import Image from "next/image";
@@ -53,8 +53,8 @@ const EDUCATION_DETAILS = [
   "Extracurricular: NSW Touch State Cup, Vawdon Cup, UNSW South Sydney Rabbitohs Touch Club, Unisports Nationals Div 1, O-Week Yellow Shirts, UNSW Business Society, HPAIR Sydney",
 ];
 
-const STICKY_YELLOW = "#FFF1B5";
-const QUOTE_MARK_COLOR = "#E4C298";
+const STICKY_YELLOW = "#DDD4C5";
+const QUOTE_MARK_COLOR = "#FFF1B5";
 
 const SKILLS = [
   {
@@ -95,6 +95,82 @@ const TESTIMONIALS = [
     quote: "Testimonial text here.",
   },
 ];
+
+const SCRAMBLE_CHARS = "abcdefghijklmnopqrstuvwxyz";
+
+function ScrambleSpan({
+  defaultText,
+  hoverText,
+  baseColor,
+}: {
+  defaultText: string;
+  hoverText: string;
+  baseColor: string;
+}) {
+  const displayRef = useRef(defaultText);
+  const [displayState, setDisplayState] = useState(defaultText);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const spanRef = useRef<HTMLSpanElement>(null);
+  const [fixedWidth, setFixedWidth] = useState<number | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    if (spanRef.current) setFixedWidth(spanRef.current.offsetWidth);
+  }, []);
+
+  const updateDisplay = (val: string) => {
+    displayRef.current = val;
+    setDisplayState(val);
+  };
+
+  const runScramble = (to: string) => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    const from = displayRef.current;
+    const fromChars = from.split("");
+    const toChars = to.split("");
+    const n = to.length;
+    let frame = 0;
+    const DURATION = 4;
+    const TOTAL_STAGGER = 4;
+
+    intervalRef.current = setInterval(() => {
+      const next = Array.from({ length: n }, (_, i) => {
+        const tCh = toChars[i];
+        const sCh = fromChars[i] ?? " ";
+        if (!tCh || tCh === " ") return tCh ?? "";
+        // ease-in-out stagger so wave accelerates through the middle
+        const t = n > 1 ? i / (n - 1) : 0;
+        const eased = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+        const start = Math.round(eased * TOTAL_STAGGER);
+        const lock = start + DURATION;
+        if (frame < start) return sCh !== " " ? sCh : tCh;
+        if (frame < lock) return SCRAMBLE_CHARS[Math.floor(Math.random() * 26)];
+        return tCh;
+      });
+      updateDisplay(next.join(""));
+      frame++;
+      if (frame >= TOTAL_STAGGER + DURATION) {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        updateDisplay(to);
+      }
+    }, 40);
+  };
+
+  useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current!); }, []);
+
+  return (
+    <span
+      ref={spanRef}
+      onMouseEnter={() => runScramble(hoverText)}
+      onMouseLeave={() => {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        updateDisplay(defaultText);
+      }}
+      style={{ display: "inline-block", width: fixedWidth, color: baseColor, cursor: "default" }}
+    >
+      {displayState}
+    </span>
+  );
+}
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
@@ -383,6 +459,8 @@ export default function AboutPage() {
   const [blurTop, setBlurTop] = useState(false);
   const [blurBottom, setBlurBottom] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [soupHovered, setSoupHovered] = useState(false);
+  const [profileHovered, setProfileHovered] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -511,6 +589,7 @@ export default function AboutPage() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 style={{
+                  position: "relative",
                   display: "flex",
                   justifyContent: "flex-end",
                   alignItems: "center",
@@ -532,8 +611,41 @@ export default function AboutPage() {
                 >
                   {"Hello, it's"}
                   <br />
-                  {INTRO_TEXT.slice("Hello, it's".length)}
+                  {" Sandy here. A "}
+                  <ScrambleSpan
+                    defaultText="senior product designer"
+                    hoverText="hobby & meme collector"
+                    baseColor={BROWN}
+                  />
+                  {" who loves her cat, "}
+                  <span
+                    onMouseEnter={() => setSoupHovered(true)}
+                    onMouseLeave={() => setSoupHovered(false)}
+                    style={{
+                      color: soupHovered ? "#926E57" : BROWN,
+                      transition: "color 0.2s",
+                      cursor: "default",
+                    }}
+                  >
+                    Soup 🐈‍⬛
+                  </span>
                 </p>
+                {soupHovered && (
+                  <video
+                    src="/soup-boing-vid.mp4"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    style={{
+                      position: "absolute",
+                      bottom: 64,
+                      right: 72,
+                      width: 220,
+                      pointerEvents: "none",
+                    }}
+                  />
+                )}
               </motion.div>
 
               {/* Center: elevator pad */}
@@ -555,20 +667,40 @@ export default function AboutPage() {
                 }}
               >
                 <div
-                  style={{
-                    width: 280,
-                    height: 373,
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
+                  onMouseEnter={() => setProfileHovered(true)}
+                  onMouseLeave={() => setProfileHovered(false)}
+                  style={{ width: 280, height: 373, position: "relative" }}
                 >
-                  <Image
-                    src="/sandy-qi.jpeg"
-                    fill
-                    alt="Sandy Qi"
-                    style={{ objectFit: "cover", objectPosition: "center top" }}
-                    priority
-                  />
+                  {/* Profile image — clipped to its own bounds */}
+                  <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+                    <Image
+                      src="/sandy-qi.jpeg"
+                      fill
+                      alt="Sandy Qi"
+                      style={{ objectFit: "cover", objectPosition: "center top" }}
+                      priority
+                    />
+                  </div>
+                  {/* Hover image — full uncropped, crosses the profile to make a plus shape */}
+                  {profileHovered && (
+                    <Image
+                      src="/me-azer.JPG"
+                      width={460}
+                      height={307}
+                      alt="Sandy alt"
+                      style={{
+                        position: "absolute",
+                        top: "calc(50% + 10px)",
+                        left: -40,
+                        transform: "translateY(-50%)",
+                        zIndex: 2,
+                        display: "block",
+                        width: 460,
+                        height: 307,
+                        maxWidth: "none",
+                      }}
+                    />
+                  )}
                 </div>
               </motion.div>
             </div>
@@ -616,11 +748,11 @@ export default function AboutPage() {
         </div>
 
         {/* Shoutouts */}
-        <div style={{ padding: `0 ${sidePad}`, marginTop: -236 }}>
+        <div style={{ padding: `0 ${sidePad}`, marginTop: -92 }}>
           <SectionHeader>Shoutouts</SectionHeader>
           <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 16, alignItems: "stretch", marginTop: 24 }}>
-            <StickyNote t={TESTIMONIALS[0]} rotate={0} width={400} />
-            <StickyNote t={TESTIMONIALS[1]} rotate={0} width={400} color="#D9D0FB" quoteColor="#A994EA" />
+            <StickyNote t={TESTIMONIALS[0]} rotate={0} width={352} />
+            <StickyNote t={TESTIMONIALS[1]} rotate={0} width={352} />
           </div>
         </div>
 
