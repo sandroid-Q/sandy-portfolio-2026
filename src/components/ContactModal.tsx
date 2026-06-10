@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudio } from "@/contexts/AudioContext";
 
@@ -115,19 +115,19 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
   );
 }
 
+const COFFEE_DROPS = Array.from({ length: 36 }, (_, i) => ({
+  id: i,
+  left: (i / 35) * 96 + (Math.random() - 0.5) * 2.5,
+  rotation: Math.random() * 360,
+  rotationDelta: (Math.random() - 0.5) * 540,
+  delay: Math.random() * 0.7,
+  duration: 1.4 + Math.random() * 0.9,
+}));
+
 function CoffeeRain({ onDone }: { onDone: () => void }) {
   const screenH = typeof window !== "undefined" ? window.innerHeight : 900;
 
-  const drops = useMemo(() =>
-    Array.from({ length: 36 }, (_, i) => ({
-      id: i,
-      left: (i / 35) * 96 + (Math.random() - 0.5) * 2.5,
-      rotation: Math.random() * 360,
-      rotationDelta: (Math.random() - 0.5) * 540,
-      delay: Math.random() * 0.7,
-      duration: 1.4 + Math.random() * 0.9,
-    }))
-  , []);
+  const drops = COFFEE_DROPS;
 
   useEffect(() => {
     const maxMs = Math.max(...drops.map(d => (d.delay + d.duration) * 1000));

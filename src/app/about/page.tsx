@@ -10,7 +10,6 @@ import PortfolioNav from "@/components/PortfolioNav";
 import ContactModal from "@/components/ContactModal";
 
 const BG = "#F3F2F0";
-const BG_SECONDARY = "#E6E5E2";
 const HERO_BG = "#E5E0D7";
 const BROWN = "#4E3A34";
 const HOVER_BROWN = "#D3BA9F";
