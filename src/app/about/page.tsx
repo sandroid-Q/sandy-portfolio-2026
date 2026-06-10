@@ -268,28 +268,6 @@ function EducationSection() {
   );
 }
 
-// Stepped diamond pixel-art gem icon — 7 wide × 11 tall (portrait)
-const GEM_FULL  = "M3,0 L4,0 L4,1 L5,1 L5,2 L6,2 L6,3 L7,3 L7,8 L6,8 L6,9 L5,9 L5,10 L4,10 L4,11 L3,11 L3,10 L2,10 L2,9 L1,9 L1,8 L0,8 L0,3 L1,3 L1,2 L2,2 L2,1 L3,1 Z";
-const GEM_TOP   = "M3,0 L4,0 L4,1 L5,1 L5,2 L6,2 L6,3 L7,3 L7,5 L0,5 L0,3 L1,3 L1,2 L2,2 L2,1 L3,1 Z";
-const GEM_BOT   = "M0,5 L7,5 L7,8 L6,8 L6,9 L5,9 L5,10 L4,10 L4,11 L3,11 L3,10 L2,10 L2,9 L1,9 L1,8 L0,8 Z";
-const GEM_SHINE = "M3,1 L4,1 L4,3 L3,3 Z";
-
-function PixelGem({ color, size = 16 }: { color: string; size?: number }) {
-  return (
-    <svg
-      width={size * (7 / 11)}
-      height={size}
-      viewBox="0 0 7 11"
-      style={{ imageRendering: "pixelated", flexShrink: 0 }}
-    >
-      <path d={GEM_FULL}  fill={color} />
-      <path d={GEM_TOP}   fill="white" opacity={0.22} />
-      <path d={GEM_BOT}   fill="black" opacity={0.18} />
-      <path d={GEM_SHINE} fill="white" opacity={0.72} />
-    </svg>
-  );
-}
-
 function SkillsSection({ oneCol = false }: { oneCol?: boolean }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -297,10 +275,7 @@ function SkillsSection({ oneCol = false }: { oneCol?: boolean }) {
       <div style={{ display: "grid", gridTemplateColumns: oneCol ? "1fr" : "1fr 1fr", gap: "24px 32px" }}>
         {SKILLS.map((skill) => (
           <div key={skill.label} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <PixelGem color={skill.gemColor} size={16} />
-              <Label>{skill.label}</Label>
-            </div>
+            <Label>{skill.label}</Label>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {skill.items.map((item) => (
                 <Detail key={item}>{item}</Detail>
@@ -735,14 +710,15 @@ export default function AboutPage() {
           style={{ padding: `32px ${sidePad} 0`, scrollMarginTop: 72 }}
         >
           {isNarrow ? (
+            // <800px: all stacked
             <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
               <WorkSection />
               <SkillsSection />
               <EducationSection />
             </div>
-          ) : (
-            // Work grows to fill remaining space; Skills+Education are fixed-width side-by-side.
-            // cvGap slides 64→32px as vw narrows 1200→800px. skillsOneCol collapses at <960px.
+          ) : isMedium ? (
+            // 800–1199px: Work shrinks left, Skills+Education sit side-by-side.
+            // cvGap slides 64→32px; skillsOneCol collapses Skills grid at <960px.
             <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: cvGap }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <WorkSection />
@@ -754,6 +730,18 @@ export default function AboutPage() {
                 <div style={{ width: 174 }}>
                   <EducationSection />
                 </div>
+              </div>
+            </div>
+          ) : (
+            // ≥1200px: original desktop layout — Work left, Skills + Education stacked right
+            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 64 }}>
+              <div style={{ width: 494, flexShrink: 0 }}>
+                <WorkSection />
+              </div>
+              <div style={{ width: 400, flexShrink: 0, display: "flex", flexDirection: "column" }}>
+                <SkillsSection />
+                <div style={{ height: 240 }} />
+                <EducationSection />
               </div>
             </div>
           )}
