@@ -15,9 +15,6 @@ const HERO_BG = "#E5E0D7";
 const BROWN = "#4E3A34";
 const HOVER_BROWN = "#D3BA9F";
 
-const INTRO_TEXT =
-  "Hello, it's Sandy here. A senior product designer who loves her cat, Soup 🐈‍⬛";
-
 const WORK = [
   {
     company: "Beem / AP+",
@@ -537,8 +534,7 @@ export default function AboutPage() {
           }}
         >
           {isNarrow ? (
-            // Normal flow — hero expands to fit; 152px top matches medium breathing room
-            <div style={{ padding: `152px ${sidePad} 64px` }}>
+            <div style={{ padding: `152px ${sidePad} 64px`, position: "relative" }}>
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -557,21 +553,46 @@ export default function AboutPage() {
                     width: 340 * narrowScale,
                   }}
                 >
-                  {INTRO_TEXT}
+                  {"Hello, it's"}
+                  <br />
+                  {" Sandy here. A "}
+                  <ScrambleSpan
+                    defaultText="senior product designer"
+                    hoverText="hobby & meme collector"
+                    baseColor={BROWN}
+                  />
+                  {" who loves her cat, "}
+                  <span
+                    onMouseEnter={() => setSoupHovered(true)}
+                    onMouseLeave={() => setSoupHovered(false)}
+                    style={{ color: soupHovered ? "#926E57" : BROWN, transition: "color 0.2s", cursor: "default" }}
+                  >
+                    Soup 🐈‍⬛
+                  </span>
                 </p>
+                {/* Outer div: hover trigger (overflow visible so overlay can extend outside) */}
+                {/* Inner div: clips main photo only */}
                 <div
-                  style={{
-                    width: 280 * narrowScale,
-                    height: 373 * narrowScale,
-                    position: "relative",
-                    overflow: "hidden",
-                    flexShrink: 0,
-                  }}
+                  onMouseEnter={() => setProfileHovered(true)}
+                  onMouseLeave={() => setProfileHovered(false)}
+                  style={{ width: 280 * narrowScale, height: 373 * narrowScale, position: "relative", flexShrink: 0 }}
                 >
-                  <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
-                    style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                  <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+                    <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
+                      style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                  </div>
+                  {profileHovered && (
+                    <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
+                      style={{ position: "absolute", top: "calc(50% + 10px)", left: -40,
+                        transform: "translateY(-50%)", zIndex: 2, display: "block",
+                        width: 460, height: 307, maxWidth: "none" }} />
+                  )}
                 </div>
               </motion.div>
+              {soupHovered && (
+                <video src="/soup-boing-vid.mp4" autoPlay muted loop playsInline
+                  style={{ position: "absolute", bottom: 64, right: sidePad, width: 180, pointerEvents: "none" }} />
+              )}
             </div>
           ) : (
             <div
@@ -633,14 +654,15 @@ export default function AboutPage() {
 
                   {/* Medium only: photo under the text in the left column */}
                   {isMedium && (
-                    // flex:1 + maxHeight lets the photo shrink on short viewports instead of overflowing the fixed-height hero
                     <div
                       onMouseEnter={() => setProfileHovered(true)}
                       onMouseLeave={() => setProfileHovered(false)}
-                      style={{ width: 280, flex: 1, maxHeight: 373, minHeight: 0, position: "relative", overflow: "hidden" }}
+                      style={{ width: 280, flex: 1, maxHeight: 373, minHeight: 0, position: "relative" }}
                     >
-                      <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
-                        style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                      <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+                        <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
+                          style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                      </div>
                       {profileHovered && (
                         <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
                           style={{ position: "absolute", top: "calc(50% + 10px)", left: -40,
@@ -664,27 +686,31 @@ export default function AboutPage() {
               {/* Right column: photo on wide (≥1200px), empty mirror on medium */}
               {!isMedium ? (
                 <div
-                  onMouseEnter={() => setProfileHovered(true)}
-                  onMouseLeave={() => setProfileHovered(false)}
                   style={{
                     display: "flex",
                     justifyContent: "flex-start",
                     alignItems: "center",
                     paddingLeft: 80,
                     height: clampedVh - 72 - 144,
-                    position: "relative",
                   }}
                 >
-                  <div style={{ width: 280, height: 373, position: "relative", overflow: "hidden", flexShrink: 0 }}>
-                    <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
-                      style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                  {/* Hover on the exact photo box only; nested overflow so overlay can spill outside */}
+                  <div
+                    onMouseEnter={() => setProfileHovered(true)}
+                    onMouseLeave={() => setProfileHovered(false)}
+                    style={{ width: 280, height: 373, position: "relative", flexShrink: 0 }}
+                  >
+                    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+                      <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
+                        style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                    </div>
+                    {profileHovered && (
+                      <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
+                        style={{ position: "absolute", top: "50%", left: -40,
+                          transform: "translateY(-50%)", zIndex: 2, display: "block",
+                          width: 460, height: 307, maxWidth: "none" }} />
+                    )}
                   </div>
-                  {profileHovered && (
-                    <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
-                      style={{ position: "absolute", top: "50%", left: -40,
-                        transform: "translateY(-50%)", zIndex: 2, display: "block",
-                        width: 460, height: 307, maxWidth: "none" }} />
-                  )}
                 </div>
               ) : (
                 <div />

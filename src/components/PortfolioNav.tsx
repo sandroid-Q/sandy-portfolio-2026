@@ -385,7 +385,7 @@ export default function PortfolioNav({
                   setMenuOpen(false);
                 },
               },
-              { label: "About me", active: isAbout, action: () => { router.push("/about"); setMenuOpen(false); } },
+              { label: "About", active: isAbout, action: () => { router.push("/about"); setMenuOpen(false); } },
             ].map(({ label, active, action }, i) => (
               <motion.div
                 key={label}
@@ -457,11 +457,12 @@ export default function PortfolioNav({
             fontFamily: "var(--font-silkscreen)",
             fontSize: 24,
             color: isLightNav
-            ? (logoHovered ? "#D3BA9F" : NAV_LIGHT)
-            : (logoHovered ? DARK_RED : HOVER_COLOR),
+              ? (logoHovered ? "#D3BA9F" : NAV_LIGHT)
+              : (logoHovered ? BROWN : HOVER_COLOR),
             lineHeight: 1,
             letterSpacing: "-0.04em",
             transition: "color 0.15s",
+            position: "relative",
           }}
         >
           SANDY QI
@@ -543,10 +544,24 @@ export default function PortfolioNav({
             >
               © Sandy Qi 2026
             </span>
-            <div style={{ pointerEvents: "auto" }}>
+            <div style={{ pointerEvents: "auto", position: "relative", display: "inline-block" }}>
               <NavLink href="/about">
-                About me
+                About
               </NavLink>
+              <motion.div
+                initial={false}
+                animate={{ scaleX: isAbout ? 1 : 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                style={{
+                  position: "absolute",
+                  bottom: -5,
+                  left: 0,
+                  right: 0,
+                  height: 2,
+                  backgroundColor: "#E4C298",
+                  transformOrigin: "left",
+                }}
+              />
             </div>
           </div>
         </div>

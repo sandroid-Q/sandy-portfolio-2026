@@ -10,7 +10,7 @@ interface AudioContextValue {
 
 const AudioCtx = createContext<AudioContextValue>({ muted: false, setMuted: () => {} });
 
-const MUSIC_ROUTES = new Set(["/", "/home"]);
+const MUSIC_ROUTES = new Set(["/", "/home", "/about"]);
 const TRACKS = ["/jazz-1.mp3", "/jazz-2.mp3", "/jazz-3.mp3"];
 
 export function AudioProvider({ children }: { children: ReactNode }) {
