@@ -291,11 +291,11 @@ function PixelGem({ color, size = 16 }: { color: string; size?: number }) {
   );
 }
 
-function SkillsSection() {
+function SkillsSection({ oneCol = false }: { oneCol?: boolean }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <SectionHeader>Skills</SectionHeader>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px 32px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: oneCol ? "1fr" : "1fr 1fr", gap: "24px 32px" }}>
         {SKILLS.map((skill) => (
           <div key={skill.label} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -329,7 +329,7 @@ function StickyNote({ t, rotate, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", position: "relative", flexShrink: 0, backgroundColor: HOVER_BROWN }}>
-          {t.photo && <Image src={t.photo} fill alt={t.name} style={{ objectFit: "cover", objectPosition: "center top" }} />}
+          {t.photo && <Image src={t.photo} fill sizes="56px" alt={t.name} style={{ objectFit: "cover", objectPosition: "center top" }} />}
         </div>
         <div style={{ padding: "4px 12px", border: `0.5px solid ${BROWN}`, borderRadius: 100 }}>
           <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 13, color: BROWN }}>
@@ -500,6 +500,10 @@ export default function AboutPage() {
   const desktopPadScale = isNarrow ? 1 : Math.min(1, (clampedVh - 216) / PAD_NATURAL_H);
   // Narrow: scale text+photo together once viewport gets too small to fit 340px content
   const narrowScale = isNarrow ? Math.min(1, Math.max(0.5, (vw - 2 * sidePadPx) / 340)) : 1;
+  // Gap between Work and the Skills+Education block: slides from 64px (at ≥1200px) down to 32px (at 800px)
+  const cvGap = isNarrow ? 0 : Math.round(Math.max(32, Math.min(64, (vw - 800) / 400 * 32 + 32)));
+  // Skills grid collapses to 1 column before everything stacks
+  const skillsOneCol = !isNarrow && vw < 960;
 
 
   const router = useRouter();
@@ -578,7 +582,7 @@ export default function AboutPage() {
                   style={{ width: 280 * narrowScale, height: 373 * narrowScale, position: "relative", flexShrink: 0 }}
                 >
                   <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-                    <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
+                    <Image src="/sandy-qi.jpeg" fill sizes="280px" alt="Sandy Qi"
                       style={{ objectFit: "cover", objectPosition: "center top" }} priority />
                   </div>
                   {profileHovered && (
@@ -660,7 +664,7 @@ export default function AboutPage() {
                       style={{ width: 280, flex: 1, maxHeight: 373, minHeight: 0, position: "relative" }}
                     >
                       <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-                        <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
+                        <Image src="/sandy-qi.jpeg" fill sizes="280px" alt="Sandy Qi"
                           style={{ objectFit: "cover", objectPosition: "center top" }} priority />
                       </div>
                       {profileHovered && (
@@ -701,7 +705,7 @@ export default function AboutPage() {
                     style={{ width: 280, height: 373, position: "relative", flexShrink: 0 }}
                   >
                     <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-                      <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
+                      <Image src="/sandy-qi.jpeg" fill sizes="280px" alt="Sandy Qi"
                         style={{ objectFit: "cover", objectPosition: "center top" }} priority />
                     </div>
                     {profileHovered && (
@@ -731,29 +735,26 @@ export default function AboutPage() {
           ref={introRef}
           style={{ padding: `32px ${sidePad} 0`, scrollMarginTop: 72 }}
         >
-          {isMobile ? (
+          {isNarrow ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
               <WorkSection />
               <SkillsSection />
               <EducationSection />
             </div>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                gap: 64,
-              }}
-            >
-              <div style={{ width: 494, flexShrink: 0 }}>
+            // Work grows to fill remaining space; Skills+Education are fixed-width side-by-side.
+            // cvGap slides 64→32px as vw narrows 1200→800px. skillsOneCol collapses at <960px.
+            <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: cvGap }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <WorkSection />
               </div>
-              <div style={{ width: 400, flexShrink: 0, display: "flex", flexDirection: "column" }}>
-                <SkillsSection />
-                <div style={{ height: 240 }} />
-                <EducationSection />
+              <div style={{ display: "flex", flexDirection: "row", gap: 32, alignItems: "flex-start", flexShrink: 0 }}>
+                <div style={{ width: 260 }}>
+                  <SkillsSection oneCol={skillsOneCol} />
+                </div>
+                <div style={{ width: 174 }}>
+                  <EducationSection />
+                </div>
               </div>
             </div>
           )}
@@ -762,7 +763,7 @@ export default function AboutPage() {
         {/* Shoutouts */}
         <div style={{ padding: `0 ${sidePad}`, marginTop: -80 }}>
           <div style={{ textAlign: "center" }}><SectionHeader>Shoutouts</SectionHeader></div>
-          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 24, alignItems: "stretch", marginTop: 24 }}>
+          <div style={{ display: "flex", flexDirection: (!isNarrow && !isMedium) ? "row" : "column", gap: 24, alignItems: "stretch", marginTop: 24 }}>
             <StickyNote t={TESTIMONIALS[0]} rotate={0} />
             <StickyNote t={TESTIMONIALS[1]} rotate={0} />
             <StickyNote t={TESTIMONIALS[2]} rotate={0} />

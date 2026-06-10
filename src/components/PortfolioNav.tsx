@@ -27,6 +27,8 @@ export interface PortfolioNavProps {
   showSound?: boolean;
   /** Fired just before logo-click navigation (e.g. for sessionStorage writes) */
   onLogoClick?: () => void;
+  /** When true, forces the Projects underline active (e.g. elevator pad in view) */
+  projectsActive?: boolean;
   /** Force frosted-glass blur on the top nav */
   blurTop?: boolean;
   /** Force frosted-glass blur on the bottom nav */
@@ -260,6 +262,7 @@ function hexToRgba(hex: string, alpha: number): string {
 
 export default function PortfolioNav({
   projectsAction,
+  projectsActive = false,
   isLightNav = false,
   mobileBgColor = "#E5E0D7",
   showSound = false,
@@ -277,6 +280,7 @@ export default function PortfolioNav({
   const [exiting, setExiting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [projectsAnchored, setProjectsAnchored] = useState(false);
   const [logoHovered, setLogoHovered] = useState(false);
   const [vw, setVw] = useState(1200);
 
@@ -300,7 +304,10 @@ export default function PortfolioNav({
   }, [menuOpen]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 0);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 0);
+      if (window.scrollY < 50) setProjectsAnchored(false);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -335,6 +342,7 @@ export default function PortfolioNav({
       <NavLink
         onClick={() => {
           (projectsAction as () => void)();
+          setProjectsAnchored(true);
           setMenuOpen(false);
         }}
         color={navLinkColor}
@@ -494,7 +502,23 @@ export default function PortfolioNav({
           </div>
         ) : (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ position: "relative", top: -2 }}>{projectsNavLink}</div>
+            <div style={{ position: "relative", top: -2, display: "inline-block" }}>
+              {projectsNavLink}
+              <motion.div
+                initial={false}
+                animate={{ scaleX: isProject || projectsAnchored || projectsActive ? 1 : 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                style={{
+                  position: "absolute",
+                  bottom: -5,
+                  left: 0,
+                  right: 0,
+                  height: 2,
+                  backgroundColor: "#E4C298",
+                  transformOrigin: "left",
+                }}
+              />
+            </div>
             {showSound && (
               <div style={{ position: "relative", top: -2 }}>
                 <SoundToggle muted={muted} onClick={() => setMuted(!muted)} color={navLinkColor} />

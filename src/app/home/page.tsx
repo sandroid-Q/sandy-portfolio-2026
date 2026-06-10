@@ -167,6 +167,7 @@ export default function HomePage() {
   const [contactOpen, setContactOpen] = useState(false);
   const [topNavBlur, setTopNavBlur] = useState(false);
   const [bottomNavBlur, setBottomNavBlur] = useState(false);
+  const [padInView, setPadInView] = useState(false);
 
   const isMobile = vw < 768;
   const isCondensed = vw < 1190;    // no hover panels; show list below pad
@@ -207,6 +208,17 @@ export default function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    const el = padRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setPadInView(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   const raw = vh / 2 - 442;
   const strapExtension = Math.max(0, raw);
   const cardMarginTop = Math.min(0, raw);
@@ -236,6 +248,7 @@ export default function HomePage() {
 
       <PortfolioNav
         projectsAction={scrollToPad}
+        projectsActive={padInView}
         showSound
         mobileBgColor="#E5E0D7"
         blurTop={topNavBlur}
@@ -247,7 +260,6 @@ export default function HomePage() {
       <div
         ref={topRef}
         style={{
-          overflow: "hidden",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
