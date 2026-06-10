@@ -59,6 +59,20 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   }, [pathname, muted]);
 
+  useEffect(() => {
+    const onVisibility = () => {
+      const audio = bgRef.current;
+      if (!audio) return;
+      if (document.hidden) {
+        audio.pause();
+      } else if (MUSIC_ROUTES.has(window.location.pathname) && !mutedRef.current) {
+        audio.play().catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
   const setMuted = (v: boolean) => {
     setMutedState(v);
     mutedRef.current = v;

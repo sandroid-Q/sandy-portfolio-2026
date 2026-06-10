@@ -23,8 +23,13 @@ function isClickable(el: HTMLElement): boolean {
 }
 
 export default function CustomCursor() {
+  const [isTouch, setIsTouch] = useState(false);
   const [clickable, setClickable] = useState(false);
   const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    setIsTouch(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
 
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
@@ -88,6 +93,8 @@ export default function CustomCursor() {
       animY.current?.stop();
     };
   }, [mouseX, mouseY, ringX, ringY]);
+
+  if (isTouch) return null;
 
   return (
     <div

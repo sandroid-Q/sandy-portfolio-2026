@@ -22,8 +22,10 @@
   --font-space-grotesk: var(--font-space-grotesk);
 }
 
-* {
-  cursor: none !important;
+@media (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
 }
 
 html {
