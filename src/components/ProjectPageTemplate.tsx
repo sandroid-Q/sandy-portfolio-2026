@@ -408,6 +408,25 @@ export default function ProjectPageTemplate(project: ProjectData) {
           </div>
         )}
       </div>
+
+      {/* Copyright — mobile only */}
+      {isMobile && (
+        <div style={{ display: "flex", justifyContent: "center", paddingBottom: 32 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-space-grotesk)",
+              fontWeight: 300,
+              fontSize: 10,
+              color: "#72503C",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            © Sandy Qi 2026
+          </span>
+        </div>
+      )}
+
       <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </div>
   );

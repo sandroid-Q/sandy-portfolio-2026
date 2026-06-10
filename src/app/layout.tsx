@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Silkscreen, Space_Grotesk, Space_Mono } from "next/font/google";
 import { AudioProvider } from "@/contexts/AudioContext";
+import CustomCursor from "@/components/CustomCursor";
 import "./globals.css";
 
 const silkscreen = Silkscreen({
@@ -37,7 +38,10 @@ export default function RootLayout({
       className={`${silkscreen.variable} ${spaceGrotesk.variable} ${spaceMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col">
-        <AudioProvider>{children}</AudioProvider>
+        <AudioProvider>
+          <CustomCursor />
+          {children}
+        </AudioProvider>
       </body>
     </html>
   );

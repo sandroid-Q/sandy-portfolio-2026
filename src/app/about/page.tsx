@@ -495,18 +495,15 @@ export default function AboutPage() {
 
   const isNarrow = vw < 800;
   const isMobile = vw < 640;
+  const isMedium = !isNarrow && vw < 1200;
   const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
+  const sidePadPx = Math.min(96, Math.max(32, vw * 0.1 - 32));
   const clampedVh = Math.max(700, vh);
   const PAD_NATURAL_H = 774;
   const desktopPadScale = isNarrow ? 1 : Math.min(1, (clampedVh - 216) / PAD_NATURAL_H);
+  // Narrow: scale text+photo together once viewport gets too small to fit 340px content
+  const narrowScale = isNarrow ? Math.min(1, Math.max(0.5, (vw - 2 * sidePadPx) / 340)) : 1;
 
-  // Responsive desktop hero — scale the right-column photo down so it never
-  // clips past the right edge of the overflow:hidden hero at intermediate widths.
-  const sidePadPx = Math.min(96, Math.max(32, vw * 0.1 - 32));
-  const colPx = (vw - sidePadPx * 2 - 340) / 2;
-  const desktopPhotoPL = Math.min(80, Math.max(8, colPx - 240));
-  const desktopPhotoW = Math.max(160, Math.min(280, colPx - desktopPhotoPL));
-  const desktopPhotoH = Math.round(desktopPhotoW * (373 / 280));
 
   const router = useRouter();
   const scrollToIntro = () => introRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -540,51 +537,41 @@ export default function AboutPage() {
           }}
         >
           {isNarrow ? (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "flex-start",
-                gap: 32,
-                padding: `72px ${sidePad} 64px`,
-              }}
-            >
-              <motion.p
+            // Normal flow — hero expands to fit; 152px top matches medium breathing room
+            <div style={{ padding: `152px ${sidePad} 64px` }}>
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                style={{
-                  fontFamily: "var(--font-space-grotesk)",
-                  fontWeight: 500,
-                  fontSize: isMobile ? 28 : 36,
-                  lineHeight: 1.2,
-                  color: BROWN,
-                  margin: 0,
-                  maxWidth: 480,
-                }}
+                style={{ display: "flex", flexDirection: "column", gap: 24 }}
               >
-                {INTRO_TEXT}
-              </motion.p>
-              <div
-                style={{
-                  width: "100%",
-                  maxWidth: 480,
-                  aspectRatio: "280 / 373",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-              >
-                <Image
-                  src="/sandy-qi.jpeg"
-                  fill
-                  alt="Sandy Qi"
-                  style={{ objectFit: "cover", objectPosition: "center top" }}
-                  priority
-                />
-              </div>
+                <p
+                  style={{
+                    fontFamily: "var(--font-space-grotesk)",
+                    fontWeight: 500,
+                    fontSize: 46 * narrowScale,
+                    lineHeight: `${54 * narrowScale}px`,
+                    letterSpacing: "-0.02em",
+                    color: BROWN,
+                    margin: 0,
+                    width: 340 * narrowScale,
+                  }}
+                >
+                  {INTRO_TEXT}
+                </p>
+                <div
+                  style={{
+                    width: 280 * narrowScale,
+                    height: 373 * narrowScale,
+                    position: "relative",
+                    overflow: "hidden",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
+                    style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                </div>
+              </motion.div>
             </div>
           ) : (
             <div
@@ -597,7 +584,7 @@ export default function AboutPage() {
                 padding: `72px ${sidePad}`,
               }}
             >
-              {/* Left: blurb */}
+              {/* Left column: intro text (always here); photo stacks below on medium */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -606,59 +593,66 @@ export default function AboutPage() {
                   position: "relative",
                   display: "flex",
                   justifyContent: "flex-end",
-                  alignItems: "center",
-                  paddingRight: 64,
+                  // stretch (medium): inner stack fills column height so photo can flex; center (wide): text is vertically centred
+                  alignItems: isMedium ? "stretch" : "center",
+                  paddingRight: isMedium ? 48 : 64,
+                  ...(isMedium ? { paddingTop: 80 } : {}),
                   height: clampedVh - 72 - 144,
                 }}
               >
-                <p
-                  style={{
-                    fontFamily: "var(--font-space-grotesk)",
-                    fontWeight: 500,
-                    fontSize: 46,
-                    lineHeight: "54px",
-                    letterSpacing: "-0.02em",
-                    color: BROWN,
-                    margin: 0,
-                    width: 340,
-                  }}
-                >
-                  {"Hello, it's"}
-                  <br />
-                  {" Sandy here. A "}
-                  <ScrambleSpan
-                    defaultText="senior product designer"
-                    hoverText="hobby & meme collector"
-                    baseColor={BROWN}
-                  />
-                  {" who loves her cat, "}
-                  <span
-                    onMouseEnter={() => setSoupHovered(true)}
-                    onMouseLeave={() => setSoupHovered(false)}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 24 }}>
+                  <p
                     style={{
-                      color: soupHovered ? "#926E57" : BROWN,
-                      transition: "color 0.2s",
-                      cursor: "default",
+                      fontFamily: "var(--font-space-grotesk)",
+                      fontWeight: 500,
+                      fontSize: 46,
+                      lineHeight: "54px",
+                      letterSpacing: "-0.02em",
+                      color: BROWN,
+                      margin: 0,
+                      width: 340,
                     }}
                   >
-                    Soup 🐈‍⬛
-                  </span>
-                </p>
+                    {"Hello, it's"}
+                    <br />
+                    {" Sandy here. A "}
+                    <ScrambleSpan
+                      defaultText="senior product designer"
+                      hoverText="hobby & meme collector"
+                      baseColor={BROWN}
+                    />
+                    {" who loves her cat, "}
+                    <span
+                      onMouseEnter={() => setSoupHovered(true)}
+                      onMouseLeave={() => setSoupHovered(false)}
+                      style={{ color: soupHovered ? "#926E57" : BROWN, transition: "color 0.2s", cursor: "default" }}
+                    >
+                      Soup 🐈‍⬛
+                    </span>
+                  </p>
+
+                  {/* Medium only: photo under the text in the left column */}
+                  {isMedium && (
+                    // flex:1 + maxHeight lets the photo shrink on short viewports instead of overflowing the fixed-height hero
+                    <div
+                      onMouseEnter={() => setProfileHovered(true)}
+                      onMouseLeave={() => setProfileHovered(false)}
+                      style={{ width: 280, flex: 1, maxHeight: 373, minHeight: 0, position: "relative", overflow: "hidden" }}
+                    >
+                      <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
+                        style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                      {profileHovered && (
+                        <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
+                          style={{ position: "absolute", top: "calc(50% + 10px)", left: -40,
+                            transform: "translateY(-50%)", zIndex: 2, display: "block",
+                            width: 460, height: 307, maxWidth: "none" }} />
+                      )}
+                    </div>
+                  )}
+                </div>
                 {soupHovered && (
-                  <video
-                    src="/soup-boing-vid.mp4"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    style={{
-                      position: "absolute",
-                      bottom: 64,
-                      right: 72,
-                      width: 220,
-                      pointerEvents: "none",
-                    }}
-                  />
+                  <video src="/soup-boing-vid.mp4" autoPlay muted loop playsInline
+                    style={{ position: "absolute", bottom: 64, right: 72, width: 220, pointerEvents: "none" }} />
                 )}
               </motion.div>
 
@@ -667,56 +661,34 @@ export default function AboutPage() {
                 <ElevatorPad activeFloor="about" onContact={() => setContactOpen(true)} />
               </div>
 
-              {/* Right: photo */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-start",
-                  alignItems: "center",
-                  paddingLeft: desktopPhotoPL,
-                  height: clampedVh - 72 - 144,
-                }}
-              >
+              {/* Right column: photo on wide (≥1200px), empty mirror on medium */}
+              {!isMedium ? (
                 <div
                   onMouseEnter={() => setProfileHovered(true)}
                   onMouseLeave={() => setProfileHovered(false)}
-                  style={{ width: desktopPhotoW, height: desktopPhotoH, position: "relative" }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    paddingLeft: 80,
+                    height: clampedVh - 72 - 144,
+                    position: "relative",
+                  }}
                 >
-                  {/* Profile image — clipped to its own bounds */}
-                  <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-                    <Image
-                      src="/sandy-qi.jpeg"
-                      fill
-                      alt="Sandy Qi"
-                      style={{ objectFit: "cover", objectPosition: "center top" }}
-                      priority
-                    />
+                  <div style={{ width: 280, height: 373, position: "relative", overflow: "hidden", flexShrink: 0 }}>
+                    <Image src="/sandy-qi.jpeg" fill alt="Sandy Qi"
+                      style={{ objectFit: "cover", objectPosition: "center top" }} priority />
                   </div>
-                  {/* Hover image — full uncropped, crosses the profile to make a plus shape */}
                   {profileHovered && (
-                    <Image
-                      src="/me-azer.JPG"
-                      width={460}
-                      height={307}
-                      alt="Sandy alt"
-                      style={{
-                        position: "absolute",
-                        top: "calc(50% + 10px)",
-                        left: -40,
-                        transform: "translateY(-50%)",
-                        zIndex: 2,
-                        display: "block",
-                        width: 460,
-                        height: 307,
-                        maxWidth: "none",
-                      }}
-                    />
+                    <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
+                      style={{ position: "absolute", top: "50%", left: -40,
+                        transform: "translateY(-50%)", zIndex: 2, display: "block",
+                        width: 460, height: 307, maxWidth: "none" }} />
                   )}
                 </div>
-              </motion.div>
+              ) : (
+                <div />
+              )}
             </div>
           )}
         </div>
@@ -802,6 +774,25 @@ export default function AboutPage() {
           </div>
         )}
       </div>
+
+      {/* Copyright — mobile only */}
+      {isMobile && (
+        <div style={{ display: "flex", justifyContent: "center", paddingBottom: 32 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-space-grotesk)",
+              fontWeight: 300,
+              fontSize: 10,
+              color: "#72503C",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            © Sandy Qi 2026
+          </span>
+        </div>
+      )}
+
       <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </div>
   );

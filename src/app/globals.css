@@ -22,8 +22,22 @@
   --font-space-grotesk: var(--font-space-grotesk);
 }
 
+* {
+  cursor: none !important;
+}
+
 body {
   background-color: var(--color-bg-primary);
   color: var(--color-text);
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-family: var(--font-space-grotesk), "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+::selection {
+  background-color: rgba(255, 241, 181, 0.6);
+  color: inherit;
+}
+
+::-moz-selection {
+  background-color: rgba(255, 241, 181, 0.6);
+  color: inherit;
 }
