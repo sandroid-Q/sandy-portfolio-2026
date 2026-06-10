@@ -66,7 +66,7 @@ const SKILLS = [
   {
     label: "Web Development",
     gemColor: "#54B87A",
-    items: ["Static Website Development (prompt-coding)"],
+    items: ["Static Website Development"],
   },
   {
     label: "Software & Tools",
