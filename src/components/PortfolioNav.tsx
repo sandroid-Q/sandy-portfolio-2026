@@ -277,6 +277,7 @@ export default function PortfolioNav({
   const [exiting, setExiting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [logoHovered, setLogoHovered] = useState(false);
   const [vw, setVw] = useState(1200);
 
   const isMobile = vw < 768;
@@ -420,26 +421,34 @@ export default function PortfolioNav({
       </AnimatePresence>
 
       {/* Top nav */}
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 72,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: isMobile ? "0 18px 0 24px" : "0 36px",
-          zIndex: 100,
-          background: navBg,
-          backdropFilter: navBlur,
-          WebkitBackdropFilter: navBlur,
-          transition: "background 0.3s ease, backdrop-filter 0.3s ease",
-        }}
-      >
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 72, zIndex: 100 }}>
+        {/* Blur layer — mask fades out toward the bottom edge */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: navBg,
+            backdropFilter: navBlur,
+            WebkitBackdropFilter: navBlur,
+            maskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
+            transition: "background 0.3s ease, backdrop-filter 0.3s ease",
+          }}
+        />
+        <div
+          style={{
+            position: "relative",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: isMobile ? "0 18px 0 24px" : "0 36px",
+          }}
+        >
         <button
           onClick={handleLogoClick}
+          onMouseEnter={() => setLogoHovered(true)}
+          onMouseLeave={() => setLogoHovered(false)}
           style={{
             background: "none",
             border: "none",
@@ -447,9 +456,12 @@ export default function PortfolioNav({
             cursor: "pointer",
             fontFamily: "var(--font-silkscreen)",
             fontSize: 24,
-            color: logoColor,
+            color: isLightNav
+            ? (logoHovered ? "#D3BA9F" : NAV_LIGHT)
+            : (logoHovered ? DARK_RED : HOVER_COLOR),
             lineHeight: 1,
-            transition: "color 0.3s",
+            letterSpacing: "-0.04em",
+            transition: "color 0.15s",
           }}
         >
           SANDY QI
@@ -489,45 +501,53 @@ export default function PortfolioNav({
             )}
           </div>
         )}
+        </div>
       </div>
 
       {/* Bottom nav — desktop only */}
       {!isMobile && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 72,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 36px",
-            zIndex: 100,
-            pointerEvents: "none",
-            background: blurBottom ? frostBg : "transparent",
-            backdropFilter: blurBottom ? "blur(8px)" : "none",
-            WebkitBackdropFilter: blurBottom ? "blur(8px)" : "none",
-            transition: "background 0.3s ease, backdrop-filter 0.3s ease",
-          }}
-        >
-          <span
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 72, zIndex: 100, pointerEvents: "none" }}>
+          {/* Blur layer — mask fades out toward the top edge */}
+          <div
             style={{
-              fontFamily: "var(--font-space-grotesk)",
-              fontWeight: 300,
-              fontSize: 10,
-              color: HOVER_COLOR,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
+              position: "absolute",
+              inset: 0,
+              background: blurBottom ? frostBg : "transparent",
+              backdropFilter: blurBottom ? "blur(8px)" : "none",
+              WebkitBackdropFilter: blurBottom ? "blur(8px)" : "none",
+              maskImage: "linear-gradient(to top, black 50%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to top, black 50%, transparent 100%)",
+              transition: "background 0.3s ease, backdrop-filter 0.3s ease",
+            }}
+          />
+          <div
+            style={{
+              position: "relative",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 36px",
+              pointerEvents: "none",
             }}
           >
-            © Sandy Qi 2026
-          </span>
-          <div style={{ pointerEvents: "auto" }}>
-            <NavLink href="/about">
-              About me
-            </NavLink>
+            <span
+              style={{
+                fontFamily: "var(--font-space-grotesk)",
+                fontWeight: 300,
+                fontSize: 10,
+                color: HOVER_COLOR,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
+              © Sandy Qi 2026
+            </span>
+            <div style={{ pointerEvents: "auto" }}>
+              <NavLink href="/about">
+                About me
+              </NavLink>
+            </div>
           </div>
         </div>
       )}

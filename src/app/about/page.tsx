@@ -94,6 +94,13 @@ const TESTIMONIALS = [
     photo: "/ky.jpeg",
     quote: "Testimonial text here.",
   },
+  {
+    name: "BRIDIE ALLAN",
+    title: "Creative Director",
+    company: "AP+ / Beem",
+    photo: "/ba.png",
+    quote: "TBA",
+  },
 ];
 
 const SCRAMBLE_CHARS = "abcdefghijklmnopqrstuvwxyz";
@@ -310,11 +317,11 @@ function SkillsSection() {
   );
 }
 
-function StickyNote({ t, rotate, width = 340, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_COLOR }: { t: typeof TESTIMONIALS[0]; rotate: number; width?: number; color?: string; quoteColor?: string }) {
+function StickyNote({ t, rotate, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_COLOR }: { t: typeof TESTIMONIALS[0]; rotate: number; color?: string; quoteColor?: string }) {
   return (
     <div style={{
       position: "relative",
-      width,
+      flex: 1,
       backgroundColor: color,
       padding: 32,
       display: "flex",
@@ -324,8 +331,8 @@ function StickyNote({ t, rotate, width = 340, color = STICKY_YELLOW, quoteColor 
       borderRadius: 20,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", position: "relative", flexShrink: 0 }}>
-          <Image src={t.photo} fill alt={t.name} style={{ objectFit: "cover", objectPosition: "center top" }} />
+        <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", position: "relative", flexShrink: 0, backgroundColor: HOVER_BROWN }}>
+          {t.photo && <Image src={t.photo} fill alt={t.name} style={{ objectFit: "cover", objectPosition: "center top" }} />}
         </div>
         <div style={{ padding: "4px 12px", border: `0.5px solid ${BROWN}`, borderRadius: 100 }}>
           <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 13, color: BROWN }}>
@@ -493,6 +500,14 @@ export default function AboutPage() {
   const PAD_NATURAL_H = 774;
   const desktopPadScale = isNarrow ? 1 : Math.min(1, (clampedVh - 216) / PAD_NATURAL_H);
 
+  // Responsive desktop hero — scale the right-column photo down so it never
+  // clips past the right edge of the overflow:hidden hero at intermediate widths.
+  const sidePadPx = Math.min(96, Math.max(32, vw * 0.1 - 32));
+  const colPx = (vw - sidePadPx * 2 - 340) / 2;
+  const desktopPhotoPL = Math.min(80, Math.max(8, colPx - 240));
+  const desktopPhotoW = Math.max(160, Math.min(280, colPx - desktopPhotoPL));
+  const desktopPhotoH = Math.round(desktopPhotoW * (373 / 280));
+
   const router = useRouter();
   const scrollToIntro = () => introRef.current?.scrollIntoView({ behavior: "smooth" });
   const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -555,12 +570,11 @@ export default function AboutPage() {
               </motion.p>
               <div
                 style={{
-                  width: 180,
-                  height: 240,
+                  width: "100%",
+                  maxWidth: 480,
+                  aspectRatio: "280 / 373",
                   position: "relative",
                   overflow: "hidden",
-                  borderRadius: 8,
-                  flexShrink: 0,
                 }}
               >
                 <Image
@@ -662,14 +676,14 @@ export default function AboutPage() {
                   display: "flex",
                   justifyContent: "flex-start",
                   alignItems: "center",
-                  paddingLeft: 80,
+                  paddingLeft: desktopPhotoPL,
                   height: clampedVh - 72 - 144,
                 }}
               >
                 <div
                   onMouseEnter={() => setProfileHovered(true)}
                   onMouseLeave={() => setProfileHovered(false)}
-                  style={{ width: 280, height: 373, position: "relative" }}
+                  style={{ width: desktopPhotoW, height: desktopPhotoH, position: "relative" }}
                 >
                   {/* Profile image — clipped to its own bounds */}
                   <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
@@ -748,11 +762,12 @@ export default function AboutPage() {
         </div>
 
         {/* Shoutouts */}
-        <div style={{ padding: `0 ${sidePad}`, marginTop: -92 }}>
-          <SectionHeader>Shoutouts</SectionHeader>
-          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 16, alignItems: "stretch", marginTop: 24 }}>
-            <StickyNote t={TESTIMONIALS[0]} rotate={0} width={352} />
-            <StickyNote t={TESTIMONIALS[1]} rotate={0} width={352} />
+        <div style={{ padding: `0 ${sidePad}`, marginTop: -80 }}>
+          <div style={{ textAlign: "center" }}><SectionHeader>Shoutouts</SectionHeader></div>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 24, alignItems: "stretch", marginTop: 24 }}>
+            <StickyNote t={TESTIMONIALS[0]} rotate={0} />
+            <StickyNote t={TESTIMONIALS[1]} rotate={0} />
+            <StickyNote t={TESTIMONIALS[2]} rotate={0} />
           </div>
         </div>
 
