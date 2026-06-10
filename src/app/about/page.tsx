@@ -66,7 +66,7 @@ const SKILLS = [
   {
     label: "Web Development",
     gemColor: "#54B87A",
-    items: ["Static Website Development (via prompt-coding)"],
+    items: ["Static Website Development (prompt-coding)"],
   },
   {
     label: "Software & Tools",
@@ -717,19 +717,16 @@ export default function AboutPage() {
               <EducationSection />
             </div>
           ) : isMedium ? (
-            // 800–1199px: Work shrinks left, Skills+Education sit side-by-side.
+            // 800–1199px: Work shrinks left, Education stays stacked under Skills.
             // cvGap slides 64→32px; skillsOneCol collapses Skills grid at <960px.
             <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: cvGap }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <WorkSection />
               </div>
-              <div style={{ display: "flex", flexDirection: "row", gap: 32, alignItems: "flex-start", flexShrink: 0 }}>
-                <div style={{ width: 260 }}>
-                  <SkillsSection oneCol={skillsOneCol} />
-                </div>
-                <div style={{ width: 174 }}>
-                  <EducationSection />
-                </div>
+              <div style={{ width: 400, flexShrink: 0, display: "flex", flexDirection: "column" }}>
+                <SkillsSection oneCol={skillsOneCol} />
+                <div style={{ height: skillsOneCol ? 100 : 240 }} />
+                <EducationSection />
               </div>
             </div>
           ) : (

@@ -138,12 +138,13 @@ function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadBut
         setHovered(true);
         playPop();
         if (btn.variant === "floor") onFloorHover?.(btn.label ?? null);
+        else if (btn.variant === "about") onFloorHover?.("about");
       }}
       onHoverEnd={() => {
         if (ringing) return;
         setHovered(false);
         setPressed(false);
-        if (btn.variant === "floor") onFloorHover?.(null);
+        if (btn.variant === "floor" || btn.variant === "about") onFloorHover?.(null);
       }}
       onMouseDown={() => { if (ringing) return; setPressed(true); if (!isContactModal) onDing(); }}
       onMouseUp={() => setPressed(false)}

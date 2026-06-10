@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useLayoutEffect } from "react";
 import { motion, useAnimation, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import TransitionOverlay from "@/components/TransitionOverlay";
@@ -143,6 +143,55 @@ function ProjectBlurb({ data }: { data: FloorPreview }) {
   );
 }
 
+function AboutHoverCard() {
+  const W = 202, H = 121, r = 20;
+  const tx = 37, tw = 51, th = 31; // tail: left x, width, height
+
+  // Single continuous path: rounded rect with integrated tail so there's one stroke
+  const path = [
+    `M ${r} 0`,
+    `L ${W - r} 0`,
+    `Q ${W} 0 ${W} ${r}`,
+    `L ${W} ${H - r}`,
+    `Q ${W} ${H} ${W - r} ${H}`,
+    `L ${tx + tw} ${H}`,
+    `L ${tx} ${H + th}`,
+    `L ${tx} ${H}`,
+    `L ${r} ${H}`,
+    `Q 0 ${H} 0 ${H - r}`,
+    `L 0 ${r}`,
+    `Q 0 0 ${r} 0 Z`,
+  ].join(" ");
+
+  return (
+    <div style={{ position: "relative", width: W, height: H + th }}>
+      <svg
+        width={W}
+        height={H + th}
+        viewBox={`0 0 ${W} ${H + th}`}
+        fill="none"
+        style={{ position: "absolute", top: 0, left: 0 }}
+      >
+        <path d={path} stroke={BROWN} strokeWidth={2.5} fill="none" strokeLinejoin="miter" />
+      </svg>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 25,
+          height: H,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <span style={{ fontFamily: "var(--font-silkscreen)", fontSize: 32, color: BROWN, lineHeight: 1.15 }}>
+          OH, HEY<br />THERE!
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function VideoPreview({ data }: { floor: string; data: FloorPreview }) {
   if (!data.video) return null;
   return (
@@ -173,7 +222,7 @@ export default function HomePage() {
   const isCondensed = vw < 1190;    // no hover panels; show list below pad
   const isStackedProject = vw < 768; // stack video above blurb within each project row
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const update = () => { setVh(window.innerHeight); setVw(window.innerWidth); };
     update();
     window.addEventListener("resize", update);
@@ -333,10 +382,20 @@ export default function HomePage() {
               {/* Centre: elevator pad */}
               <ElevatorPad onHeaderClick={scrollToPad} onFloorHover={setHoveredFloor} onContact={() => setContactOpen(true)} />
 
-              {/* Right: video preview */}
-              <div style={{ width: 320, height: 320, flexShrink: 0 }}>
+              {/* Right: video preview or about card */}
+              <div style={{ width: 320, height: 320, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <AnimatePresence mode="wait">
-                  {hoveredFloor && FLOOR_DATA[hoveredFloor] && (
+                  {hoveredFloor === "about" ? (
+                    <motion.div
+                      key="about"
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 8 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                    >
+                      <AboutHoverCard />
+                    </motion.div>
+                  ) : hoveredFloor && FLOOR_DATA[hoveredFloor] ? (
                     <motion.div
                       key={hoveredFloor}
                       initial={{ opacity: 0, x: 8 }}
@@ -347,7 +406,7 @@ export default function HomePage() {
                     >
                       <VideoPreview floor={hoveredFloor} data={FLOOR_DATA[hoveredFloor]} />
                     </motion.div>
-                  )}
+                  ) : null}
                 </AnimatePresence>
               </div>
 
