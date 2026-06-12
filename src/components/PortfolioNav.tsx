@@ -578,9 +578,9 @@ export default function PortfolioNav({
             <div style={{ position: "relative", top: -2, display: "inline-block" }}>
               {projectsNavLink}
               <motion.div
-                initial={false}
-                animate={{ scaleX: isProject || projectsAnchored || projectsActive ? 1 : 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: projectsAnchored || projectsActive ? 1 : 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
                 style={{
                   position: "absolute",
                   bottom: -5,
@@ -646,9 +646,9 @@ export default function PortfolioNav({
                 About
               </NavLink>
               <motion.div
-                initial={false}
+                initial={{ scaleX: 0 }}
                 animate={{ scaleX: isAbout ? 1 : 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
                 style={{
                   position: "absolute",
                   bottom: -5,

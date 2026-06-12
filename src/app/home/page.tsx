@@ -262,7 +262,7 @@ export default function HomePage() {
     if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => setPadInView(entry.isIntersecting),
-      { threshold: 0.1 }
+      { threshold: 0.4 }
     );
     obs.observe(el);
     return () => obs.disconnect();
