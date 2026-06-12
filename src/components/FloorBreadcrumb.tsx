@@ -30,7 +30,7 @@ function FloorLink({ label, href, isActive }: { label: string; href: string; isA
         position: "relative",
         fontFamily: "var(--font-space-grotesk), system-ui, sans-serif",
         fontWeight: isBold ? 500 : 300,
-        fontSize: 13,
+        fontSize: 12,
         color: BROWN,
         textTransform: "uppercase",
         letterSpacing: "0.1em",
