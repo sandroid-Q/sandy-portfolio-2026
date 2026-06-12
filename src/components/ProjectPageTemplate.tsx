@@ -168,6 +168,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const [vw, setVw] = useState(0);
   const [vh, setVh] = useState(0);
   const [pastHero, setPastHero] = useState(false);
+  const [blurBottom, setBlurBottom] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
   useEffect(() => {
@@ -180,8 +181,10 @@ export default function ProjectPageTemplate(project: ProjectData) {
   useEffect(() => {
     const onScroll = () => {
       if (!heroImgRef.current) return;
-      // Switch when the cover photo's bottom edge clears the top nav (72px)
       setPastHero(heroImgRef.current.getBoundingClientRect().bottom <= 72);
+      if (introRef.current) {
+        setBlurBottom(introRef.current.getBoundingClientRect().top < window.innerHeight);
+      }
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -217,6 +220,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
         isLightNav={!pastHero}
         mobileBgColor="#F3F2F0"
         showSound
+        blurBottom={blurBottom}
       />
 
       {/* Hero — (100svh - 64px) on desktop so the down arrow peeks below; auto-height on mobile */}

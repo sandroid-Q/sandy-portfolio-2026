@@ -468,6 +468,7 @@ export default function AboutPage() {
   const isMobile = vw < 640;
   const isMedium = !isNarrow && vw < 1200;
   const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
+  const sidePadWide = "clamp(104px, calc(40px + 10vw), 168px)";
   const sidePadPx = Math.min(96, Math.max(32, vw * 0.1 - 32));
   const clampedVh = Math.max(700, vh);
   const PAD_NATURAL_H = 774;
@@ -580,7 +581,7 @@ export default function AboutPage() {
                 display: "grid",
                 gridTemplateColumns: "1fr auto 1fr",
                 alignItems: "start",
-                padding: `72px ${sidePad}`,
+                padding: `72px ${sidePadWide}`,
               }}
             >
               {/* Left column: intro text (always here); photo stacks below on medium */}
@@ -707,7 +708,7 @@ export default function AboutPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 144, paddingBottom: 168 }}>
         <div
           ref={introRef}
-          style={{ padding: `32px ${sidePad} 0`, scrollMarginTop: 72 }}
+          style={{ padding: `32px ${isNarrow ? sidePad : sidePadWide} 0`, scrollMarginTop: 72 }}
         >
           {isNarrow ? (
             // <800px: all stacked
@@ -745,7 +746,7 @@ export default function AboutPage() {
         </div>
 
         {/* Shoutouts */}
-        <div style={{ padding: `0 ${sidePad}`, marginTop: -80 }}>
+        <div style={{ padding: `0 ${isNarrow ? sidePad : sidePadWide}`, marginTop: -80 }}>
           <div style={{ textAlign: "center" }}><SectionHeader>Shoutouts</SectionHeader></div>
           <div style={{ display: "flex", flexDirection: (!isNarrow && !isMedium) ? "row" : "column", gap: 24, alignItems: "stretch", marginTop: 24 }}>
             <StickyNote t={TESTIMONIALS[0]} rotate={0} />

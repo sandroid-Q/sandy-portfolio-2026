@@ -252,6 +252,102 @@ function MenuElevator({ onClick }: { onClick: () => void }) {
   );
 }
 
+function LogoButton({ onClick, isLightNav }: { onClick: () => void; isLightNav: boolean }) {
+  const LOGO_TEXT = "SANDY QI";
+  const [hovered, setHovered] = useState(false);
+  const [displayChars, setDisplayChars] = useState(LOGO_TEXT.split(""));
+  const [charWidths, setCharWidths] = useState<number[]>([]);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const normalColor = isLightNav ? NAV_LIGHT : HOVER_COLOR;
+  const hoverColor = isLightNav ? "#D3BA9F" : BROWN;
+  const computedColor = hovered ? hoverColor : normalColor;
+
+  useEffect(() => {
+    const measure = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.font = `400 24px "Silkscreen", system-ui, sans-serif`;
+      setCharWidths(
+        LOGO_TEXT.split("").map((ch) => ctx.measureText(ch === " " ? " " : ch).width)
+      );
+    };
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(measure);
+    } else {
+      measure();
+    }
+  }, []);
+
+  useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
+
+  const scramble = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    let frame = 0;
+    const chars = LOGO_TEXT.split("");
+    const STAGGER = 2;
+    const DURATION = 3;
+    intervalRef.current = setInterval(() => {
+      setDisplayChars(
+        chars.map((ch, i) => {
+          if (ch === " ") return " ";
+          const start = i * STAGGER;
+          const lock = start + DURATION;
+          if (frame < start) return ch;
+          if (frame < lock) return SCRAMBLE_CHARS[Math.floor(Math.random() * 26)];
+          return ch;
+        })
+      );
+      frame++;
+      if (frame >= chars.length * STAGGER + DURATION) {
+        clearInterval(intervalRef.current!);
+        setDisplayChars(LOGO_TEXT.split(""));
+      }
+    }, 45);
+  };
+
+  const handleEnter = () => {
+    setHovered(true);
+    scramble();
+  };
+
+  const handleLeave = () => {
+    setHovered(false);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setDisplayChars(LOGO_TEXT.split(""));
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+      style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex" }}
+    >
+      {displayChars.map((ch, i) => (
+        <span
+          key={i}
+          style={{
+            fontFamily: "var(--font-silkscreen)",
+            fontWeight: 400,
+            fontSize: 24,
+            color: computedColor,
+            lineHeight: 1,
+            letterSpacing: "-0.04em",
+            transition: "color 0.15s",
+            display: "inline-block",
+            textAlign: "center",
+            width: charWidths[i] != null ? charWidths[i] : "auto",
+          }}
+        >
+          {ch === " " ? " " : ch}
+        </span>
+      ))}
+    </button>
+  );
+}
+
 function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace("#", "");
   const r = parseInt(h.slice(0, 2), 16);
@@ -281,7 +377,6 @@ export default function PortfolioNav({
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [projectsAnchored, setProjectsAnchored] = useState(false);
-  const [logoHovered, setLogoHovered] = useState(false);
   const [vw, setVw] = useState(1200);
 
   const isMobile = vw < 768;
@@ -320,7 +415,6 @@ export default function PortfolioNav({
     setTimeout(() => router.push("/"), 430);
   };
 
-  const logoColor = isLightNav ? NAV_LIGHT : TEXT_NAV;
   const hamburgerColor = isLightNav ? NAV_LIGHT : BROWN;
   const navLinkColor = isLightNav ? NAV_LIGHT : undefined;
 
@@ -453,28 +547,7 @@ export default function PortfolioNav({
             padding: isMobile ? "0 18px 0 24px" : "0 36px",
           }}
         >
-        <button
-          onClick={handleLogoClick}
-          onMouseEnter={() => setLogoHovered(true)}
-          onMouseLeave={() => setLogoHovered(false)}
-          style={{
-            background: "none",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-            fontFamily: "var(--font-silkscreen)",
-            fontSize: 24,
-            color: isLightNav
-              ? (logoHovered ? "#D3BA9F" : NAV_LIGHT)
-              : (logoHovered ? BROWN : HOVER_COLOR),
-            lineHeight: 1,
-            letterSpacing: "-0.04em",
-            transition: "color 0.15s",
-            position: "relative",
-          }}
-        >
-          SANDY QI
-        </button>
+        <LogoButton onClick={handleLogoClick} isLightNav={isLightNav} />
 
         {isMobile ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
