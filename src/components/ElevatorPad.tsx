@@ -52,7 +52,7 @@ function BellIcon({ color }: { color: string }) {
   );
 }
 
-function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadButtonDef; onDing: () => void; dark: boolean; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
+function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact }: { btn: PadButtonDef; onDing: () => void; dark: boolean; bg: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [ringing, setRinging] = useState(false);
@@ -106,7 +106,7 @@ function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadBut
   const isActivated = effectivePressed || isActive;
 
   const stroke         = dark ? BG : BROWN;
-  const defaultFill    = dark ? "transparent" : BG;
+  const defaultFill    = dark ? "transparent" : bg;
   const activeFill     = dark ? BG : BROWN;
   const defaultContent = dark ? BG : BROWN;
   const activeContent  = dark ? BROWN : BG;
@@ -230,7 +230,7 @@ function PadButton({ btn, onDing, dark, onFloorHover, onContact }: { btn: PadBut
   );
 }
 
-export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, onFloorHover, onContact }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
+export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, bg = BG, onFloorHover, onContact }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; bg?: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
   const { muted } = useAudio();
   const dingRef = useRef<HTMLAudioElement | null>(null);
 
@@ -317,7 +317,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
             }}
           >
             {row.map((btn) => (
-              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} onFloorHover={onFloorHover} onContact={onContact} />
+              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} bg={bg} onFloorHover={onFloorHover} onContact={onContact} />
             ))}
           </div>
         ))}

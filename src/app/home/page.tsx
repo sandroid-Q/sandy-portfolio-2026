@@ -352,11 +352,11 @@ export default function HomePage() {
                 marginBottom: -padShrinkY,
               }}
             >
-              <ElevatorPad onHeaderClick={scrollToPad} onContact={() => setContactOpen(true)} />
+              <ElevatorPad onHeaderClick={scrollToPad} bg="#E5E0D7" onContact={() => setContactOpen(true)} />
             </div>
           ) : isCondensed ? (
             /* Condensed (768–1189px): plain pad, list renders below */
-            <ElevatorPad onHeaderClick={scrollToPad} />
+            <ElevatorPad onHeaderClick={scrollToPad} bg="#E5E0D7" />
           ) : (
             /* Wide (≥1190px): three-column hover layout */
             <div style={{ display: "flex", alignItems: "center", gap: 48 }}>
@@ -380,7 +380,7 @@ export default function HomePage() {
               </div>
 
               {/* Centre: elevator pad */}
-              <ElevatorPad onHeaderClick={scrollToPad} onFloorHover={setHoveredFloor} onContact={() => setContactOpen(true)} />
+              <ElevatorPad onHeaderClick={scrollToPad} bg="#E5E0D7" onFloorHover={setHoveredFloor} onContact={() => setContactOpen(true)} />
 
               {/* Right: video preview or about card */}
               <div style={{ width: 320, height: 320, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>

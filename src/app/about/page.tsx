@@ -181,9 +181,11 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
       style={{
         display: "block",
         fontFamily: "var(--font-space-grotesk)",
-        fontWeight: 500,
-        fontSize: 24,
+        fontWeight: 300,
+        fontSize: 13,
         color: BROWN,
+        textTransform: "uppercase",
+        letterSpacing: "0.12em",
       }}
     >
       {children}
@@ -234,11 +236,10 @@ function WorkSection() {
             <Label>{job.company}</Label>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {job.roles.map((r) => (
-                <Detail key={r.title}>
-                  {r.title}
-                  <br />
-                  {r.period}
-                </Detail>
+                <div key={r.title} style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ display: "block", fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BROWN, lineHeight: 1.6 }}>{r.title}</span>
+                  <Detail>{r.period}</Detail>
+                </div>
               ))}
             </div>
           </div>
@@ -468,7 +469,7 @@ export default function AboutPage() {
   const isMobile = vw < 640;
   const isMedium = !isNarrow && vw < 1200;
   const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
-  const sidePadWide = "clamp(104px, calc(40px + 10vw), 168px)";
+  const sidePadWide = "clamp(68px, calc(4px + 10vw), 132px)";
   const sidePadPx = Math.min(96, Math.max(32, vw * 0.1 - 32));
   const clampedVh = Math.max(700, vh);
   const PAD_NATURAL_H = 774;
@@ -659,7 +660,7 @@ export default function AboutPage() {
 
               {/* Center: elevator pad */}
               <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "top center" }}>
-                <ElevatorPad activeFloor="about" onContact={() => setContactOpen(true)} />
+                <ElevatorPad activeFloor="about" bg={HERO_BG} onContact={() => setContactOpen(true)} />
               </div>
 
               {/* Right column: photo on wide (≥1200px), empty mirror on medium */}
@@ -726,19 +727,19 @@ export default function AboutPage() {
               </div>
               <div style={{ width: 400, flexShrink: 0, display: "flex", flexDirection: "column" }}>
                 <SkillsSection oneCol={skillsOneCol} />
-                <div style={{ height: skillsOneCol ? 100 : 240 }} />
+                <div style={{ height: "0.7px", backgroundColor: BROWN, margin: "32px 0" }} />
                 <EducationSection />
               </div>
             </div>
           ) : (
             // ≥1200px: original desktop layout — Work left, Skills + Education stacked right
-            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 64 }}>
+            <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: 64, width: "fit-content", margin: "0 auto" }}>
               <div style={{ width: 494, flexShrink: 0 }}>
                 <WorkSection />
               </div>
               <div style={{ width: 400, flexShrink: 0, display: "flex", flexDirection: "column" }}>
                 <SkillsSection />
-                <div style={{ height: 240 }} />
+                <div style={{ height: "0.7px", backgroundColor: BROWN, margin: "32px 0" }} />
                 <EducationSection />
               </div>
             </div>
@@ -772,7 +773,7 @@ export default function AboutPage() {
                 marginBottom: `${340 * (1 - Math.min(1, (vw - 48) / 340)) * -0.5}px`,
               }}
             >
-              <ElevatorPad activeFloor="about" onContact={() => setContactOpen(true)} />
+              <ElevatorPad activeFloor="about" bg={HERO_BG} onContact={() => setContactOpen(true)} />
             </div>
           </div>
         ) : (
