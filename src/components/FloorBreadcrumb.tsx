@@ -15,7 +15,6 @@ const FLOORS = [
   { key: "4", label: "Level 4", href: "/project/4" },
   { key: "5", label: "Level 5", href: "/project/5" },
   { key: "6", label: "Level 6", href: "/project/6" },
-  { key: "about", label: "About", href: "/about" },
 ];
 
 function FloorLink({ label, href, isActive }: { label: string; href: string; isActive: boolean }) {
@@ -30,9 +29,11 @@ function FloorLink({ label, href, isActive }: { label: string; href: string; isA
       style={{
         position: "relative",
         fontFamily: "var(--font-space-grotesk), system-ui, sans-serif",
-        fontWeight: isBold ? 700 : 400,
-        fontSize: 14,
+        fontWeight: isBold ? 500 : 300,
+        fontSize: 13,
         color: BROWN,
+        textTransform: "uppercase",
+        letterSpacing: "0.1em",
         whiteSpace: "nowrap",
         display: "inline-block",
         paddingBottom: 3,
