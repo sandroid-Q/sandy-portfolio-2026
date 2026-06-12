@@ -4,7 +4,6 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
 import SoundToggle from "./SoundToggle";
 import TransitionOverlay from "./TransitionOverlay";
 import { useAudio } from "@/contexts/AudioContext";
@@ -176,81 +175,81 @@ function HamburgerIcon({ open, color = BROWN }: { open: boolean; color?: string 
   );
 }
 
+function LinkedInButton() {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <a
+      href="https://www.linkedin.com/in/sandra-qi/"
+      target="_blank"
+      rel="noopener noreferrer"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ textDecoration: "none", display: "block" }}
+    >
+      <motion.div
+        animate={{ backgroundColor: hovered ? BROWN : "transparent" }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 12.18,
+          border: `2.7px solid ${BROWN}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <motion.span
+          animate={{ color: hovered ? "#E5E0D7" : BROWN }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          style={{
+            fontFamily: "var(--font-space-grotesk)",
+            fontWeight: 500,
+            fontSize: 32,
+            letterSpacing: "-0.03em",
+            lineHeight: 1,
+          }}
+        >
+          in
+        </motion.span>
+      </motion.div>
+    </a>
+  );
+}
+
 function MenuLink({ href, onClick, children, active }: { href?: string; onClick?: () => void; children: string; active?: boolean }) {
   const [hovered, setHovered] = useState(false);
+  const textColor = active ? DARK_RED : hovered ? BROWN : HOVER_COLOR;
+  const INDENT = 24;
+
   const inner = (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        fontFamily: "var(--font-space-grotesk)",
-        fontWeight: 500,
-        fontSize: 48,
-        letterSpacing: "-0.03em",
-        lineHeight: 1.1,
-        color: active ? DARK_RED : hovered ? BROWN : HOVER_COLOR,
-        cursor: "pointer",
-        transition: "color 0.15s",
-      }}
+      style={{ position: "relative", cursor: "pointer" }}
     >
-      {children}
+      <motion.div
+        animate={{ x: hovered ? INDENT : 0, color: textColor }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+        style={{
+          fontFamily: "var(--font-space-grotesk)",
+          fontWeight: 500,
+          fontSize: 60,
+          letterSpacing: "-0.03em",
+          lineHeight: 1.1,
+        }}
+      >
+        {children}
+      </motion.div>
     </div>
   );
+
   if (onClick) {
     return <button onClick={onClick} style={{ background: "none", border: "none", padding: 0 }}>{inner}</button>;
   }
   return <Link href={href!} style={{ textDecoration: "none" }}>{inner}</Link>;
 }
 
-function CoffeeChatButton({ onClick }: { onClick: () => void }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-    >
-      <span style={{
-        fontFamily: "var(--font-space-grotesk)",
-        fontWeight: 300,
-        fontSize: 16,
-        letterSpacing: "0.04em",
-        color: BROWN,
-        textTransform: "uppercase",
-        display: "block",
-        transform: hovered ? "translateY(-3px)" : "translateY(0)",
-        transition: "transform 0.2s ease",
-      }}>
-        ☕️ Coffee chat?
-      </span>
-    </button>
-  );
-}
-
-function MenuElevator({ onClick }: { onClick: () => void }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block" }}
-    >
-      <Image
-        src="/icons/menu-elevator.png"
-        width={92}
-        height={119}
-        alt="Return to entrance"
-        style={{
-          display: "block",
-          transform: hovered ? "translateY(-3px)" : "translateY(0)",
-          transition: "transform 0.2s ease",
-        }}
-      />
-    </button>
-  );
-}
 
 function LogoButton({ onClick, isLightNav }: { onClick: () => void; isLightNav: boolean }) {
   const LOGO_TEXT = "SANDY QI";
@@ -481,13 +480,14 @@ export default function PortfolioNav({
             {[
               { label: "Home", active: isHome, action: () => { router.push("/home"); setMenuOpen(false); } },
               {
-                label: "Projects", active: isProject, action: () => {
+                label: "Projects", active: isProject || (isHome && (projectsAnchored || projectsActive)), action: () => {
                   if (typeof projectsAction === "string") router.push(projectsAction);
                   else (projectsAction as () => void)();
                   setMenuOpen(false);
                 },
               },
               { label: "About", active: isAbout, action: () => { router.push("/about"); setMenuOpen(false); } },
+              { label: "Exit", active: false, action: handleLogoClick },
             ].map(({ label, active, action }, i) => (
               <motion.div
                 key={label}
@@ -499,7 +499,7 @@ export default function PortfolioNav({
               </motion.div>
             ))}
 
-            {/* Bottom row: elevator (→ cover page) left, coffee chat right */}
+            {/* Bottom row: email left, LinkedIn right */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -507,16 +507,30 @@ export default function PortfolioNav({
               style={{
                 position: "absolute",
                 bottom: 40,
-                left: 28,
+                left: 36,
                 right: 36,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-end",
               }}
             >
-              <MenuElevator onClick={handleLogoClick} />
-
-              <CoffeeChatButton onClick={() => { /* TODO: open contact modal */ }} />
+              <motion.a
+                href="mailto:sandra.jxq@gmail.com"
+                whileHover={{ color: DARK_RED }}
+                transition={{ duration: 0.15 }}
+                style={{
+                  fontFamily: "var(--font-space-grotesk)",
+                  fontWeight: 500,
+                  fontSize: 16,
+                  letterSpacing: "0.01em",
+                  color: BROWN,
+                  textDecoration: "none",
+                  display: "block",
+                }}
+              >
+                sandra.jxq@gmail.com
+              </motion.a>
+              <LinkedInButton />
             </motion.div>
           </motion.div>
         )}
