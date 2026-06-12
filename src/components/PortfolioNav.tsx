@@ -175,6 +175,48 @@ function HamburgerIcon({ open, color = BROWN }: { open: boolean; color?: string 
   );
 }
 
+function MenuEmailLink() {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      style={{ position: "relative", display: "inline-block" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <motion.a
+        href="mailto:sandra.jxq@gmail.com"
+        animate={{ color: hovered ? "#302927" : "#615C59" }}
+        transition={{ duration: 0.2 }}
+        style={{
+          fontFamily: "var(--font-space-grotesk)",
+          fontWeight: 500,
+          fontSize: 16,
+          letterSpacing: "0.01em",
+          textDecoration: "none",
+          display: "block",
+          paddingBottom: 3,
+        }}
+      >
+        sandra.jxq@gmail.com
+      </motion.a>
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: hovered ? 1 : 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 1.5,
+          backgroundColor: "#E4C298",
+          transformOrigin: "left",
+        }}
+      />
+    </div>
+  );
+}
+
 function LinkedInButton() {
   const [hovered, setHovered] = useState(false);
   return (
@@ -187,20 +229,20 @@ function LinkedInButton() {
       style={{ textDecoration: "none", display: "block" }}
     >
       <motion.div
-        animate={{ backgroundColor: hovered ? BROWN : "transparent" }}
+        animate={{ backgroundColor: hovered ? "#302927" : "transparent" }}
         transition={{ duration: 0.15, ease: "easeOut" }}
         style={{
           width: 44,
           height: 44,
           borderRadius: 12.18,
-          border: `2.7px solid ${BROWN}`,
+          border: `2.7px solid #615C59`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
         <motion.span
-          animate={{ color: hovered ? "#E5E0D7" : BROWN }}
+          animate={{ color: hovered ? "#E5E0D7" : "#615C59" }}
           transition={{ duration: 0.15, ease: "easeOut" }}
           style={{
             fontFamily: "var(--font-space-grotesk)",
@@ -219,7 +261,7 @@ function LinkedInButton() {
 
 function MenuLink({ href, onClick, children, active }: { href?: string; onClick?: () => void; children: string; active?: boolean }) {
   const [hovered, setHovered] = useState(false);
-  const textColor = active ? DARK_RED : hovered ? BROWN : HOVER_COLOR;
+  const textColor = (active || hovered) ? "#302927" : "#615C59";
   const INDENT = 24;
 
   const inner = (
@@ -234,9 +276,9 @@ function MenuLink({ href, onClick, children, active }: { href?: string; onClick?
         style={{
           fontFamily: "var(--font-space-grotesk)",
           fontWeight: 500,
-          fontSize: 60,
-          letterSpacing: "-0.03em",
-          lineHeight: 1.1,
+          fontSize: 72,
+          letterSpacing: "-0.055em",
+          lineHeight: 0.88,
         }}
       >
         {children}
@@ -514,22 +556,7 @@ export default function PortfolioNav({
                 alignItems: "flex-end",
               }}
             >
-              <motion.a
-                href="mailto:sandra.jxq@gmail.com"
-                whileHover={{ color: DARK_RED }}
-                transition={{ duration: 0.15 }}
-                style={{
-                  fontFamily: "var(--font-space-grotesk)",
-                  fontWeight: 500,
-                  fontSize: 16,
-                  letterSpacing: "0.01em",
-                  color: BROWN,
-                  textDecoration: "none",
-                  display: "block",
-                }}
-              >
-                sandra.jxq@gmail.com
-              </motion.a>
+              <MenuEmailLink />
               <LinkedInButton />
             </motion.div>
           </motion.div>
