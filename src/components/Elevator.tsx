@@ -2,11 +2,13 @@
 
 import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useAudio } from "@/contexts/AudioContext";
 
-const BROWN = "#4E3A34";
-const TEXT_INVERSE = "#E5E0D7";
-const BROWN_PRESSED = "#71615D";
-const TEXT_INVERSE_PRESSED = "#EFECE7";
+const SURFACE_PRIMARY = "#0127BA";
+const SURFACE_QUATERNARY = "#0034FF";
+const ON_SURFACE_PRIMARY = "#F8F8F8";
+const ON_SURFACE_SECONDARY = "#E7EAF1";
+const SURFACE_SECONDARY = "#161719";
 const PILASTER = 36;
 const BEVEL = 12;
 const DEPTH = 16;
@@ -76,16 +78,77 @@ export default function Elevator({
   const [pressed, setPressed] = useState(false);
   // Defer mounting sparkles until doors have opened at least once
   const [hasOpened, setHasOpened] = useState(false);
+  const [isDark, setIsDark] = useState(true);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const bufferRef = useRef<AudioBuffer | null>(null);
+  const isMountRef = useRef(true);
+  const { muted } = useAudio();
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (isOpen) setHasOpened(true);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    else { setHovered(false); setPressed(false); }
+    const ctx = new AudioContext();
+    audioCtxRef.current = ctx;
+    fetch("/door.mp3")
+      .then(r => r.arrayBuffer())
+      .then(ab => ctx.decodeAudioData(ab))
+      .then(buf => { bufferRef.current = buf; })
+      .catch(() => {});
+    return () => { ctx.close(); };
+  }, []);
+
+  const playDoor = (closing: boolean) => {
+    const ctx = audioCtxRef.current;
+    const buffer = bufferRef.current;
+    if (!ctx || !buffer || muted) return;
+    if (ctx.state === "suspended") ctx.resume();
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(ctx.destination);
+    if (closing) {
+      src.start(0, 0, 1.5);
+    } else {
+      src.start(0, 0);
+    }
+  };
+
+  const isCoarsePointer = () =>
+    typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+
+  useEffect(() => {
+    if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHasOpened(true);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (isCoarsePointer()) setHovered(true);
+    } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHovered(false);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPressed(false);
+    }
+
+    if (isMountRef.current) { isMountRef.current = false; return; }
+    playDoor(!isOpen);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  const bgColor = pressed ? BROWN_PRESSED : hovered ? BROWN         : TEXT_INVERSE;
-  const fgColor = pressed ? TEXT_INVERSE_PRESSED : hovered ? TEXT_INVERSE : BROWN;
+  const bgColor = pressed
+    ? (isDark ? ON_SURFACE_SECONDARY : "#E7EAF1")
+    : hovered
+    ? (isDark ? SURFACE_QUATERNARY : SURFACE_SECONDARY)
+    : (isDark ? SURFACE_PRIMARY : ON_SURFACE_PRIMARY);
+  const fgColor = pressed
+    ? SURFACE_SECONDARY
+    : hovered
+    ? ON_SURFACE_PRIMARY
+    : (isDark ? ON_SURFACE_PRIMARY : SURFACE_SECONDARY);
+
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.getAttribute("data-theme") !== "light");
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const el = doorAreaRef.current;
@@ -127,16 +190,20 @@ export default function Elevator({
           borderTopRightRadius: "50% 100%",
           borderBottomLeftRadius: 0,
           borderBottomRightRadius: 0,
-          border: `2px solid ${BROWN}`,
-          borderBottom: "none",
-          backgroundColor: "var(--color-bg-primary)",
+          borderTop: "2px solid var(--color-on-surface-primary)",
+          borderLeft: "2px solid var(--color-on-surface-primary)",
+          borderRight: "2px solid var(--color-on-surface-primary)",
+          borderBottom: "2px solid var(--color-on-surface-primary)",
+          backgroundColor: "var(--color-surface-primary)",
           marginBottom: 0,
           zIndex: 1,
+          position: "relative",
+          top: 2,
         }}
       >
         <span
           className="font-silkscreen"
-          style={{ color: BROWN, fontSize: 40, lineHeight: 1, letterSpacing: -3 }}
+          style={{ color: "var(--color-on-surface-primary)", fontSize: 40, lineHeight: 1, letterSpacing: -3 }}
         >
           {logoText}
         </span>
@@ -147,16 +214,16 @@ export default function Elevator({
         className="flex flex-col"
         style={{
           width: 340,
-          border: `2px solid ${BROWN}`,
-          backgroundColor: "var(--color-bg-primary)",
+          border: "2px solid var(--color-on-surface-primary)",
+          backgroundColor: "var(--color-surface-primary)",
         }}
       >
         {/* WELCOME bar */}
         <div
           className="flex items-center justify-center shrink-0"
-          style={{ height: 56, borderBottom: `2px solid ${BROWN}` }}
+          style={{ height: 56, borderBottom: "2px solid var(--color-on-surface-primary)" }}
         >
-          <span className="font-silkscreen" style={{ color: BROWN, fontSize: 20 }}>
+          <span className="font-silkscreen" style={{ color: "var(--color-on-surface-primary)", fontSize: 20 }}>
             {welcomeText}
           </span>
         </div>
@@ -240,7 +307,7 @@ export default function Elevator({
           {/* 2. Left door panel */}
           <motion.div
             className="absolute left-0 top-0 bottom-0"
-            style={{ width: "50%", backgroundColor: "var(--color-bg-primary)" }}
+            style={{ width: "50%", backgroundColor: "var(--color-surface-primary)" }}
             animate={{ x: isOpen ? "-100%" : "0%" }}
             transition={{ duration: DOOR_DURATION, ease: isOpen ? DOOR_EASE_OPEN : DOOR_EASE_CLOSE }}
           />
@@ -248,7 +315,7 @@ export default function Elevator({
           {/* 3. Right door panel */}
           <motion.div
             className="absolute right-0 top-0 bottom-0"
-            style={{ width: "50%", backgroundColor: "var(--color-bg-primary)" }}
+            style={{ width: "50%", backgroundColor: "var(--color-surface-primary)" }}
             animate={{ x: isOpen ? "100%" : "0%" }}
             transition={{ duration: DOOR_DURATION, ease: isOpen ? DOOR_EASE_OPEN : DOOR_EASE_CLOSE }}
           />
@@ -277,7 +344,7 @@ export default function Elevator({
                   position: "absolute",
                   left: w / 2 - ix1,
                   top: 0, bottom: 0, width: 2,
-                  backgroundColor: BROWN,
+                  backgroundColor: "var(--color-on-surface-primary)",
                 }}
                 animate={{ x: isOpen ? -(w / 2) : 0 }}
                 transition={{ duration: DOOR_DURATION, ease: isOpen ? DOOR_EASE_OPEN : DOOR_EASE_CLOSE }}
@@ -288,7 +355,7 @@ export default function Elevator({
                   position: "absolute",
                   left: w / 2 - ix1,
                   top: 0, bottom: 0, width: 2,
-                  backgroundColor: BROWN,
+                  backgroundColor: "var(--color-on-surface-primary)",
                 }}
                 animate={{ x: isOpen ? w / 2 : 0 }}
                 transition={{ duration: DOOR_DURATION, ease: isOpen ? DOOR_EASE_OPEN : DOOR_EASE_CLOSE }}
@@ -306,23 +373,24 @@ export default function Elevator({
                 zIndex: 10,
                 pointerEvents: "none",
                 display: "block",
+                color: "var(--color-on-surface-primary)",
               }}
             >
               {/* Pilaster edges */}
-              <line x1={P}     y1={0} x2={P}     y2={h} stroke={BROWN} strokeWidth={2} />
-              <line x1={w - P} y1={0} x2={w - P} y2={h} stroke={BROWN} strokeWidth={2} />
+              <line x1={P}     y1={0} x2={P}     y2={h} stroke="currentColor" strokeWidth={2} />
+              <line x1={w - P} y1={0} x2={w - P} y2={h} stroke="currentColor" strokeWidth={2} />
 
               {/* Inner box */}
-              <line x1={ix1} y1={iy1} x2={ix2} y2={iy1} stroke={BROWN} strokeWidth={2} />
-              <line x1={ix1} y1={iy2} x2={ix2} y2={iy2} stroke={BROWN} strokeWidth={2} />
-              <line x1={ix1} y1={iy1} x2={ix1} y2={iy2} stroke={BROWN} strokeWidth={2} />
-              <line x1={ix2} y1={iy1} x2={ix2} y2={iy2} stroke={BROWN} strokeWidth={2} />
+              <line x1={ix1} y1={iy1} x2={ix2} y2={iy1} stroke="currentColor" strokeWidth={2} />
+              <line x1={ix1} y1={iy2} x2={ix2} y2={iy2} stroke="currentColor" strokeWidth={2} />
+              <line x1={ix1} y1={iy1} x2={ix1} y2={iy2} stroke="currentColor" strokeWidth={2} />
+              <line x1={ix2} y1={iy1} x2={ix2} y2={iy2} stroke="currentColor" strokeWidth={2} />
 
               {/* Cornice diagonals */}
-              <line x1={P}     y1={0} x2={ix1} y2={iy1} stroke={BROWN} strokeWidth={2} />
-              <line x1={w - P} y1={0} x2={ix2} y2={iy1} stroke={BROWN} strokeWidth={2} />
-              <line x1={P}     y1={h} x2={ix1} y2={iy2} stroke={BROWN} strokeWidth={2} />
-              <line x1={w - P} y1={h} x2={ix2} y2={iy2} stroke={BROWN} strokeWidth={2} />
+              <line x1={P}     y1={0} x2={ix1} y2={iy1} stroke="currentColor" strokeWidth={2} />
+              <line x1={w - P} y1={0} x2={ix2} y2={iy1} stroke="currentColor" strokeWidth={2} />
+              <line x1={P}     y1={h} x2={ix1} y2={iy2} stroke="currentColor" strokeWidth={2} />
+              <line x1={w - P} y1={h} x2={ix2} y2={iy2} stroke="currentColor" strokeWidth={2} />
             </svg>
           )}
         </div>

@@ -6,6 +6,7 @@ import Elevator from "@/components/Elevator";
 import TransitionOverlay from "@/components/TransitionOverlay";
 import ElevatorButton from "@/components/ElevatorButton";
 import SoundToggle from "@/components/SoundToggle";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useAudio } from "@/contexts/AudioContext";
 
 const SIDE_PADDING = 16;
@@ -62,10 +63,11 @@ function CoverPageInner() {
 
   return (
     <main
-      className="min-h-screen flex items-center justify-center"
-      style={{ backgroundColor: "var(--color-bg-secondary)" }}
+      className="flex items-center justify-center"
+      style={{ backgroundColor: "var(--color-surface-primary)", height: "100dvh", overflow: "hidden" }}
     >
-      <div style={{ position: "fixed", top: 20, right: 20, zIndex: 100 }}>
+      <div style={{ position: "fixed", top: 20, right: 20, zIndex: 100, display: "flex", alignItems: "center", gap: 4 }}>
+        <ThemeToggle />
         <SoundToggle muted={muted} onClick={() => setMuted(!muted)} />
       </div>
 

@@ -111,10 +111,10 @@ function IconButton({ onClick, icon, bg = BG }: { onClick: () => void; icon: (c:
   );
 }
 
-function MetaField({ label, value, flex }: { label: string; value: string; flex?: boolean }) {
+function MetaField({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, ...(flex ? { flex: 1, minWidth: 0 } : { width: 144 }) }}>
-      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: BROWN, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+    <div style={{ display: "flex", flexDirection: "row", alignItems: "baseline", gap: 24, padding: "18px 0" }}>
+      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: BROWN, textTransform: "uppercase", letterSpacing: "0.04em", width: 176, flexShrink: 0 }}>
         {label}
       </span>
       <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BROWN }}>
@@ -122,6 +122,10 @@ function MetaField({ label, value, flex }: { label: string; value: string; flex?
       </span>
     </div>
   );
+}
+
+function MetaDivider() {
+  return <div style={{ height: 1, backgroundColor: BROWN, opacity: 0.2 }} />;
 }
 
 function ProjectInfo({ project, isMobile }: { project: ProjectData; isMobile: boolean }) {
@@ -143,19 +147,6 @@ function ProjectInfo({ project, isMobile }: { project: ProjectData; isMobile: bo
         <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BG }}>
           {project.blurb}
         </span>
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-        {project.tags.map((tag) => (
-          <span
-            key={tag}
-            style={{
-              fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 14, color: BG,
-              border: `1px solid ${BG}`, borderRadius: 100, padding: "4px 12px",
-            }}
-          >
-            {tag}
-          </span>
-        ))}
       </div>
     </div>
   );
@@ -325,10 +316,15 @@ export default function ProjectPageTemplate(project: ProjectData) {
           }}
         >
           {/* Metadata columns */}
-          <div style={{ display: "flex", flexDirection: "row", gap: 32, flexWrap: "wrap" }}>
-            <MetaField label="Role" value={project.role} flex={isMobile} />
-            <MetaField label="Year" value={project.yearRange} flex={isMobile} />
-            <MetaField label="Platform" value={project.platform} flex={isMobile} />
+          <div style={{ display: "flex", flexDirection: "column", width: isMobile ? "100%" : "calc(50vw - clamp(32px, calc(-32px + 10vw), 96px))" }}>
+            <MetaField label="Role" value={project.role} />
+            <MetaDivider />
+            <MetaField label="Year" value={project.yearRange} />
+            <MetaDivider />
+            <MetaField label="Platform" value={project.platform} />
+            <MetaDivider />
+            <MetaField label="Focus" value={project.tags.join(", ")} />
+            <MetaDivider />
           </div>
 
           {/* Overview */}

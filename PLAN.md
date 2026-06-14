@@ -10,16 +10,37 @@ Figma reference: https://www.figma.com/design/ei8Lyr0WYaI4Bpb6IyCVQI/%F0%9F%93%A
 
 ## Design Tokens
 
-**Colors:**
-```css
---color-bg-secondary:     #E5E0D7   /* warm beige, feature background */
---color-bg-primary: #F3F2F0   /* warm off-white, main background */
---color-text:   #4E3A34   /* near-black, primary text */
---color-grey:   #E6E5E2   /* light grey, secondary surfaces */
---color-red:    #DE211D   /* lanyard card front */
---color-brown:  #4E3A34   /* card borders, outlines */
---color-text-inverse: #E5E0D7   /* light text on dark/brown backgrounds */
-```
+CSS variable names follow `--color-{token}`. Tailwind utilities auto-generated: `bg-surface-primary`, `text-on-surface-secondary`, `border-feature-primary`, etc.
+
+Light mode toggled via `data-theme="light"` on `<html>`. Dark is the default (no attribute needed).
+
+**Colors — Dark mode (default):**
+| Token | Value | Usage |
+|---|---|---|
+| `surface-primary` | `#0127BA` | Main page background |
+| `surface-secondary` | `#161719` | Cards, panels, nested surfaces |
+| `surface-tertiary` | `#F8F8F8` | High-contrast surface (e.g. lanyard card) |
+| `surface-transparent` | `rgba(22, 23, 25, 0.15)` | Overlays, glass effects |
+| `surface-quaternary` | `#0034FF` | Interactive pressed state (e.g. elevator button) |
+| `on-surface-primary` | `#F8F8F8` | Primary text / icons |
+| `on-surface-secondary` | `#E7EAF1` | Secondary text |
+| `on-surface-tertiary` | `#C8CFDE` | Subdued / placeholder text |
+| `feature-primary` | `#FFB3D8` | Accent — pink (lighter) |
+| `feature-secondary` | `#FF82B8` | Accent — pink (stronger) |
+
+**Colors — Light mode:**
+| Token | Value | Usage |
+|---|---|---|
+| `surface-primary` | `#F8F8F8` | Main page background |
+| `surface-secondary` | `#E7EAF1` | Cards, panels, nested surfaces |
+| `surface-tertiary` | `#161719` | High-contrast surface |
+| `surface-transparent` | `rgba(22, 23, 25, 0.15)` | Overlays, glass effects |
+| `surface-quaternary` | `#0034FF` | Interactive pressed state (e.g. elevator button) |
+| `on-surface-primary` | `#161719` | Primary text / icons |
+| `on-surface-secondary` | `#0034FF` | Secondary text / links |
+| `on-surface-tertiary` | `#636674` | Subdued / placeholder text |
+| `feature-primary` | `#FF82B8` | Accent — pink (stronger) |
+| `feature-secondary` | `#FFB3D8` | Accent — pink (lighter) |
 
 **Fonts:**
 - `Silkscreen` (Google Fonts) — pixel/retro; project titles (all-caps), floor button numbers
@@ -179,4 +200,4 @@ Button grid layout:
 - Elevator illustration = SVG exported from Figma by Sandy
 - Project media = placeholders until Sandy provides assets
 - Email modal = mailto link, no backend
-- No dark mode — design is light-only
+- Dark mode is the default. Light mode toggled via `data-theme="light"` on `<html>` — toggle UI to be wired up later

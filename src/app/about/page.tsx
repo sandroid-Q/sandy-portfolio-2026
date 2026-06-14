@@ -489,10 +489,9 @@ export default function AboutPage() {
   // Narrow: no grid padding, so add 72px to match medium's visual position exactly
   const narrowTopPad = isNarrow ? 72 + heroContentOffset : 0;
   const narrowPhotoH = isNarrow ? Math.max(100, Math.min(280 * narrowScale, vh > 0 ? vh - 72 - narrowTopPad - 330 * narrowScale - 48 - 64 : 200)) : 280;
-  // Gap between Work and the Skills+Education block: slides from 64px (at ≥1200px) down to 32px (at 800px)
-  const cvGap = isNarrow ? 0 : Math.round(Math.max(32, Math.min(64, (vw - 800) / 400 * 32 + 32)));
-  // Skills grid collapses to 1 column before everything stacks
-  const skillsOneCol = !isNarrow && vw < 960;
+  const cvIsStack = vw < 680;
+  const cvIsCompact = vw >= 680 && vw < 1000;
+  const cvSidePad = "clamp(32px, 5vw, 96px)";
 
 
   const router = useRouter();
@@ -717,35 +716,32 @@ export default function AboutPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 144, paddingBottom: 168 }}>
         <div
           ref={introRef}
-          style={{ padding: `32px ${isNarrow ? sidePad : sidePadWide} 0`, scrollMarginTop: 72 }}
+          style={{ padding: `32px ${cvSidePad} 0`, scrollMarginTop: 72 }}
         >
-          {isNarrow ? (
-            // <800px: all stacked
+          {cvIsStack ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
               <WorkSection />
-              <SkillsSection />
+              <SkillsSection oneCol />
               <EducationSection />
             </div>
-          ) : isMedium ? (
-            // 800–1199px: Work shrinks left, Education stays stacked under Skills.
-            // cvGap slides 64→32px; skillsOneCol collapses Skills grid at <960px.
-            <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: cvGap }}>
+          ) : cvIsCompact ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
+              <div style={{ display: "flex", gap: 48 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <WorkSection />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <SkillsSection oneCol />
+                </div>
+              </div>
+              <EducationSection />
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: "clamp(64px, calc(8vw - 16px), 200px)", alignItems: "flex-start" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <WorkSection />
               </div>
-              <div style={{ width: 400, flexShrink: 0, display: "flex", flexDirection: "column" }}>
-                <SkillsSection oneCol={skillsOneCol} />
-                <div style={{ height: "0.7px", backgroundColor: BROWN, margin: "48px 0" }} />
-                <EducationSection />
-              </div>
-            </div>
-          ) : (
-            // ≥1200px: original desktop layout — Work left, Skills + Education stacked right
-            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ width: 494, flexShrink: 0 }}>
-                <WorkSection />
-              </div>
-              <div style={{ width: 400, flexShrink: 0, display: "flex", flexDirection: "column" }}>
+              <div style={{ width: 360, flexShrink: 0, display: "flex", flexDirection: "column" }}>
                 <SkillsSection />
                 <div style={{ height: "0.7px", backgroundColor: BROWN, margin: "48px 0" }} />
                 <EducationSection />
@@ -755,9 +751,9 @@ export default function AboutPage() {
         </div>
 
         {/* Shoutouts */}
-        <div style={{ padding: `0 ${isNarrow ? sidePad : sidePadWide}`, marginTop: -80 }}>
+        <div style={{ padding: `0 ${cvSidePad}`, marginTop: -80 }}>
           <div style={{ textAlign: "center" }}><SectionHeader>Shoutouts</SectionHeader></div>
-          <div style={{ display: "flex", flexDirection: (!isNarrow && !isMedium) ? "row" : "column", gap: 24, alignItems: "stretch", marginTop: 24 }}>
+          <div style={{ display: "flex", flexDirection: !cvIsStack && !cvIsCompact ? "row" : "column", gap: 24, alignItems: "stretch", marginTop: 24 }}>
             <StickyNote t={TESTIMONIALS[0]} rotate={0} />
             <StickyNote t={TESTIMONIALS[1]} rotate={0} />
             <StickyNote t={TESTIMONIALS[2]} rotate={0} />

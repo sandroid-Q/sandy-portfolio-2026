@@ -3,11 +3,10 @@
 import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-const BROWN = "#4E3A34";
-const TEXT_INVERSE = "#E5E0D7";
-// Hover: full inversion. Pressed: both colours lightened ~20%.
-const BROWN_PRESSED = "#71615D";
-const TEXT_INVERSE_PRESSED = "#EFECE7";
+const SURFACE_PRIMARY = "#0127BA";
+const ON_SURFACE_PRIMARY = "#F8F8F8";
+const ON_SURFACE_SECONDARY = "#E7EAF1";
+const SURFACE_SECONDARY = "#161719";
 const PILASTER = 36;
 const BEVEL = 12;
 const DEPTH = 16;
@@ -77,8 +76,8 @@ export default function ElevatorOpened({
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
-  const bgColor = pressed ? BROWN_PRESSED  : hovered ? BROWN         : TEXT_INVERSE;
-  const fgColor = pressed ? TEXT_INVERSE_PRESSED : hovered ? TEXT_INVERSE : BROWN;
+  const bgColor = pressed ? ON_SURFACE_SECONDARY : hovered ? ON_SURFACE_PRIMARY : SURFACE_PRIMARY;
+  const fgColor = pressed ? SURFACE_SECONDARY    : hovered ? SURFACE_PRIMARY   : ON_SURFACE_PRIMARY;
 
   useEffect(() => {
     const el = doorAreaRef.current;
@@ -125,16 +124,16 @@ export default function ElevatorOpened({
           borderTopRightRadius: "50% 100%",
           borderBottomLeftRadius: 0,
           borderBottomRightRadius: 0,
-          border: `2px solid ${BROWN}`,
+          border: `2px solid ${ON_SURFACE_PRIMARY}`,
           borderBottom: "none",
-          backgroundColor: "var(--color-bg-primary)",
+          backgroundColor: "var(--color-surface-primary)",
           marginBottom: 0,
           zIndex: 1,
         }}
       >
         <span
           className="font-silkscreen"
-          style={{ color: BROWN, fontSize: 40, lineHeight: 1, letterSpacing: -3 }}
+          style={{ color: ON_SURFACE_PRIMARY, fontSize: 40, lineHeight: 1, letterSpacing: -3 }}
         >
           {logoText}
         </span>
@@ -145,16 +144,16 @@ export default function ElevatorOpened({
         className="flex flex-col"
         style={{
           width: 340,
-          border: `2px solid ${BROWN}`,
-          backgroundColor: "var(--color-bg-primary)",
+          border: `2px solid ${ON_SURFACE_PRIMARY}`,
+          backgroundColor: "var(--color-surface-primary)",
         }}
       >
         {/* WELCOME bar */}
         <div
           className="flex items-center justify-center shrink-0"
-          style={{ height: 56, borderBottom: `2px solid ${BROWN}` }}
+          style={{ height: 56, borderBottom: `2px solid ${ON_SURFACE_PRIMARY}` }}
         >
-          <span className="font-silkscreen" style={{ color: BROWN, fontSize: 20 }}>
+          <span className="font-silkscreen" style={{ color: ON_SURFACE_PRIMARY, fontSize: 20 }}>
             {welcomeText}
           </span>
         </div>
@@ -195,20 +194,20 @@ export default function ElevatorOpened({
               />
 
               {/* Pilaster edges */}
-              <line x1={P}     y1={0} x2={P}     y2={h} stroke={BROWN} strokeWidth={2} />
-              <line x1={w - P} y1={0} x2={w - P} y2={h} stroke={BROWN} strokeWidth={2} />
+              <line x1={P}     y1={0} x2={P}     y2={h} stroke={ON_SURFACE_PRIMARY} strokeWidth={2} />
+              <line x1={w - P} y1={0} x2={w - P} y2={h} stroke={ON_SURFACE_PRIMARY} strokeWidth={2} />
 
               {/* Inner box */}
-              <line x1={ix1} y1={iy1} x2={ix2} y2={iy1} stroke={BROWN} strokeWidth={2} />
-              <line x1={ix1} y1={iy2} x2={ix2} y2={iy2} stroke={BROWN} strokeWidth={2} />
-              <line x1={ix1} y1={iy1} x2={ix1} y2={iy2} stroke={BROWN} strokeWidth={2} />
-              <line x1={ix2} y1={iy1} x2={ix2} y2={iy2} stroke={BROWN} strokeWidth={2} />
+              <line x1={ix1} y1={iy1} x2={ix2} y2={iy1} stroke={ON_SURFACE_PRIMARY} strokeWidth={2} />
+              <line x1={ix1} y1={iy2} x2={ix2} y2={iy2} stroke={ON_SURFACE_PRIMARY} strokeWidth={2} />
+              <line x1={ix1} y1={iy1} x2={ix1} y2={iy2} stroke={ON_SURFACE_PRIMARY} strokeWidth={2} />
+              <line x1={ix2} y1={iy1} x2={ix2} y2={iy2} stroke={ON_SURFACE_PRIMARY} strokeWidth={2} />
 
               {/* Cornice diagonals */}
-              <line x1={P}     y1={0} x2={ix1} y2={iy1} stroke={BROWN} strokeWidth={2} />
-              <line x1={w - P} y1={0} x2={ix2} y2={iy1} stroke={BROWN} strokeWidth={2} />
-              <line x1={P}     y1={h} x2={ix1} y2={iy2} stroke={BROWN} strokeWidth={2} />
-              <line x1={w - P} y1={h} x2={ix2} y2={iy2} stroke={BROWN} strokeWidth={2} />
+              <line x1={P}     y1={0} x2={ix1} y2={iy1} stroke={ON_SURFACE_PRIMARY} strokeWidth={2} />
+              <line x1={w - P} y1={0} x2={ix2} y2={iy1} stroke={ON_SURFACE_PRIMARY} strokeWidth={2} />
+              <line x1={P}     y1={h} x2={ix1} y2={iy2} stroke={ON_SURFACE_PRIMARY} strokeWidth={2} />
+              <line x1={w - P} y1={h} x2={ix2} y2={iy2} stroke={ON_SURFACE_PRIMARY} strokeWidth={2} />
 
               {/* Back wall + depth diagonals — colour inherits from motion.g */}
               <motion.g

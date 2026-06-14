@@ -1,19 +1,45 @@
 @import "tailwindcss";
 
-/* Design tokens */
+/* ─── Dark mode tokens (default) ─── */
 :root {
-  --color-bg-primary: #F3F2F0;
-  --color-bg-secondary: #E5E0D7;
-  --color-text: var(--color-brown);
-  --color-text-inverse: var(--color-bg-secondary);
+  --color-surface-primary: #0127BA;
+  --color-surface-secondary: #161719;
+  --color-surface-tertiary: #F8F8F8;
+  --color-surface-transparent: rgba(22, 23, 25, 0.15);
+  --color-on-surface-primary: #F8F8F8;
+  --color-on-surface-secondary: #E7EAF1;
+  --color-on-surface-tertiary: #C8CFDE;
+  --color-surface-quaternary: #0034FF;
+  --color-feature-primary: #FFB3D8;
+  --color-feature-secondary: #FF82B8;
 }
 
-/* Tailwind color utilities: bg-brown, text-brown, border-brown, etc. */
-@theme {
-  --color-brown: #4E3A34;
-  --color-red: #DE211D;
-  --color-grey: #E6E5E2;
-  --color-pink: #F4C4DB;
+/* ─── Light mode tokens ─── */
+[data-theme="light"] {
+  --color-surface-primary: #F8F8F8;
+  --color-surface-secondary: #E7EAF1;
+  --color-surface-tertiary: #161719;
+  --color-surface-transparent: rgba(22, 23, 25, 0.15);
+  --color-on-surface-primary: #161719;
+  --color-on-surface-secondary: #0034FF;
+  --color-on-surface-tertiary: #636674;
+  --color-surface-quaternary: #0034FF;
+  --color-feature-primary: #FF82B8;
+  --color-feature-secondary: #FFB3D8;
+}
+
+/* Tailwind color utilities: bg-surface-primary, text-on-surface-secondary, etc. */
+@theme inline {
+  --color-surface-primary: var(--color-surface-primary);
+  --color-surface-secondary: var(--color-surface-secondary);
+  --color-surface-tertiary: var(--color-surface-tertiary);
+  --color-surface-transparent: var(--color-surface-transparent);
+  --color-surface-quaternary: var(--color-surface-quaternary);
+  --color-on-surface-primary: var(--color-on-surface-primary);
+  --color-on-surface-secondary: var(--color-on-surface-secondary);
+  --color-on-surface-tertiary: var(--color-on-surface-tertiary);
+  --color-feature-primary: var(--color-feature-primary);
+  --color-feature-secondary: var(--color-feature-secondary);
 }
 
 /* Tailwind font utilities: font-silkscreen, font-space-grotesk */
@@ -29,21 +55,21 @@
 }
 
 html {
-  background-color: var(--color-bg-secondary);
+  background-color: var(--color-surface-secondary);
 }
 
 body {
-  background-color: var(--color-bg-primary);
-  color: var(--color-text);
+  background-color: var(--color-surface-primary);
+  color: var(--color-on-surface-primary);
   font-family: var(--font-space-grotesk), "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 ::selection {
-  background-color: rgba(255, 241, 181, 0.6);
-  color: inherit;
+  background-color: var(--color-feature-primary);
+  color: var(--color-surface-secondary);
 }
 
 ::-moz-selection {
-  background-color: rgba(255, 241, 181, 0.6);
-  color: inherit;
+  background-color: var(--color-feature-primary);
+  color: var(--color-surface-secondary);
 }
