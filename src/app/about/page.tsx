@@ -28,7 +28,7 @@ const WORK = [
     roles: [{ title: "Senior Visual Designer", period: "April 2022 – Oct 2022" }],
   },
   {
-    company: "Meriton Suites",
+    company: "Meriton",
     roles: [{ title: "Mid-weight Graphic Designer", period: "May 2021 – April 2022" }],
   },
   {
@@ -41,12 +41,12 @@ const WORK = [
   },
 ];
 
-const EDUCATION_DETAILS = [
-  "Bachelor of Commerce / Bachelor of Design (Honours)",
-  "Majors: Marketing, Graphic Design, Spatial Design",
-  "WAM: Distinction",
-  "",
-  "Extracurricular: NSW Touch State Cup, Vawdon Cup, UNSW South Sydney Rabbitohs Touch Club, Unisports Nationals Div 1, O-Week Yellow Shirts, UNSW Business Society, HPAIR Sydney",
+const EDUCATION_DETAILS: Array<{ full?: string; title?: string; value?: string; empty?: true }> = [
+  { full: "Bachelor of Commerce / Bachelor of Design (Honours)" },
+  { title: "Majors", value: "Marketing, Graphic Design, Spatial Design" },
+  { title: "WAM", value: "Distinction" },
+  { empty: true },
+  { title: "Extracurricular", value: "NSW Touch State Cup, Vawdon Cup, UNSW South Sydney Rabbitohs Touch Club, Unisports Nationals Div 1, O-Week Yellow Shirts, UNSW Business Society, HPAIR Sydney" },
 ];
 
 const STICKY_YELLOW = "#DDD4C5";
@@ -181,11 +181,9 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
       style={{
         display: "block",
         fontFamily: "var(--font-space-grotesk)",
-        fontWeight: 300,
-        fontSize: 13,
+        fontWeight: 500,
+        fontSize: 24,
         color: BROWN,
-        textTransform: "uppercase",
-        letterSpacing: "0.12em",
       }}
     >
       {children}
@@ -199,9 +197,11 @@ function Label({ children }: { children: React.ReactNode }) {
       style={{
         display: "block",
         fontFamily: "var(--font-space-grotesk)",
-        fontWeight: 500,
-        fontSize: 14,
+        fontWeight: 300,
+        fontSize: 13,
         color: BROWN,
+        textTransform: "uppercase",
+        letterSpacing: "0.12em",
       }}
     >
       {children}
@@ -209,13 +209,13 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Detail({ children }: { children: React.ReactNode }) {
+function Detail({ children, weight = 300 }: { children: React.ReactNode; weight?: number }) {
   return (
     <span
       style={{
         display: "block",
         fontFamily: "var(--font-space-grotesk)",
-        fontWeight: 300,
+        fontWeight: weight,
         fontSize: 14,
         color: BROWN,
         lineHeight: 1.6,
@@ -256,11 +256,16 @@ function EducationSection() {
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <Label>University of New South Wales</Label>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {EDUCATION_DETAILS.map((line, i) =>
-            line === "" ? (
+          {EDUCATION_DETAILS.map((item, i) =>
+            item.empty ? (
               <div key={i} style={{ height: 8 }} />
+            ) : item.full ? (
+              <Detail key={i} weight={500}>{item.full}</Detail>
             ) : (
-              <Detail key={i}>{line}</Detail>
+              <span key={i} style={{ display: "block", fontFamily: "var(--font-space-grotesk)", fontSize: 14, color: BROWN, lineHeight: 1.6 }}>
+                <span style={{ fontWeight: 500 }}>{item.title}</span>
+                <span style={{ fontWeight: 300 }}>: {item.value}</span>
+              </span>
             )
           )}
         </div>
@@ -276,7 +281,7 @@ function SkillsSection({ oneCol = false }: { oneCol?: boolean }) {
       <div style={{ display: "grid", gridTemplateColumns: oneCol ? "1fr" : "1fr 1fr", gap: "24px 32px" }}>
         {SKILLS.map((skill) => (
           <div key={skill.label} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <Label>{skill.label}</Label>
+            <span style={{ display: "block", fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BROWN }}>{skill.label}</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {skill.items.map((item) => (
                 <Detail key={item}>{item}</Detail>
@@ -306,8 +311,8 @@ function StickyNote({ t, rotate, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_
         <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", position: "relative", flexShrink: 0, backgroundColor: HOVER_BROWN }}>
           {t.photo && <Image src={t.photo} fill sizes="56px" alt={t.name} style={{ objectFit: "cover", objectPosition: "center top" }} />}
         </div>
-        <div style={{ padding: "4px 12px", border: `0.5px solid ${BROWN}`, borderRadius: 100 }}>
-          <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 13, color: BROWN }}>
+        <div style={{ padding: "4px 12px", backgroundColor: BROWN, borderRadius: 100 }}>
+          <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 13, color: "#F3EDE3" }}>
             {t.company}
           </span>
         </div>
@@ -465,17 +470,25 @@ export default function AboutPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const isNarrow = vw < 800;
+  const isNarrow = vw < 850;
   const isMobile = vw < 640;
   const isMedium = !isNarrow && vw < 1200;
   const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
-  const sidePadWide = "clamp(68px, calc(4px + 10vw), 132px)";
+  const sidePadWide = "clamp(148px, calc(84px + 10vw), 212px)";
   const sidePadPx = Math.min(96, Math.max(32, vw * 0.1 - 32));
   const clampedVh = Math.max(700, vh);
   const PAD_NATURAL_H = 774;
   const desktopPadScale = isNarrow ? 1 : Math.min(1, (clampedVh - 216) / PAD_NATURAL_H);
   // Narrow: scale text+photo together once viewport gets too small to fit 340px content
   const narrowScale = isNarrow ? Math.min(1, Math.max(0.5, (vw - 2 * sidePadPx) / 340)) : 1;
+  // Shared vertical offset: how far down the content block sits within the hero (grows with viewport height)
+  const heroContentOffset = Math.max(24, Math.min(80, clampedVh - 774));
+  // Medium: grid adds its own 72px top padding, so motion.div only needs heroContentOffset
+  const mediumPaddingTop = isMedium ? heroContentOffset : 0;
+  const mediumPhotoH = isMedium ? Math.max(140, Math.min(280, clampedVh - 594 - mediumPaddingTop)) : 280;
+  // Narrow: no grid padding, so add 72px to match medium's visual position exactly
+  const narrowTopPad = isNarrow ? 72 + heroContentOffset : 0;
+  const narrowPhotoH = isNarrow ? Math.max(100, Math.min(280 * narrowScale, vh > 0 ? vh - 72 - narrowTopPad - 330 * narrowScale - 48 - 64 : 200)) : 280;
   // Gap between Work and the Skills+Education block: slides from 64px (at ≥1200px) down to 32px (at 800px)
   const cvGap = isNarrow ? 0 : Math.round(Math.max(32, Math.min(64, (vw - 800) / 400 * 32 + 32)));
   // Skills grid collapses to 1 column before everything stacks
@@ -507,19 +520,19 @@ export default function AboutPage() {
             position: "relative",
             backgroundColor: HERO_BG,
             ...(isNarrow
-              ? { minHeight: "calc(100svh - 72px)" }
+              ? { height: "calc(100svh - 72px)" }
               : { height: "calc(100svh - 72px)", minHeight: 600 }),
             borderRadius: "0 0 32px 32px",
             overflow: "hidden",
           }}
         >
           {isNarrow ? (
-            <div style={{ padding: `152px ${sidePad} 64px`, position: "relative" }}>
+            <div style={{ padding: `${narrowTopPad}px ${sidePad} 64px`, position: "relative" }}>
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                style={{ display: "flex", flexDirection: "column", gap: 24 }}
+                style={{ display: "flex", flexDirection: "column", gap: 48 }}
               >
                 <p
                   style={{
@@ -550,28 +563,26 @@ export default function AboutPage() {
                     Soup 🐈‍⬛
                   </span>
                 </p>
-                {/* Outer div: hover trigger (overflow visible so overlay can extend outside) */}
-                {/* Inner div: clips main photo only */}
                 <div
                   onMouseEnter={() => setProfileHovered(true)}
                   onMouseLeave={() => setProfileHovered(false)}
-                  style={{ width: 280 * narrowScale, height: 373 * narrowScale, position: "relative", flexShrink: 0 }}
+                  style={{ width: 210 * narrowScale, height: narrowPhotoH, position: "relative", flexShrink: 0 }}
                 >
                   <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-                    <Image src="/sandy-qi.jpeg" fill sizes="280px" alt="Sandy Qi"
+                    <Image src="/sandy-qi.jpeg" fill sizes="210px" alt="Sandy Qi"
                       style={{ objectFit: "cover", objectPosition: "center top" }} priority />
                   </div>
                   {profileHovered && (
-                    <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
+                    <Image src="/me-azer.JPG" width={345} height={230} alt="Sandy alt"
                       style={{ position: "absolute", top: "calc(50% + 10px)", left: -40,
                         transform: "translateY(-50%)", zIndex: 2, display: "block",
-                        width: 460, height: 307, maxWidth: "none" }} />
+                        width: 345 * narrowScale, height: 230 * narrowScale, maxWidth: "none" }} />
                   )}
                 </div>
               </motion.div>
               {soupHovered && (
                 <video src="/soup-boing-vid.mp4" autoPlay muted loop playsInline
-                  style={{ position: "absolute", bottom: 64, right: sidePad, width: 180, pointerEvents: "none" }} />
+                  style={{ position: "absolute", bottom: 292, right: sidePad, width: 180, pointerEvents: "none" }} />
               )}
             </div>
           ) : (
@@ -580,7 +591,8 @@ export default function AboutPage() {
                 position: "absolute",
                 inset: 0,
                 display: "grid",
-                gridTemplateColumns: "1fr auto 1fr",
+                gridTemplateColumns: isMedium ? "auto auto" : "1fr auto 1fr",
+                justifyContent: isMedium ? "center" : undefined,
                 alignItems: "start",
                 padding: `72px ${sidePadWide}`,
               }}
@@ -593,15 +605,13 @@ export default function AboutPage() {
                 style={{
                   position: "relative",
                   display: "flex",
-                  justifyContent: "flex-end",
-                  // stretch (medium): inner stack fills column height so photo can flex; center (wide): text is vertically centred
-                  alignItems: isMedium ? "stretch" : "center",
+                  justifyContent: isMedium ? "center" : "flex-end",
+                  alignItems: isMedium ? "flex-start" : "center",
                   paddingRight: isMedium ? 48 : 64,
-                  ...(isMedium ? { paddingTop: 80 } : {}),
-                  height: clampedVh - 72 - 144,
+                  ...(isMedium ? { paddingTop: mediumPaddingTop } : { height: clampedVh - 72 - 144 }),
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 24 }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: isMedium ? 48 : 24 }}>
                   <p
                     style={{
                       fontFamily: "var(--font-space-grotesk)",
@@ -637,24 +647,24 @@ export default function AboutPage() {
                     <div
                       onMouseEnter={() => setProfileHovered(true)}
                       onMouseLeave={() => setProfileHovered(false)}
-                      style={{ width: 280, flex: 1, maxHeight: 373, minHeight: 0, position: "relative" }}
+                      style={{ width: 210, height: mediumPhotoH, flexShrink: 0, position: "relative" }}
                     >
                       <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
                         <Image src="/sandy-qi.jpeg" fill sizes="280px" alt="Sandy Qi"
                           style={{ objectFit: "cover", objectPosition: "center top" }} priority />
                       </div>
                       {profileHovered && (
-                        <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
+                        <Image src="/me-azer.JPG" width={345} height={230} alt="Sandy alt"
                           style={{ position: "absolute", top: "calc(50% + 10px)", left: -40,
                             transform: "translateY(-50%)", zIndex: 2, display: "block",
-                            width: 460, height: 307, maxWidth: "none" }} />
+                            width: 345, height: 230, maxWidth: "none" }} />
                       )}
                     </div>
                   )}
                 </div>
                 {soupHovered && (
                   <video src="/soup-boing-vid.mp4" autoPlay muted loop playsInline
-                    style={{ position: "absolute", bottom: 64, right: 72, width: 220, pointerEvents: "none" }} />
+                    style={{ position: "absolute", bottom: 292, right: 72, width: 220, pointerEvents: "none" }} />
                 )}
               </motion.div>
 
@@ -692,9 +702,7 @@ export default function AboutPage() {
                     )}
                   </div>
                 </div>
-              ) : (
-                <div />
-              )}
+              ) : null}
             </div>
           )}
         </div>
@@ -727,19 +735,19 @@ export default function AboutPage() {
               </div>
               <div style={{ width: 400, flexShrink: 0, display: "flex", flexDirection: "column" }}>
                 <SkillsSection oneCol={skillsOneCol} />
-                <div style={{ height: "0.7px", backgroundColor: BROWN, margin: "32px 0" }} />
+                <div style={{ height: "0.7px", backgroundColor: BROWN, margin: "48px 0" }} />
                 <EducationSection />
               </div>
             </div>
           ) : (
             // ≥1200px: original desktop layout — Work left, Skills + Education stacked right
-            <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: 64, width: "fit-content", margin: "0 auto" }}>
+            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div style={{ width: 494, flexShrink: 0 }}>
                 <WorkSection />
               </div>
               <div style={{ width: 400, flexShrink: 0, display: "flex", flexDirection: "column" }}>
                 <SkillsSection />
-                <div style={{ height: "0.7px", backgroundColor: BROWN, margin: "32px 0" }} />
+                <div style={{ height: "0.7px", backgroundColor: BROWN, margin: "48px 0" }} />
                 <EducationSection />
               </div>
             </div>
