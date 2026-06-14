@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-const BROWN = "#4E3A34";
-const CREAM = "#E5E0D7";
+// Match the elevator interior hover state colours from Elevator.tsx
+const DARK_BG = "#0034FF";   // SURFACE_QUATERNARY — hover bg in dark mode
+const LIGHT_BG = "#161719";  // SURFACE_SECONDARY  — hover bg in light mode
+const SPARKLE = "#F8F8F8";   // ON_SURFACE_PRIMARY — sparkle colour in both modes
 
 const SPARKLE_DUR = 2.0;
 const SPARKLE_REPEAT_DELAY = 3.0;
@@ -50,6 +53,18 @@ export default function TransitionOverlay({
   zIndex = 1000,
   stagedExit = false,
 }: TransitionOverlayProps) {
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.getAttribute("data-theme") !== "light");
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const bgColor = isDark ? DARK_BG : LIGHT_BG;
+
   return (
     <motion.div
       initial={initial}
@@ -58,7 +73,7 @@ export default function TransitionOverlay({
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: BROWN,
+        backgroundColor: bgColor,
         zIndex,
         pointerEvents: "none",
       }}
@@ -85,7 +100,7 @@ export default function TransitionOverlay({
                 ease: "easeInOut",
               }}
             >
-              <path d={sparklePath(sp.r)} fill={CREAM} />
+              <path d={sparklePath(sp.r)} fill={SPARKLE} />
             </motion.g>
           ))}
         </svg>

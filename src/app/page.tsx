@@ -13,16 +13,13 @@ const SIDE_PADDING = 16;
 
 function CoverPageInner() {
   const router = useRouter();
-  const [fromHome, setFromHome] = useState(false);
+  const [fromHome] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const v = sessionStorage.getItem("fromHome") === "1";
+    if (v) sessionStorage.removeItem("fromHome");
+    return v;
+  });
   const { muted, setMuted } = useAudio();
-
-  useEffect(() => {
-    if (sessionStorage.getItem("fromHome") === "1") {
-      sessionStorage.removeItem("fromHome");
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFromHome(true);
-    }
-  }, []);
   const [isOpen, setIsOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [vw, setVw] = useState(1200);
