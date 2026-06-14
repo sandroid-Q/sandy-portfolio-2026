@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import SoundToggle from "./SoundToggle";
+import ThemeToggle from "./ThemeToggle";
 import TransitionOverlay from "./TransitionOverlay";
 import { useAudio } from "@/contexts/AudioContext";
 
@@ -113,7 +114,7 @@ function NavLink({
     setDisplayChars(originalText.split(""));
   };
 
-  const computedColor = color ?? (hovered ? TEXT_NAV : HOVER_COLOR);
+  const computedColor = color ?? "var(--color-on-surface-primary)";
 
   const inner = (
     <div
@@ -300,9 +301,7 @@ function LogoButton({ onClick, isLightNav }: { onClick: () => void; isLightNav: 
   const [charWidths, setCharWidths] = useState<number[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const normalColor = isLightNav ? NAV_LIGHT : HOVER_COLOR;
-  const hoverColor = isLightNav ? "#D3BA9F" : BROWN;
-  const computedColor = hovered ? hoverColor : normalColor;
+  const computedColor = "var(--color-on-surface-primary)";
 
   useEffect(() => {
     const measure = () => {
@@ -456,8 +455,8 @@ export default function PortfolioNav({
     setTimeout(() => router.push("/"), 430);
   };
 
-  const hamburgerColor = isLightNav ? NAV_LIGHT : BROWN;
-  const navLinkColor = isLightNav ? NAV_LIGHT : undefined;
+  const hamburgerColor = "var(--color-on-surface-primary)";
+  const navLinkColor = "var(--color-on-surface-primary)";
 
   const frostBg = mobileBgColor.startsWith("#")
     ? hexToRgba(mobileBgColor, 0.75)
@@ -592,6 +591,9 @@ export default function PortfolioNav({
 
         {isMobile ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ position: "relative", top: -2, left: 4 }}>
+              <ThemeToggle />
+            </div>
             {showSound && (
               <div style={{ position: "relative", top: -2 }}>
                 <SoundToggle muted={muted} onClick={() => setMuted(!muted)} color={navLinkColor} />
@@ -628,10 +630,13 @@ export default function PortfolioNav({
                   left: 0,
                   right: 0,
                   height: 2,
-                  backgroundColor: "#E4C298",
+                  backgroundColor: "var(--color-nav-underline)",
                   transformOrigin: "left",
                 }}
               />
+            </div>
+            <div style={{ position: "relative", top: -2, left: 4 }}>
+              <ThemeToggle />
             </div>
             {showSound && (
               <div style={{ position: "relative", top: -2 }}>
@@ -675,7 +680,7 @@ export default function PortfolioNav({
                 fontFamily: "var(--font-space-grotesk)",
                 fontWeight: 300,
                 fontSize: 10,
-                color: HOVER_COLOR,
+                color: "var(--color-on-surface-primary)",
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
               }}

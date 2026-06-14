@@ -52,7 +52,7 @@ function BellIcon({ color }: { color: string }) {
   );
 }
 
-function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact }: { btn: PadButtonDef; onDing: () => void; dark: boolean; bg: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
+function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, hoverAccent, activeContentColor }: { btn: PadButtonDef; onDing: () => void; dark: boolean; bg: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void; onSurface: string; hoverAccent: string; activeContentColor: string }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [ringing, setRinging] = useState(false);
@@ -105,25 +105,25 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact }: { btn: Pa
   const effectivePressed = ringing ? false : pressed;
   const isActivated = effectivePressed || isActive;
 
-  const stroke         = dark ? BG : BROWN;
-  const defaultFill    = dark ? "transparent" : bg;
-  const activeFill     = dark ? BG : BROWN;
-  const defaultContent = dark ? BG : BROWN;
-  const activeContent  = dark ? BROWN : BG;
+  const stroke         = onSurface;
+  const defaultFill    = "transparent";
+  const activeFill     = onSurface;
+  const defaultContent = onSurface;
+  const activeContent  = activeContentColor;
 
-  // Light mode: outer bg animates to RED on hover; inner circle masks center with BG fill.
+  // Light mode: outer bg animates to hoverAccent on hover; inner circle masks center with bg fill.
   // Dark mode: outer bg only fills on active. Inner circle box-shadow spreads 10px outward
   //            into the padding gap, clipped by overflow:hidden on the outer circle — so
-  //            only the ring between the two strokes turns red, center stays transparent.
+  //            only the ring between the two strokes turns hoverAccent, center stays transparent.
   const outerAnimate = dark
     ? { backgroundColor: isActivated ? activeFill : "transparent" }
-    : { backgroundColor: isActivated ? activeFill : effectiveHovered ? RED : defaultFill };
+    : { backgroundColor: isActivated ? activeFill : effectiveHovered ? hoverAccent : defaultFill };
 
-  const innerBg          = isActivated ? activeFill   : defaultFill;
+  const innerBg          = isActivated ? activeFill : (effectiveHovered && !dark ? bg : defaultFill);
   const innerBorderColor = isActivated ? activeContent : stroke;
   const contentColor     = isActivated ? activeContent : defaultContent;
   const innerShadow      = dark && effectiveHovered && !isActivated
-    ? `0 0 0 10px ${RED}`
+    ? `0 0 0 10px ${hoverAccent}`
     : "0 0 0 0px transparent";
 
   const isContactModal = btn.variant === "contact" && !!onContact;
@@ -230,13 +230,26 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact }: { btn: Pa
   );
 }
 
-export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, bg = BG, onFloorHover, onContact }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; bg?: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
+export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, bg = "var(--color-surface-primary)", onFloorHover, onContact }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; bg?: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
   const { muted } = useAudio();
   const dingRef = useRef<HTMLAudioElement | null>(null);
+  const [isLight, setIsLight] = useState(false);
 
   useEffect(() => {
     dingRef.current = new Audio("/elevator-ding.mp3");
   }, []);
+
+  useEffect(() => {
+    const update = () => setIsLight(document.documentElement.getAttribute("data-theme") === "light");
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const onSurface = isLight ? "#161719" : "#F8F8F8";
+  const hoverAccent = isLight ? "#0034FF" : "#FF82B8";
+  const activeContentColor = isLight ? "#F8F8F8" : "#161719";
 
   const playDing = () => {
     const ding = dingRef.current;
@@ -283,7 +296,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
           fontFamily: "var(--font-space-mono), monospace",
           fontWeight: 400,
           fontSize: 14,
-          color: dark ? BG : BROWN,
+          color: onSurface,
           textTransform: "uppercase",
           letterSpacing: "0.04em",
           display: "flex",
@@ -302,7 +315,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
           flexDirection: "column",
           gap: 24,
           padding: "48px 60px",
-          border: `2px solid ${dark ? BG : BROWN}`,
+          border: `2px solid ${onSurface}`,
         }}
       >
         {rows.map((row, rowIdx) => (
@@ -317,7 +330,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
             }}
           >
             {row.map((btn) => (
-              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} bg={bg} onFloorHover={onFloorHover} onContact={onContact} />
+              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} bg={bg} onFloorHover={onFloorHover} onContact={onContact} onSurface={onSurface} hoverAccent={hoverAccent} activeContentColor={activeContentColor} />
             ))}
           </div>
         ))}

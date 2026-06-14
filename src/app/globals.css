@@ -12,6 +12,7 @@
   --color-surface-quaternary: #0034FF;
   --color-feature-primary: #FFB3D8;
   --color-feature-secondary: #FF82B8;
+  --color-nav-underline: var(--color-feature-secondary);
 }
 
 /* ─── Light mode tokens ─── */
@@ -26,6 +27,7 @@
   --color-surface-quaternary: #0034FF;
   --color-feature-primary: #FF82B8;
   --color-feature-secondary: #FFB3D8;
+  --color-nav-underline: var(--color-on-surface-secondary);
 }
 
 /* Tailwind color utilities: bg-surface-primary, text-on-surface-secondary, etc. */

@@ -111,13 +111,13 @@ function ProjectBlurb({ data }: { data: FloorPreview }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BROWN }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: "var(--color-on-surface-primary)" }}>
           {data.year}
         </span>
-        <span style={{ fontFamily: "var(--font-silkscreen)", fontSize: 32, color: BROWN, textTransform: "uppercase", lineHeight: 1.1 }}>
+        <span style={{ fontFamily: "var(--font-silkscreen)", fontSize: 32, color: "var(--color-on-surface-primary)", textTransform: "uppercase", lineHeight: 1.1 }}>
           {data.name}
         </span>
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BROWN }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: "var(--color-on-surface-primary)" }}>
           {data.blurb}
         </span>
       </div>
@@ -129,8 +129,8 @@ function ProjectBlurb({ data }: { data: FloorPreview }) {
               fontFamily: "var(--font-space-grotesk)",
               fontWeight: 400,
               fontSize: 14,
-              color: BROWN,
-              border: `1px solid ${BROWN}`,
+              color: "var(--color-on-surface-primary)",
+              border: "1px solid var(--color-on-surface-primary)",
               borderRadius: 100,
               padding: "4px 12px",
             }}
@@ -352,11 +352,11 @@ export default function HomePage() {
                 marginBottom: -padShrinkY,
               }}
             >
-              <ElevatorPad onHeaderClick={scrollToPad} bg="#E5E0D7" onContact={() => setContactOpen(true)} />
+              <ElevatorPad onHeaderClick={scrollToPad} bg="var(--color-surface-primary)" onContact={() => setContactOpen(true)} />
             </div>
           ) : isCondensed ? (
             /* Condensed (768–1189px): plain pad, list renders below */
-            <ElevatorPad onHeaderClick={scrollToPad} bg="#E5E0D7" />
+            <ElevatorPad onHeaderClick={scrollToPad} bg="var(--color-surface-primary)" />
           ) : (
             /* Wide (≥1190px): three-column hover layout */
             <div style={{ display: "flex", alignItems: "center", gap: 48 }}>
@@ -380,7 +380,7 @@ export default function HomePage() {
               </div>
 
               {/* Centre: elevator pad */}
-              <ElevatorPad onHeaderClick={scrollToPad} bg="#E5E0D7" onFloorHover={setHoveredFloor} onContact={() => setContactOpen(true)} />
+              <ElevatorPad onHeaderClick={scrollToPad} bg="var(--color-surface-primary)" onFloorHover={setHoveredFloor} onContact={() => setContactOpen(true)} />
 
               {/* Right: video preview or about card */}
               <div style={{ width: 320, height: 320, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -402,7 +402,7 @@ export default function HomePage() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 8 }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
-                      style={{ width: "100%", height: "100%", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}
+                      style={{ width: "100%", height: "100%", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}
                     >
                       <VideoPreview floor={hoveredFloor} data={FLOOR_DATA[hoveredFloor]} />
                     </motion.div>
@@ -440,7 +440,7 @@ export default function HomePage() {
                   {/* Video — on top when stacked */}
                   {isStackedProject && (
                     <Link href={`/project/${floor}`} style={{ display: "block", width: "100%" }}>
-                      <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}>
+                      <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}>
                         <VideoPreview floor={floor} data={data} />
                       </div>
                     </Link>
@@ -454,7 +454,7 @@ export default function HomePage() {
                   {/* Video — on right when side-by-side, fills remaining width */}
                   {!isStackedProject && (
                     <Link href={`/project/${floor}`} style={{ display: "block", flex: 1, minWidth: 280, maxWidth: 400 }}>
-                      <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: BROWN }}>
+                      <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}>
                         <VideoPreview floor={floor} data={data} />
                       </div>
                     </Link>

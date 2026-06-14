@@ -9,10 +9,10 @@ import FloorBreadcrumb from "@/components/FloorBreadcrumb";
 import PortfolioNav from "@/components/PortfolioNav";
 import ContactModal from "@/components/ContactModal";
 
-const BG = "#F3F2F0";
-const HERO_BG = "#E5E0D7";
-const BROWN = "#4E3A34";
-const HOVER_BROWN = "#D3BA9F";
+const BG = "var(--color-surface-primary)";
+const HERO_BG = "var(--color-surface-primary)";
+const BROWN = "var(--color-on-surface-primary)";
+const HOVER_BROWN = "var(--color-on-surface-secondary)";
 
 const WORK = [
   {
@@ -49,8 +49,8 @@ const EDUCATION_DETAILS: Array<{ full?: string; title?: string; value?: string; 
   { title: "Extracurricular", value: "NSW Touch State Cup, Vawdon Cup, UNSW South Sydney Rabbitohs Touch Club, Unisports Nationals Div 1, O-Week Yellow Shirts, UNSW Business Society, HPAIR Sydney" },
 ];
 
-const STICKY_YELLOW = "#DDD4C5";
-const QUOTE_MARK_COLOR = "#FFF1B5";
+const STICKY_YELLOW = "var(--color-surface-secondary)";
+const QUOTE_MARK_COLOR = "var(--color-surface-quaternary)";
 
 const SKILLS = [
   {
@@ -312,7 +312,7 @@ function StickyNote({ t, rotate, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_
           {t.photo && <Image src={t.photo} fill sizes="56px" alt={t.name} style={{ objectFit: "cover", objectPosition: "center top" }} />}
         </div>
         <div style={{ padding: "4px 12px", backgroundColor: BROWN, borderRadius: 100 }}>
-          <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 13, color: "#F3EDE3" }}>
+          <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 13, color: "var(--color-surface-secondary)" }}>
             {t.company}
           </span>
         </div>
@@ -557,7 +557,7 @@ export default function AboutPage() {
                   <span
                     onMouseEnter={() => setSoupHovered(true)}
                     onMouseLeave={() => setSoupHovered(false)}
-                    style={{ color: soupHovered ? "#926E57" : BROWN, transition: "color 0.2s", cursor: "default" }}
+                    style={{ color: soupHovered ? "var(--color-on-surface-secondary)" : BROWN, transition: "color 0.2s", cursor: "default" }}
                   >
                     Soup 🐈‍⬛
                   </span>
@@ -635,7 +635,7 @@ export default function AboutPage() {
                     <span
                       onMouseEnter={() => setSoupHovered(true)}
                       onMouseLeave={() => setSoupHovered(false)}
-                      style={{ color: soupHovered ? "#926E57" : BROWN, transition: "color 0.2s", cursor: "default" }}
+                      style={{ color: soupHovered ? "var(--color-on-surface-secondary)" : BROWN, transition: "color 0.2s", cursor: "default" }}
                     >
                       Soup 🐈‍⬛
                     </span>
@@ -800,7 +800,7 @@ export default function AboutPage() {
               fontFamily: "var(--font-space-grotesk)",
               fontWeight: 300,
               fontSize: 10,
-              color: "#72503C",
+              color: "var(--color-on-surface-tertiary)",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
             }}
