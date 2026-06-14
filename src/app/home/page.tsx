@@ -10,8 +10,6 @@ import ElevatorPad from "@/components/ElevatorPad";
 import ContactModal from "@/components/ContactModal";
 
 const BROWN = "#4E3A34";
-const HOVER_BROWN = "#D3BA9F";
-const BG_BUTTON = "#F3F2F0";
 const SCALE_MIN = 0.8;
 
 interface FloorPreview {
@@ -83,17 +81,42 @@ function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
 
 function IconButton({ onClick, icon }: { onClick: () => void; icon: (color: string, hovered: boolean) => React.ReactNode }) {
   const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const [isLight, setIsLight] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsLight(document.documentElement.getAttribute("data-theme") === "light");
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const containerBg = pressed
+    ? (isLight ? "#161719" : "#0034FF")
+    : hovered
+    ? (isLight ? "#0034FF" : "#F8F8F8")
+    : (isLight ? "#E7EAF1" : "transparent");
+
+  const borderColor = !isLight ? "#F8F8F8" : pressed ? "#F8F8F8" : "transparent";
+
+  const arrowColor = isLight
+    ? (hovered || pressed ? "#F8F8F8" : "#161719")
+    : (hovered && !pressed ? "#161719" : "#F8F8F8");
+
   return (
     <button
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={() => { setHovered(false); setPressed(false); }}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
       style={{
-        backgroundColor: hovered ? HOVER_BROWN : BG_BUTTON,
+        backgroundColor: containerBg,
         borderRadius: 12,
         width: 48,
         height: 48,
-        border: "none",
+        border: `1px solid ${borderColor}`,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
@@ -102,7 +125,7 @@ function IconButton({ onClick, icon }: { onClick: () => void; icon: (color: stri
         overflow: "hidden",
       }}
     >
-      {icon(BROWN, hovered)}
+      {icon(arrowColor, hovered)}
     </button>
   );
 }
