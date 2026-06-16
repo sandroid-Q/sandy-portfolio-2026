@@ -106,7 +106,7 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
   const isActivated = effectivePressed || isActive;
 
   const stroke         = onSurface;
-  const defaultFill    = "transparent";
+  const defaultFill    = "rgba(0,0,0,0)";
   const activeFill     = onSurface;
   const defaultContent = onSurface;
   const activeContent  = activeContentColor;
@@ -116,7 +116,7 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
   //            into the padding gap, clipped by overflow:hidden on the outer circle — so
   //            only the ring between the two strokes turns hoverAccent, center stays transparent.
   const outerAnimate = dark
-    ? { backgroundColor: isActivated ? activeFill : "transparent" }
+    ? { backgroundColor: isActivated ? activeFill : "rgba(0,0,0,0)" }
     : { backgroundColor: isActivated ? activeFill : effectiveHovered ? hoverAccent : defaultFill };
 
   const innerBg          = isActivated ? activeFill : (effectiveHovered && !dark ? bg : defaultFill);

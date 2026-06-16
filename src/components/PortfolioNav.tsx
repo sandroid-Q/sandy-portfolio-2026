@@ -230,7 +230,7 @@ function LinkedInButton() {
       style={{ textDecoration: "none", display: "block" }}
     >
       <motion.div
-        animate={{ backgroundColor: hovered ? "#302927" : "transparent" }}
+        animate={{ backgroundColor: hovered ? "#302927" : "rgba(0,0,0,0)" }}
         transition={{ duration: 0.15, ease: "easeOut" }}
         style={{
           width: 44,
@@ -460,7 +460,7 @@ export default function PortfolioNav({
 
   const frostBg = mobileBgColor.startsWith("#")
     ? hexToRgba(mobileBgColor, 0.75)
-    : mobileBgColor;
+    : `color-mix(in srgb, ${mobileBgColor} 80%, transparent)`;
   const subtleBg = "transparent";
 
   const showFrost = isProject ? !isLightNav : (blurTop || (isMobile && scrolled));
@@ -506,7 +506,7 @@ export default function PortfolioNav({
             style={{
               position: "fixed",
               inset: 0,
-              backgroundColor: hexToRgba(mobileBgColor, 0.88),
+              backgroundColor: mobileBgColor.startsWith("#") ? hexToRgba(mobileBgColor, 0.88) : `color-mix(in srgb, ${mobileBgColor} 88%, transparent)`,
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
               zIndex: 90,

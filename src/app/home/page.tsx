@@ -322,7 +322,7 @@ export default function HomePage() {
         projectsAction={scrollToPad}
         projectsActive={padInView}
         showSound
-        mobileBgColor="#E5E0D7"
+        mobileBgColor="var(--color-surface-primary)"
         blurTop={topNavBlur}
         blurBottom={bottomNavBlur}
         onLogoClick={() => sessionStorage.setItem("fromHome", "1")}
@@ -499,7 +499,7 @@ export default function HomePage() {
               fontFamily: "var(--font-space-grotesk)",
               fontWeight: 300,
               fontSize: 10,
-              color: "#72503C",
+              color: "var(--color-on-surface-tertiary)",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
             }}
