@@ -184,10 +184,8 @@ function MenuEmailLink() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <motion.a
+      <a
         href="mailto:sandra.jxq@gmail.com"
-        animate={{ color: hovered ? "#302927" : "#615C59" }}
-        transition={{ duration: 0.2 }}
         style={{
           fontFamily: "var(--font-space-grotesk)",
           fontWeight: 500,
@@ -196,10 +194,12 @@ function MenuEmailLink() {
           textDecoration: "none",
           display: "block",
           paddingBottom: 3,
+          color: hovered ? "var(--color-interactive-hover)" : "var(--color-on-surface-primary)",
+          transition: "color 0.2s",
         }}
       >
         sandra.jxq@gmail.com
-      </motion.a>
+      </a>
       <motion.div
         initial={{ scaleX: 0 }}
         animate={{ scaleX: hovered ? 1 : 0 }}
@@ -210,7 +210,7 @@ function MenuEmailLink() {
           left: 0,
           right: 0,
           height: 1.5,
-          backgroundColor: "#E4C298",
+          backgroundColor: "var(--color-interactive-hover)",
           transformOrigin: "left",
         }}
       />
@@ -229,40 +229,39 @@ function LinkedInButton() {
       onMouseLeave={() => setHovered(false)}
       style={{ textDecoration: "none", display: "block" }}
     >
-      <motion.div
-        animate={{ backgroundColor: hovered ? "#302927" : "rgba(0,0,0,0)" }}
-        transition={{ duration: 0.15, ease: "easeOut" }}
+      <div
         style={{
           width: 44,
           height: 44,
           borderRadius: 12.18,
-          border: `2.7px solid #615C59`,
+          border: `2.7px solid var(--color-on-surface-primary)`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          backgroundColor: hovered ? "var(--color-interactive-hover)" : "rgba(0,0,0,0)",
+          transition: "background-color 0.15s ease-out",
         }}
       >
-        <motion.span
-          animate={{ color: hovered ? "#E5E0D7" : "#615C59" }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
+        <span
           style={{
             fontFamily: "var(--font-space-grotesk)",
             fontWeight: 500,
             fontSize: 32,
             letterSpacing: "-0.03em",
             lineHeight: 1,
+            color: hovered ? "var(--color-surface-primary)" : "var(--color-on-surface-primary)",
+            transition: "color 0.15s ease-out",
           }}
         >
           in
-        </motion.span>
-      </motion.div>
+        </span>
+      </div>
     </a>
   );
 }
 
 function MenuLink({ href, onClick, children, active }: { href?: string; onClick?: () => void; children: string; active?: boolean }) {
   const [hovered, setHovered] = useState(false);
-  const textColor = (active || hovered) ? "#302927" : "#615C59";
   const INDENT = 24;
 
   const inner = (
@@ -272,7 +271,7 @@ function MenuLink({ href, onClick, children, active }: { href?: string; onClick?
       style={{ position: "relative", cursor: "pointer" }}
     >
       <motion.div
-        animate={{ x: hovered ? INDENT : 0, color: textColor }}
+        animate={{ x: hovered ? INDENT : 0 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         style={{
           fontFamily: "var(--font-space-grotesk)",
@@ -280,6 +279,8 @@ function MenuLink({ href, onClick, children, active }: { href?: string; onClick?
           fontSize: 72,
           letterSpacing: "-0.055em",
           lineHeight: 0.88,
+          color: (active || hovered) ? "var(--color-interactive-hover)" : "var(--color-on-surface-primary)",
+          transition: "color 0.15s",
         }}
       >
         {children}
