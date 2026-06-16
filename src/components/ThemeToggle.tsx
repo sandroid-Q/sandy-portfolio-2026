@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const FEATURE_SECONDARY = "#FF82B8";
 
@@ -20,13 +20,19 @@ export default function ThemeToggle({ color: overrideColor }: ThemeToggleProps) 
   const [pressed, setPressed] = useState(false);
   const wasTouched = useRef(false);
 
+  useEffect(() => {
+    const update = () => setIsDark(document.documentElement.getAttribute("data-theme") !== "light");
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
   const toggle = () => {
-    const next = !isDark;
-    setIsDark(next);
-    if (next) {
-      document.documentElement.removeAttribute("data-theme");
-    } else {
+    if (isDark) {
       document.documentElement.setAttribute("data-theme", "light");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
     }
   };
 
