@@ -53,7 +53,11 @@ export default function TransitionOverlay({
   zIndex = 1000,
   stagedExit = false,
 }: TransitionOverlayProps) {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(() =>
+    typeof window !== "undefined"
+      ? document.documentElement.getAttribute("data-theme") !== "light"
+      : true
+  );
 
   useEffect(() => {
     const check = () => setIsDark(document.documentElement.getAttribute("data-theme") !== "light");
