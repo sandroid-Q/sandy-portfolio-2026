@@ -4,24 +4,30 @@ import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudio } from "@/contexts/AudioContext";
 
-// ─── Coffee title pixel-art SVG with LED-flicker hover ───────────────────────
+// ─── LED title art (376×172 dot grid with hover flicker) ─────────────────────
 
-const TW = 381, TH = 112, TR = 4.445, TX0 = 6.98514, TY0 = 6.98514, TSTEP = 10.79;
+const TW = 376, TH = 172, TRX = 4.39938, TRY = 4.43677;
+const TX0 = 4.39938, TY0 = 4.43677, TSTEP_X = 10.79982, TSTEP_Y = 10.87513;
+const COLS = 35, ROWS = 16;
 
 const PINK_SET = new Set([
-  "4,2","5,2","8,2","9,2","12,2","13,2","14,2","16,2","17,2","18,2","20,2","21,2","22,2","24,2","25,2","26,2","29,2","30,2",
-  "3,3","7,3","10,3","12,3","16,3","20,3","24,3","28,3","31,3",
-  "3,4","7,4","10,4","12,4","13,4","14,4","16,4","17,4","18,4","20,4","21,4","22,4","24,4","25,4","26,4","31,4",
-  "3,5","7,5","10,5","12,5","16,5","20,5","24,5","29,5","30,5",
-  "3,6","7,6","10,6","12,6","16,6","20,6","24,6","29,6",
-  "4,7","5,7","8,7","9,7","12,7","16,7","20,7","21,7","22,7","24,7","25,7","26,7",
-  "29,8",
+  "4,5","5,5","8,5","9,5","12,5","13,5","14,5","16,5","17,5","18,5","20,5","21,5","22,5","24,5","25,5","26,5","29,5","30,5",
+  "3,6","7,6","10,6","12,6","16,6","20,6","24,6","28,6","31,6",
+  "3,7","7,7","10,7","12,7","13,7","14,7","16,7","17,7","18,7","20,7","21,7","22,7","24,7","25,7","26,7","31,7",
+  "3,8","7,8","10,8","12,8","16,8","20,8","24,8","29,8","30,8",
+  "3,9","7,9","10,9","12,9","16,9","20,9","24,9","29,9",
+  "4,10","5,10","8,10","9,10","12,10","16,10","20,10","21,10","22,10","24,10","25,10","26,10",
+  "29,11",
 ]);
 
 const ALL_DOTS: { cx: number; cy: number; isPink: boolean }[] = [];
-for (let j = 0; j < 10; j++)
-  for (let i = 0; i < 35; i++)
-    ALL_DOTS.push({ cx: TX0 + i * TSTEP, cy: TY0 + j * TSTEP, isPink: PINK_SET.has(`${i},${j}`) });
+for (let row = 0; row < ROWS; row++)
+  for (let col = 0; col < COLS; col++)
+    ALL_DOTS.push({
+      cx: TX0 + col * TSTEP_X,
+      cy: TY0 + row * TSTEP_Y,
+      isPink: PINK_SET.has(`${col},${row}`),
+    });
 
 const PINK_INDICES = ALL_DOTS.map((d, i) => d.isPink ? i : -1).filter(i => i >= 0);
 const DARK_INDICES = ALL_DOTS.map((d, i) => !d.isPink ? i : -1).filter(i => i >= 0);
@@ -36,25 +42,34 @@ function sampleN(arr: number[], n: number): number[] {
   return result;
 }
 
-function CoffeeTitleArt() {
+function TitleArt() {
   const [flipped, setFlipped] = useState<Set<number>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timer2Ref = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (timer2Ref.current) clearTimeout(timer2Ref.current);
+  }, []);
 
-  const handleEnter = () => {
-    if (timerRef.current) return; // already mid-flicker
-
+  const scramble = () => {
     const next = new Set<number>();
-    // mostly pink→gray flips, a couple dark→pink
     sampleN(PINK_INDICES, 8 + Math.floor(Math.random() * 6)).forEach(i => next.add(i));
     sampleN(DARK_INDICES, 1 + Math.floor(Math.random() * 2)).forEach(i => next.add(i));
-    setFlipped(next);
+    return next;
+  };
 
+  const handleEnter = () => {
+    if (timerRef.current) return;
+    setFlipped(scramble());
     timerRef.current = setTimeout(() => {
-      setFlipped(new Set());
-      timerRef.current = null;
-    }, 220);
+      setFlipped(scramble());
+      timer2Ref.current = setTimeout(() => {
+        setFlipped(new Set());
+        timerRef.current = null;
+        timer2Ref.current = null;
+      }, 160);
+    }, 150);
   };
 
   return (
@@ -62,29 +77,33 @@ function CoffeeTitleArt() {
       width={TW} height={TH} viewBox={`0 0 ${TW} ${TH}`}
       fill="none"
       style={{ width: "100%", height: "auto", display: "block", cursor: "default" }}
-      onMouseEnter={handleEnter}
     >
       <defs>
-        <clipPath id="ct-clip">
-          <rect x="2.54014" y="2.54014" width="375.92" height="106.045" rx="3.80838" />
+        <clipPath id="tl-clip">
+          <rect width="376" height="171.996" rx="2" />
         </clipPath>
+        <mask id="tl-mask" fill="white">
+          <rect width="376" height="171.996" rx="2" />
+        </mask>
       </defs>
-      <g clipPath="url(#ct-clip)">
-        <rect x="2.54014" y="2.54014" width="375.92" height="106.045" rx="3.80838" fill="#161719" />
+      <g clipPath="url(#tl-clip)">
+        <rect width="376" height="171.996" rx="2" fill="#161719" />
         {ALL_DOTS.map((d, i) => (
-          <circle
+          <ellipse
             key={i}
-            cx={d.cx} cy={d.cy} r={TR}
+            cx={d.cx} cy={d.cy} rx={TRX} ry={TRY}
             fill={(d.isPink !== flipped.has(i)) ? "#FF82B8" : "#2F3134"}
             style={{ transition: "fill 0.07s" }}
+            onMouseEnter={d.isPink ? handleEnter : undefined}
           />
         ))}
       </g>
-      <rect x="1.27068" y="1.27068" width="378.459" height="108.584" rx="5.07784"
-        stroke="#161719" strokeWidth="2.53892" />
+      <rect width="376" height="171.996" rx="2" stroke="#161719" strokeWidth="6" mask="url(#tl-mask)" />
     </svg>
   );
 }
+
+// ─── Coffee cup dot art ───────────────────────────────────────────────────────
 
 function CoffeeCupDots({ onSurface, hoverFill }: { onSurface: string; hoverFill: string }) {
   const R = 3;
@@ -153,6 +172,8 @@ function CoffeeCupDots({ onSurface, hoverFill }: { onSurface: string; hoverFill:
   );
 }
 
+// ─── Email button ─────────────────────────────────────────────────────────────
+
 function EnvelopeIcon({ color }: { color: string }) {
   return (
     <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
@@ -179,8 +200,11 @@ function CheckIcon({ color }: { color: string }) {
   );
 }
 
-function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean }) {
+function EmailButton({ onClick, copied, isLight }: { onClick: () => void; copied: boolean; isLight: boolean }) {
   const [hovered, setHovered] = useState(false);
+
+  const normalBg = isLight ? "#ffffff" : "#E7EAF1";
+  const hoverBg  = isLight ? "#C8CFDE" : "#F8F8F8";
 
   return (
     <motion.button
@@ -188,7 +212,7 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       animate={{
-        backgroundColor: hovered ? "#F8F8F8" : "#E7EAF1",
+        backgroundColor: hovered ? hoverBg : normalBg,
         boxShadow: hovered ? "0 0 0 3px #BBC3D5" : "0 0 0 0px transparent",
       }}
       transition={{ duration: 0.12 }}
@@ -205,7 +229,7 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      {/* Left badge: rounded square with inner circle + envelope icon */}
+      {/* Left badge */}
       <motion.div
         animate={{ backgroundColor: hovered ? "#FF82B8" : "#C8CFDE" }}
         transition={{ duration: 0.12 }}
@@ -233,16 +257,14 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
         </div>
       </motion.div>
 
-      {/* Right: email text + copy icon, width locked to email address */}
+      {/* Right: email + copy icon */}
       <div style={{ display: "flex", alignItems: "center", position: "relative" }}>
-        {/* Ghost — preserves width when switching to "copied!" */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, visibility: "hidden" }}>
           <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 14, whiteSpace: "nowrap" }}>
             sandra.jxq@gmail.com
           </span>
           <ClipboardIcon color="transparent" />
         </div>
-        {/* Actual content */}
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transform: copied ? "translateX(-2px)" : "none" }}>
           <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 14, color: "#161719", whiteSpace: "nowrap" }}>
             {copied ? "copied email" : "sandra.jxq@gmail.com"}
@@ -253,6 +275,8 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
     </motion.button>
   );
 }
+
+// ─── Coffee rain easter egg ───────────────────────────────────────────────────
 
 const COFFEE_DROPS = Array.from({ length: 36 }, (_, i) => ({
   id: i,
@@ -290,6 +314,8 @@ function CoffeeRain({ onDone }: { onDone: () => void }) {
   );
 }
 
+// ─── Modal ────────────────────────────────────────────────────────────────────
+
 interface ContactModalProps {
   open: boolean;
   onClose: () => void;
@@ -302,6 +328,15 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
   const beansTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [copied, setCopied] = useState(false);
   const [rainKey, setRainKey] = useState(0);
+  const [isLight, setIsLight] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsLight(document.documentElement.getAttribute("data-theme") === "light");
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     bellRef.current = new Audio("/bell.mp3");
@@ -381,21 +416,20 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                 style={{
                   pointerEvents: "auto",
                   position: "relative",
-                  backgroundColor: "#C8CFDE",
-                  border: "2px solid #5B667D",
-                  borderRadius: 0,
-                  padding: "56px 40px 80px",
+                  backgroundColor: isLight ? "var(--color-surface-secondary)" : "#C8CFDE",
+                  borderRadius: 2,
+                  padding: "0 0 64px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   gap: 64,
-                  width: "fit-content",
-                  maxWidth: "calc(100vw - 64px)",
+                  width: 376,
+                  maxWidth: "calc(100vw - 32px)",
                   maxHeight: "calc(100dvh - 64px)",
                   overflowY: "auto",
                 }}
               >
-                {/* Close button */}
+                {/* Close button — overlays the LED art */}
                 <button
                   onClick={onClose}
                   aria-label="Close"
@@ -412,34 +446,36 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#161719",
+                    color: "#F8F8F8",
                     fontFamily: "var(--font-space-grotesk)",
                     fontSize: 15,
                     lineHeight: 1,
+                    zIndex: 1,
                     transition: "background-color 0.15s",
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.1)")}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.15)")}
                   onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   ✕
                 </button>
 
-                {/* Top section: text + dot art */}
+                {/* Top section: LED art + text + coffee cup */}
                 <div style={{
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: 48,
                   alignSelf: "stretch",
+                  gap: 48,
                 }}>
-                  {/* Text */}
+                  {/* LED art + subtitle */}
                   <div style={{
                     display: "flex",
                     flexDirection: "column",
+                    alignItems: "center",
                     gap: 16,
                     alignSelf: "stretch",
                   }}>
-                    <CoffeeTitleArt />
+                    <TitleArt />
                     <span style={{
                       fontFamily: "var(--font-space-mono), monospace",
                       fontWeight: 400,
@@ -453,14 +489,14 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                     </span>
                   </div>
 
-                  {/* Dot art — 172px container, right-aligned within it */}
+                  {/* Coffee cup — right-aligned in 172px container, centered within section */}
                   <div style={{ width: 172, display: "flex", justifyContent: "flex-end" }}>
                     <CoffeeCupDots onSurface="#5B667D" hoverFill="#161719" />
                   </div>
                 </div>
 
                 {/* Email button */}
-                <EmailButton onClick={copyEmail} copied={copied} />
+                <EmailButton onClick={copyEmail} copied={copied} isLight={isLight} />
               </motion.div>
             </div>
           </>
