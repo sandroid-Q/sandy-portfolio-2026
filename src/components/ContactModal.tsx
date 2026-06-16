@@ -2,8 +2,89 @@
 
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import { useAudio } from "@/contexts/AudioContext";
+
+// ─── Coffee title pixel-art SVG with LED-flicker hover ───────────────────────
+
+const TW = 381, TH = 112, TR = 4.445, TX0 = 6.98514, TY0 = 6.98514, TSTEP = 10.79;
+
+const PINK_SET = new Set([
+  "4,2","5,2","8,2","9,2","12,2","13,2","14,2","16,2","17,2","18,2","20,2","21,2","22,2","24,2","25,2","26,2","29,2","30,2",
+  "3,3","7,3","10,3","12,3","16,3","20,3","24,3","28,3","31,3",
+  "3,4","7,4","10,4","12,4","13,4","14,4","16,4","17,4","18,4","20,4","21,4","22,4","24,4","25,4","26,4","31,4",
+  "3,5","7,5","10,5","12,5","16,5","20,5","24,5","29,5","30,5",
+  "3,6","7,6","10,6","12,6","16,6","20,6","24,6","29,6",
+  "4,7","5,7","8,7","9,7","12,7","16,7","20,7","21,7","22,7","24,7","25,7","26,7",
+  "29,8",
+]);
+
+const ALL_DOTS: { cx: number; cy: number; isPink: boolean }[] = [];
+for (let j = 0; j < 10; j++)
+  for (let i = 0; i < 35; i++)
+    ALL_DOTS.push({ cx: TX0 + i * TSTEP, cy: TY0 + j * TSTEP, isPink: PINK_SET.has(`${i},${j}`) });
+
+const PINK_INDICES = ALL_DOTS.map((d, i) => d.isPink ? i : -1).filter(i => i >= 0);
+const DARK_INDICES = ALL_DOTS.map((d, i) => !d.isPink ? i : -1).filter(i => i >= 0);
+
+function sampleN(arr: number[], n: number): number[] {
+  const result: number[] = [];
+  const seen = new Set<number>();
+  while (result.length < n) {
+    const pick = arr[Math.floor(Math.random() * arr.length)];
+    if (!seen.has(pick)) { seen.add(pick); result.push(pick); }
+  }
+  return result;
+}
+
+function CoffeeTitleArt() {
+  const [flipped, setFlipped] = useState<Set<number>>(new Set());
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+
+  const handleEnter = () => {
+    if (timerRef.current) return; // already mid-flicker
+
+    const next = new Set<number>();
+    // mostly pink→gray flips, a couple dark→pink
+    sampleN(PINK_INDICES, 8 + Math.floor(Math.random() * 6)).forEach(i => next.add(i));
+    sampleN(DARK_INDICES, 1 + Math.floor(Math.random() * 2)).forEach(i => next.add(i));
+    setFlipped(next);
+
+    timerRef.current = setTimeout(() => {
+      setFlipped(new Set());
+      timerRef.current = null;
+    }, 220);
+  };
+
+  return (
+    <svg
+      width={TW} height={TH} viewBox={`0 0 ${TW} ${TH}`}
+      fill="none"
+      style={{ width: "100%", height: "auto", display: "block", cursor: "default" }}
+      onMouseEnter={handleEnter}
+    >
+      <defs>
+        <clipPath id="ct-clip">
+          <rect x="2.54014" y="2.54014" width="375.92" height="106.045" rx="3.80838" />
+        </clipPath>
+      </defs>
+      <g clipPath="url(#ct-clip)">
+        <rect x="2.54014" y="2.54014" width="375.92" height="106.045" rx="3.80838" fill="#161719" />
+        {ALL_DOTS.map((d, i) => (
+          <circle
+            key={i}
+            cx={d.cx} cy={d.cy} r={TR}
+            fill={(d.isPink !== flipped.has(i)) ? "#FF82B8" : "#2F3134"}
+            style={{ transition: "fill 0.07s" }}
+          />
+        ))}
+      </g>
+      <rect x="1.27068" y="1.27068" width="378.459" height="108.584" rx="5.07784"
+        stroke="#161719" strokeWidth="2.53892" />
+    </svg>
+  );
+}
 
 function CoffeeCupDots({ onSurface, hoverFill }: { onSurface: string; hoverFill: string }) {
   const R = 3;
@@ -358,13 +439,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                     gap: 16,
                     alignSelf: "stretch",
                   }}>
-                    <Image
-                      src="/coffee-title.svg"
-                      alt="Coffee?"
-                      width={381}
-                      height={112}
-                      style={{ width: "100%", height: "auto" }}
-                    />
+                    <CoffeeTitleArt />
                     <span style={{
                       fontFamily: "var(--font-space-mono), monospace",
                       fontWeight: 400,
