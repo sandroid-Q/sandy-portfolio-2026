@@ -2,16 +2,13 @@
 
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { useAudio } from "@/contexts/AudioContext";
 
-const BROWN = "#4E3A34";
-const BG = "#F3F2F0";
-const RED = "#DE211D";
-
-function CoffeeCupDots() {
-  const R = 2.5;
+function CoffeeCupDots({ onSurface, hoverFill }: { onSurface: string; hoverFill: string }) {
+  const R = 3;
   const W = 138;
-  const H = 110;
+  const H = 149;
   const [hovered, setHovered] = useState(false);
   const { muted } = useAudio();
   const talkRef = useRef<HTMLAudioElement | null>(null);
@@ -27,15 +24,23 @@ function CoffeeCupDots() {
   }, []);
 
   const positions: [number, number][] = [
-    [12,0],[24,0],[36,0],[48,0],[60,0],[72,0],[84,0],
-    [0,13],[96,13],
-    [0,26],[12,26],[24,26],[36,26],[48,26],[60,26],[72,26],[84,26],[96,26],[108,26],[120,26],
-    [0,39],[12,39],[24,39],[36,39],[48,39],[60,39],[72,39],[84,39],[96,39],[120,39],[132,39],
-    [0,52],[12,52],[24,52],[36,52],[48,52],[60,52],[72,52],[84,52],[96,52],[132,52],
-    [0,65],[12,65],[24,65],[36,65],[48,65],[60,65],[72,65],[84,65],[96,65],[120,65],[132,65],
-    [0,78],[12,78],[24,78],[36,78],[48,78],[60,78],[72,78],[84,78],[96,78],[108,78],[120,78],
-    [12,91],[24,91],[36,91],[48,91],[60,91],[72,91],[84,91],
-    [24,104],[36,104],[48,104],[60,104],[72,104],
+    // Steam
+    [36,0],[60,0],
+    [48,13],[72,13],
+    [36,26],[60,26],
+    // Rim
+    [12,39],[24,39],[36,39],[48,39],[60,39],[72,39],[84,39],
+    // Left/right walls
+    [0,52],[96,52],
+    // Body
+    [0,65],[12,65],[24,65],[36,65],[48,65],[60,65],[72,65],[84,65],[96,65],[108,65],[120,65],
+    [0,78],[12,78],[24,78],[36,78],[48,78],[60,78],[72,78],[84,78],[96,78],[120,78],[132,78],
+    [0,91],[12,91],[24,91],[36,91],[48,91],[60,91],[72,91],[84,91],[96,91],[132,91],
+    [0,104],[12,104],[24,104],[36,104],[48,104],[60,104],[72,104],[84,104],[96,104],[120,104],[132,104],
+    [0,117],[12,117],[24,117],[36,117],[48,117],[60,117],[72,117],[84,117],[96,117],[108,117],[120,117],
+    // Base
+    [12,130],[24,130],[36,130],[48,130],[60,130],[72,130],[84,130],
+    [24,143],[36,143],[48,143],[60,143],[72,143],
   ];
 
   const handleClick = () => {
@@ -51,14 +56,27 @@ function CoffeeCupDots() {
   return (
     <svg
       width={W} height={H} viewBox={`0 0 ${W} ${H}`}
-      style={{ display: "block", cursor: "pointer", transition: "opacity 0.12s" }}
+      style={{ display: "block", cursor: "pointer" }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={handleClick}
     >
       {positions.map(([x, y]) => (
-        <circle key={`${x}-${y}`} cx={x + R} cy={y + R} r={R} fill={hovered ? RED : "#898989"} style={{ transition: "fill 0.12s" }} />
+        <circle
+          key={`${x}-${y}`}
+          cx={x + R} cy={y + R} r={R}
+          style={{ fill: hovered ? hoverFill : onSurface, transition: "fill 0.12s" }}
+        />
       ))}
+    </svg>
+  );
+}
+
+function EnvelopeIcon({ color }: { color: string }) {
+  return (
+    <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+      <rect x="0.6" y="0.6" width="12.8" height="8.8" rx="1.4" stroke={color} strokeWidth="1.2" />
+      <path d="M1 1.5L7 5.8L13 1.5" stroke={color} strokeWidth="1.2" strokeLinecap="round" fill="none" />
     </svg>
   );
 }
@@ -82,35 +100,75 @@ function CheckIcon({ color }: { color: string }) {
 
 function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean }) {
   const [hovered, setHovered] = useState(false);
-  const iconColor = copied || hovered ? BG : BROWN;
+
   return (
     <motion.button
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       animate={{
-        backgroundColor: copied || hovered ? BROWN : BG,
-        color: copied || hovered ? BG : BROWN,
-        borderColor: BROWN,
+        backgroundColor: hovered ? "#F8F8F8" : "#E7EAF1",
+        boxShadow: hovered ? "0 0 0 3px #BBC3D5" : "0 0 0 0px transparent",
       }}
       transition={{ duration: 0.12 }}
       style={{
-        border: `2px solid ${BROWN}`,
-        fontFamily: "var(--font-space-grotesk)",
-        fontWeight: 400,
-        fontSize: 13,
-        letterSpacing: "0.04em",
-        padding: "12px 28px",
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 11,
+        padding: "6px 16px 6px 6px",
+        borderRadius: 9999,
+        border: "none",
         cursor: "pointer",
         outline: "none",
         WebkitTapHighlightColor: "transparent",
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
       }}
     >
-      {copied ? "copied" : "sandra.jxq@gmail.com"}
-      {copied ? <CheckIcon color={iconColor} /> : <ClipboardIcon color={iconColor} />}
+      {/* Left badge: rounded square with inner circle + envelope icon */}
+      <motion.div
+        animate={{ backgroundColor: hovered ? "#FF82B8" : "#C8CFDE" }}
+        transition={{ duration: 0.12 }}
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 20,
+          border: "1.4px solid #161719",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          flexShrink: 0,
+        }}
+      >
+        <div style={{
+          width: 29,
+          height: 29,
+          borderRadius: "50%",
+          backgroundColor: "#E7EAF1",
+          border: "1.6px solid #161719",
+        }} />
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>
+          <EnvelopeIcon color="#161719" />
+        </div>
+      </motion.div>
+
+      {/* Right: email text + copy icon, width locked to email address */}
+      <div style={{ display: "flex", alignItems: "center", position: "relative" }}>
+        {/* Ghost — preserves width when switching to "copied!" */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, visibility: "hidden" }}>
+          <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 14, whiteSpace: "nowrap" }}>
+            sandra.jxq@gmail.com
+          </span>
+          <ClipboardIcon color="transparent" />
+        </div>
+        {/* Actual content */}
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transform: copied ? "translateX(-2px)" : "none" }}>
+          <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 14, color: "#161719", whiteSpace: "nowrap" }}>
+            {copied ? "copied email" : "sandra.jxq@gmail.com"}
+          </span>
+          {copied ? <CheckIcon color="#161719" /> : <ClipboardIcon color="#161719" />}
+        </div>
+      </div>
     </motion.button>
   );
 }
@@ -126,7 +184,6 @@ const COFFEE_DROPS = Array.from({ length: 36 }, (_, i) => ({
 
 function CoffeeRain({ onDone }: { onDone: () => void }) {
   const screenH = typeof window !== "undefined" ? window.innerHeight : 900;
-
   const drops = COFFEE_DROPS;
 
   useEffect(() => {
@@ -204,30 +261,29 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
 
   return (
     <>
-    {rainKey > 0 && <CoffeeRain key={rainKey} onDone={() => setRainKey(0)} />}
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={onClose}
-            style={{
-              position: "fixed",
-              inset: 0,
-              backgroundColor: "rgba(78, 58, 52, 0.55)",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              zIndex: 200,
-            }}
-          />
+      {rainKey > 0 && <CoffeeRain key={rainKey} onDone={() => setRainKey(0)} />}
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={onClose}
+              style={{
+                position: "fixed",
+                inset: 0,
+                backgroundColor: "var(--color-surface-transparent)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                zIndex: 200,
+              }}
+            />
 
-          {/* Centering shell — keeps Framer Motion's y/scale clean */}
-          <div
-            style={{
+            {/* Centering shell */}
+            <div style={{
               position: "fixed",
               inset: 0,
               display: "flex",
@@ -235,97 +291,106 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               justifyContent: "center",
               zIndex: 201,
               pointerEvents: "none",
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 10 }}
-              transition={{ duration: 0.22, ease: "easeOut" }}
-              style={{
-                pointerEvents: "auto",
-                position: "relative",
-                backgroundColor: "rgba(243, 242, 240, 0.72)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                border: `2px solid ${BROWN}`,
-                padding: "112px 60px 116px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 0,
-                width: "min(440px, calc(100vw - 48px))",
-              }}
-            >
-              {/* Close button */}
-              <button
-                onClick={onClose}
-                aria-label="Close"
+            }}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 10 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
                 style={{
-                  position: "absolute",
-                  top: 12,
-                  right: 12,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
+                  pointerEvents: "auto",
+                  position: "relative",
+                  backgroundColor: "#C8CFDE",
+                  border: "2px solid #5B667D",
+                  borderRadius: 0,
+                  padding: "56px 40px 80px",
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "center",
-                  color: BROWN,
-                  fontFamily: "var(--font-space-grotesk)",
-                  fontSize: 15,
-                  lineHeight: 1,
-                  transition: "background-color 0.15s",
-                }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#D3BA9F")}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
-              >
-                ✕
-              </button>
-
-              {/* Coffee cup speaker grill */}
-              <div style={{ marginBottom: 40 }}>
-                <CoffeeCupDots />
-              </div>
-
-              {/* Headline */}
-              <span
-                style={{
-                  fontFamily: "var(--font-silkscreen)",
-                  fontSize: 48,
-                  color: BROWN,
-                  lineHeight: 1,
-                  marginBottom: 14,
+                  gap: 64,
+                  width: "fit-content",
+                  maxWidth: "calc(100vw - 64px)",
+                  maxHeight: "calc(100dvh - 64px)",
+                  overflowY: "auto",
                 }}
               >
-                Coffee?
-              </span>
+                {/* Close button */}
+                <button
+                  onClick={onClose}
+                  aria-label="Close"
+                  style={{
+                    position: "absolute",
+                    top: 12,
+                    right: 12,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#161719",
+                    fontFamily: "var(--font-space-grotesk)",
+                    fontSize: 15,
+                    lineHeight: 1,
+                    transition: "background-color 0.15s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.1)")}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  ✕
+                </button>
 
-              {/* Subheading */}
-              <span
-                style={{
-                  fontFamily: "var(--font-space-grotesk)",
-                  fontWeight: 300,
-                  fontSize: 14,
-                  color: BROWN,
-                  textAlign: "center",
-                  lineHeight: 1.6,
-                  marginBottom: 36,
-                }}
-              >
-                or whatever floats your goat 🐐
-              </span>
+                {/* Top section: text + dot art */}
+                <div style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 48,
+                  alignSelf: "stretch",
+                }}>
+                  {/* Text */}
+                  <div style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 16,
+                    alignSelf: "stretch",
+                  }}>
+                    <Image
+                      src="/coffee-title.svg"
+                      alt="Coffee?"
+                      width={381}
+                      height={112}
+                      style={{ width: "100%", height: "auto" }}
+                    />
+                    <span style={{
+                      fontFamily: "var(--font-space-mono), monospace",
+                      fontWeight: 400,
+                      fontSize: 12,
+                      color: "#161719",
+                      letterSpacing: "-0.05em",
+                      textAlign: "center",
+                      lineHeight: 1.5,
+                    }}>
+                      or whatever floats your goat 🐐
+                    </span>
+                  </div>
 
-              {/* Email copy button */}
-              <EmailButton onClick={copyEmail} copied={copied} />
-            </motion.div>
-          </div>
-        </>
-      )}
-    </AnimatePresence>
+                  {/* Dot art — 172px container, right-aligned within it */}
+                  <div style={{ width: 172, display: "flex", justifyContent: "flex-end" }}>
+                    <CoffeeCupDots onSurface="#5B667D" hoverFill="#161719" />
+                  </div>
+                </div>
+
+                {/* Email button */}
+                <EmailButton onClick={copyEmail} copied={copied} />
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }
