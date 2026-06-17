@@ -197,10 +197,10 @@ function AboutHoverCard() {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
       {/* Speech bubble */}
       <div style={{ position: "relative", width: totalW, height: tailTop + tailH }}>
-        {/* Back card (bright) */}
+        {/* Back card */}
         <div style={{
           position: "absolute", top: 0, left: 0, width: BW, height: BH,
-          backgroundColor: bubble, border: `2.5px solid ${ink}`, borderRadius: 28,
+          backgroundColor: "var(--color-speech-back)", border: "var(--color-speech-back-border)", borderRadius: 28,
           boxSizing: "border-box",
         }} />
         {/* Tail — drawn before the front card so its top seam is hidden behind it */}
