@@ -585,7 +585,7 @@ export default function PortfolioNav({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: isMobile ? "0 18px 0 24px" : "0 36px",
+            padding: isMobile ? "0 12px 0 24px" : "0 24px 0 36px",
           }}
         >
         <LogoButton onClick={handleLogoClick} isLightNav={isLightNav} />
