@@ -35,6 +35,14 @@
   --color-interactive-hover: var(--color-on-surface-secondary);
 }
 
+/* Testimonial cards use the light-mode palette in both themes — in dark mode
+   (no data-theme attr), override the tokens they consume, scoped to the card,
+   with the light-mode hex values. */
+:root:not([data-theme="light"]) .testimonial-card {
+  --color-on-surface-secondary: #0034FF;
+  --color-surface-primary: #F8F8F8;
+}
+
 /* Tailwind color utilities: bg-surface-primary, text-on-surface-secondary, etc. */
 @theme inline {
   --color-surface-primary: var(--color-surface-primary);

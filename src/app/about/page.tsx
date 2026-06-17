@@ -52,9 +52,6 @@ const EDUCATION_DETAILS: Array<{ full?: string; title?: string; value?: string; 
   { title: "Extracurricular", value: "NSW Touch State Cup, Vawdon Cup, UNSW South Sydney Rabbitohs Touch Club, Unisports Nationals Div 1, O-Week Yellow Shirts, UNSW Business Society, HPAIR Sydney" },
 ];
 
-const STICKY_YELLOW = "var(--color-surface-secondary)";
-const QUOTE_MARK_COLOR = "var(--color-surface-quaternary)";
-
 const SKILLS = [
   {
     label: "Product Design",
@@ -299,9 +296,9 @@ function SkillsSection({ oneCol = false }: { oneCol?: boolean }) {
   );
 }
 
-function StickyNote({ t, rotate, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_COLOR }: { t: typeof TESTIMONIALS[0]; rotate: number; color?: string; quoteColor?: string }) {
+function StickyNote({ t, rotate, color = "#FBD5E8", quoteColor = "var(--color-on-surface-secondary)" }: { t: typeof TESTIMONIALS[0]; rotate: number; color?: string; quoteColor?: string }) {
   return (
-    <div style={{
+    <div className="testimonial-card" style={{
       position: "relative",
       flex: 1,
       backgroundColor: color,
@@ -316,8 +313,8 @@ function StickyNote({ t, rotate, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_
         <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", position: "relative", flexShrink: 0, backgroundColor: HOVER_BROWN }}>
           {t.photo && <Image src={t.photo} fill sizes="56px" alt={t.name} style={{ objectFit: "cover", objectPosition: "center top" }} />}
         </div>
-        <div style={{ padding: "4px 12px", backgroundColor: BROWN, borderRadius: 100 }}>
-          <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 13, color: "var(--color-surface-secondary)" }}>
+        <div style={{ padding: "4px 12px", backgroundColor: "var(--color-on-surface-secondary)", borderRadius: 100 }}>
+          <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 13, color: "var(--color-surface-primary)" }}>
             {t.company}
           </span>
         </div>
@@ -336,11 +333,11 @@ function StickyNote({ t, rotate, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_
           &ldquo;
         </span>
         <p style={{
-          fontFamily: "var(--font-space-grotesk)",
-          fontWeight: 300,
+          fontFamily: "var(--font-space-mono), monospace",
+          fontWeight: 400,
           fontSize: 13,
           letterSpacing: "-0.03em",
-          color: BODY,
+          color: "var(--color-on-surface-secondary)",
           margin: 0,
           lineHeight: 1.65,
           whiteSpace: "pre-wrap",
@@ -349,10 +346,10 @@ function StickyNote({ t, rotate, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_
         </p>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 13, letterSpacing: "0.04em", color: BODY }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 13, letterSpacing: "0.04em", color: "var(--color-on-surface-secondary)" }}>
           {t.name}
         </span>
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 12, letterSpacing: "-0.03em", color: BODY }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 12, letterSpacing: "-0.03em", color: "var(--color-on-surface-secondary)" }}>
           {t.title}
         </span>
       </div>
@@ -776,7 +773,7 @@ export default function AboutPage() {
         {/* Shoutouts */}
         <div style={{ width: "100%", maxWidth: 1280, margin: "-80px auto 0", padding: `0 ${cvSidePad}` }}>
           <div style={{ textAlign: "center" }}><SectionHeader>Shoutouts</SectionHeader></div>
-          <div style={{ display: "flex", flexDirection: !cvIsStack && !cvIsCompact ? "row" : "column", gap: 24, alignItems: "stretch", marginTop: 32 }}>
+          <div style={{ display: "flex", flexDirection: !cvIsStack && !cvIsCompact ? "row" : "column", gap: 24, alignItems: "stretch", marginTop: 36 }}>
             <StickyNote t={TESTIMONIALS[0]} rotate={0} />
             <StickyNote t={TESTIMONIALS[1]} rotate={0} />
             <StickyNote t={TESTIMONIALS[2]} rotate={0} />
