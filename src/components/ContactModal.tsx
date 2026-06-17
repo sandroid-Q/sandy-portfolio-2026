@@ -111,16 +111,18 @@ function CoffeeCupDots({ onSurface, hoverFill }: { onSurface: string; hoverFill:
   const H = 149;
   const [hovered, setHovered] = useState(false);
   const { muted } = useAudio();
-  const talkRef = useRef<HTMLAudioElement | null>(null);
-  const talkRef2 = useRef<HTMLAudioElement | null>(null);
-  const talkRef3 = useRef<HTMLAudioElement | null>(null);
-  const talkRef4 = useRef<HTMLAudioElement | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const bufferRef = useRef<AudioBuffer | null>(null);
 
   useEffect(() => {
-    talkRef.current = new Audio("/talk.mp3");
-    talkRef2.current = new Audio("/talk.mp3");
-    talkRef3.current = new Audio("/talk.mp3");
-    talkRef4.current = new Audio("/talk.mp3");
+    const ctx = new AudioContext();
+    audioCtxRef.current = ctx;
+    fetch("/talk.mp3")
+      .then(r => r.arrayBuffer())
+      .then(ab => ctx.decodeAudioData(ab))
+      .then(buf => { bufferRef.current = buf; })
+      .catch(() => {});
+    return () => { ctx.close(); };
   }, []);
 
   const positions: [number, number][] = [
@@ -145,11 +147,17 @@ function CoffeeCupDots({ onSurface, hoverFill }: { onSurface: string; hoverFill:
 
   const handleClick = () => {
     if (muted) return;
-    [talkRef, talkRef2, talkRef3, talkRef4].forEach(ref => {
-      const t = ref.current;
-      if (!t) return;
-      t.currentTime = 0;
-      t.play().catch(() => {});
+    const ctx = audioCtxRef.current;
+    const buffer = bufferRef.current;
+    if (!ctx || !buffer) return;
+    ctx.resume().then(() => {
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      const gain = ctx.createGain();
+      gain.gain.value = 5;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      source.start();
     });
   };
 
@@ -417,7 +425,8 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                   pointerEvents: "auto",
                   position: "relative",
                   backgroundColor: isLight ? "var(--color-surface-secondary)" : "#C8CFDE",
-                  borderRadius: 2,
+                  border: "20px solid #161719",
+                  borderRadius: 12,
                   padding: "0 0 64px",
                   display: "flex",
                   flexDirection: "column",
