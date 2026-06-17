@@ -16,6 +16,10 @@
   --color-feature-secondary: #FF82B8;
   --color-nav-underline: var(--color-feature-secondary);
   --color-interactive-hover: var(--color-feature-secondary);
+  /* "Ello gov'na" speech bubble (About hover) — bubble stays blue in both themes */
+  --color-speech-bubble: #0034FF;
+  --color-speech-panel: #0127BA;
+  --color-speech-ink: #F8F8F8;
 }
 
 /* ─── Light mode tokens ─── */
@@ -33,6 +37,9 @@
   --color-feature-secondary: #FFB3D8;
   --color-nav-underline: var(--color-on-surface-secondary);
   --color-interactive-hover: var(--color-on-surface-secondary);
+  --color-speech-bubble: #0034FF;
+  --color-speech-panel: #FFB3D8;
+  --color-speech-ink: #0034FF;
 }
 
 /* Testimonial cards use the light-mode palette in both themes — in dark mode

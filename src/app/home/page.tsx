@@ -3,13 +3,13 @@
 import { useRef, useState, useEffect, useLayoutEffect } from "react";
 import { motion, useAnimation, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import TransitionOverlay from "@/components/TransitionOverlay";
 import PortfolioNav from "@/components/PortfolioNav";
 import IDCard from "@/components/IDCard";
 import ElevatorPad from "@/components/ElevatorPad";
 import ContactModal from "@/components/ContactModal";
 
-const BROWN = "#4E3A34";
 const SCALE_MIN = 0.8;
 
 interface FloorPreview {
@@ -167,50 +167,71 @@ function ProjectBlurb({ data }: { data: FloorPreview }) {
 }
 
 function AboutHoverCard() {
-  const W = 202, H = 121, r = 20;
-  const tx = 37, tw = 51, th = 31; // tail: left x, width, height
+  // Offset "stacked card" speech bubble — colours from CSS design tokens
+  // (auto-switch per theme). Matches Figma dark 40000160-3373 / light 40000160-3375:
+  // a bright back card peeks along the top + left edges, the panel card sits
+  // shifted down-right on top, and the bright tail pokes from behind it.
+  const bubble = "var(--color-speech-bubble)"; // back card + tail
+  const panel = "var(--color-speech-panel)";   // front card fill
+  const ink = "var(--color-speech-ink)";        // borders + text
 
-  // Single continuous path: rounded rect with integrated tail so there's one stroke
-  const path = [
-    `M ${r} 0`,
-    `L ${W - r} 0`,
-    `Q ${W} 0 ${W} ${r}`,
-    `L ${W} ${H - r}`,
-    `Q ${W} ${H} ${W - r} ${H}`,
-    `L ${tx + tw} ${H}`,
-    `L ${tx} ${H + th}`,
-    `L ${tx} ${H}`,
-    `L ${r} ${H}`,
-    `Q 0 ${H} 0 ${H - r}`,
-    `L 0 ${r}`,
-    `Q 0 0 ${r} 0 Z`,
-  ].join(" ");
+  const OX = 10, OY = 10;              // front card offset from back card
+  const BW = 208, BH = 127;            // back card size
+  const FW = 202, FH = 121;            // front card size
+  const totalW = OX + FW;              // 212
+  const totalH = OY + FH;              // 131
+  const tailW = 52, tailH = 42;        // tail (top half hidden behind front card)
+  const tailLeft = OX + 26;            // 36
+  const tailTop = totalH - 12;         // overlap front card so the seam is hidden
+
+  const textStyle = {
+    fontFamily: "var(--font-silkscreen)",
+    fontSize: 32,
+    lineHeight: 1.25,
+    color: ink,
+    textTransform: "uppercase" as const,
+    whiteSpace: "nowrap" as const,
+  };
 
   return (
-    <div style={{ position: "relative", width: W, height: H + th }}>
-      <svg
-        width={W}
-        height={H + th}
-        viewBox={`0 0 ${W} ${H + th}`}
-        fill="none"
-        style={{ position: "absolute", top: 0, left: 0 }}
-      >
-        <path d={path} stroke={BROWN} strokeWidth={2.5} fill="none" strokeLinejoin="miter" />
-      </svg>
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 25,
-          height: H,
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <span style={{ fontFamily: "var(--font-silkscreen)", fontSize: 32, color: BROWN, lineHeight: 1.15 }}>
-          OH, HEY<br />THERE!
-        </span>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+      {/* Speech bubble */}
+      <div style={{ position: "relative", width: totalW, height: tailTop + tailH }}>
+        {/* Back card (bright) */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, width: BW, height: BH,
+          backgroundColor: bubble, border: `2.5px solid ${ink}`, borderRadius: 28,
+          boxSizing: "border-box",
+        }} />
+        {/* Tail — drawn before the front card so its top seam is hidden behind it */}
+        <svg
+          width={tailW} height={tailH} viewBox={`0 0 ${tailW} ${tailH}`}
+          style={{ position: "absolute", left: tailLeft, top: tailTop }}
+        >
+          <path d={`M0 0 L${tailW / 2} ${tailH} L${tailW} 0 Z`} style={{ fill: bubble }} />
+          <path d={`M0 0 L${tailW / 2} ${tailH} L${tailW} 0`} style={{ fill: "none", stroke: ink, strokeWidth: 2.5, strokeLinejoin: "round" }} />
+        </svg>
+        {/* Front card (panel) — text vertically centred, left-aligned per Figma */}
+        <div style={{
+          position: "absolute", top: OY, left: OX, width: FW, height: FH,
+          backgroundColor: panel, border: `2.5px solid ${ink}`, borderRadius: 20,
+          boxSizing: "border-box",
+          display: "flex", flexDirection: "column", justifyContent: "center",
+          paddingLeft: 26,
+        }}>
+          <span style={textStyle}>Ello</span>
+          <span style={textStyle}>Gov&rsquo;na!</span>
+        </div>
       </div>
+      {/* Nicolas Cage "'ello" gif — offset right of the bubble */}
+      <Image
+        src="/hello-nicolas-cage.gif"
+        alt="Nicolas Cage saying 'ello"
+        width={totalW}
+        height={Math.round(totalW * 318 / 500)}
+        unoptimized
+        style={{ display: "block", transform: "translate(96px, -12px)" }}
+      />
     </div>
   );
 }
