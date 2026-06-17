@@ -13,6 +13,9 @@ const BG = "var(--color-surface-primary)";
 const HERO_BG = "var(--color-surface-primary)";
 const BROWN = "var(--color-on-surface-primary)";
 const HOVER_BROWN = "var(--color-on-surface-secondary)";
+// Body text: on-surface-secondary in dark mode, on-surface-primary in light mode
+const BODY = "var(--color-about-body)";
+const FEATURE = "var(--color-feature-primary)";
 
 const WORK = [
   {
@@ -112,6 +115,7 @@ function ScrambleSpan({
 }) {
   const displayRef = useRef(defaultText);
   const [displayState, setDisplayState] = useState(defaultText);
+  const [hovered, setHovered] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const spanRef = useRef<HTMLSpanElement>(null);
   const [fixedWidth, setFixedWidth] = useState<number | undefined>(undefined);
@@ -163,12 +167,13 @@ function ScrambleSpan({
   return (
     <span
       ref={spanRef}
-      onMouseEnter={() => runScramble(hoverText)}
+      onMouseEnter={() => { setHovered(true); runScramble(hoverText); }}
       onMouseLeave={() => {
+        setHovered(false);
         if (intervalRef.current) clearInterval(intervalRef.current);
         updateDisplay(defaultText);
       }}
-      style={{ display: "inline-block", width: fixedWidth, color: baseColor, cursor: "default" }}
+      style={{ display: "inline-block", width: fixedWidth, color: hovered ? FEATURE : baseColor, transition: "color 0.2s", cursor: "default" }}
     >
       {displayState}
     </span>
@@ -180,8 +185,8 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
     <span
       style={{
         display: "block",
-        fontFamily: "var(--font-space-grotesk)",
-        fontWeight: 500,
+        fontFamily: "var(--font-silkscreen)",
+        fontWeight: 400,
         fontSize: 24,
         color: BROWN,
       }}
@@ -199,7 +204,7 @@ function Label({ children }: { children: React.ReactNode }) {
         fontFamily: "var(--font-space-grotesk)",
         fontWeight: 300,
         fontSize: 13,
-        color: BROWN,
+        color: BODY,
         textTransform: "uppercase",
         letterSpacing: "0.12em",
       }}
@@ -217,7 +222,7 @@ function Detail({ children, weight = 300 }: { children: React.ReactNode; weight?
         fontFamily: "var(--font-space-grotesk)",
         fontWeight: weight,
         fontSize: 14,
-        color: BROWN,
+        color: BODY,
         lineHeight: 1.6,
       }}
     >
@@ -228,7 +233,7 @@ function Detail({ children, weight = 300 }: { children: React.ReactNode; weight?
 
 function WorkSection() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       <SectionHeader>Work</SectionHeader>
       <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
         {WORK.map((job) => (
@@ -237,7 +242,7 @@ function WorkSection() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {job.roles.map((r) => (
                 <div key={r.title} style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ display: "block", fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BROWN, lineHeight: 1.6 }}>{r.title}</span>
+                  <span style={{ display: "block", fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BODY, lineHeight: 1.6 }}>{r.title}</span>
                   <Detail>{r.period}</Detail>
                 </div>
               ))}
@@ -251,7 +256,7 @@ function WorkSection() {
 
 function EducationSection() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       <SectionHeader>Education</SectionHeader>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <Label>University of New South Wales</Label>
@@ -262,7 +267,7 @@ function EducationSection() {
             ) : item.full ? (
               <Detail key={i} weight={500}>{item.full}</Detail>
             ) : (
-              <span key={i} style={{ display: "block", fontFamily: "var(--font-space-grotesk)", fontSize: 14, color: BROWN, lineHeight: 1.6 }}>
+              <span key={i} style={{ display: "block", fontFamily: "var(--font-space-grotesk)", fontSize: 14, color: BODY, lineHeight: 1.6 }}>
                 <span style={{ fontWeight: 500 }}>{item.title}</span>
                 <span style={{ fontWeight: 300 }}>: {item.value}</span>
               </span>
@@ -276,12 +281,12 @@ function EducationSection() {
 
 function SkillsSection({ oneCol = false }: { oneCol?: boolean }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       <SectionHeader>Skills</SectionHeader>
       <div style={{ display: "grid", gridTemplateColumns: oneCol ? "1fr" : "1fr 1fr", gap: "24px 32px" }}>
         {SKILLS.map((skill) => (
           <div key={skill.label} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <span style={{ display: "block", fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BROWN }}>{skill.label}</span>
+            <span style={{ display: "block", fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BODY }}>{skill.label}</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {skill.items.map((item) => (
                 <Detail key={item}>{item}</Detail>
@@ -335,7 +340,7 @@ function StickyNote({ t, rotate, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_
           fontWeight: 300,
           fontSize: 13,
           letterSpacing: "-0.03em",
-          color: BROWN,
+          color: BODY,
           margin: 0,
           lineHeight: 1.65,
           whiteSpace: "pre-wrap",
@@ -344,10 +349,10 @@ function StickyNote({ t, rotate, color = STICKY_YELLOW, quoteColor = QUOTE_MARK_
         </p>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 13, letterSpacing: "0.04em", color: BROWN }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 13, letterSpacing: "0.04em", color: BODY }}>
           {t.name}
         </span>
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 12, letterSpacing: "-0.03em", color: BROWN }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 12, letterSpacing: "-0.03em", color: BODY }}>
           {t.title}
         </span>
       </div>
@@ -401,27 +406,44 @@ function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
   );
 }
 
-function IconButton({
-  onClick,
-  icon,
-  bg = BG,
-}: {
-  onClick: () => void;
-  icon: (c: string, h: boolean) => React.ReactNode;
-  bg?: string;
-}) {
+function IconButton({ onClick, icon }: { onClick: () => void; icon: (c: string, h: boolean) => React.ReactNode }) {
   const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const [isLight, setIsLight] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsLight(document.documentElement.getAttribute("data-theme") === "light");
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const containerBg = pressed
+    ? (isLight ? "#161719" : "#0034FF")
+    : hovered
+    ? (isLight ? "#0034FF" : "#F8F8F8")
+    : (isLight ? "#E7EAF1" : "transparent");
+
+  const borderColor = !isLight ? "#F8F8F8" : pressed ? "#F8F8F8" : "transparent";
+
+  const arrowColor = isLight
+    ? (hovered || pressed ? "#F8F8F8" : "#161719")
+    : (hovered && !pressed ? "#161719" : "#F8F8F8");
+
   return (
     <button
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={() => { setHovered(false); setPressed(false); }}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
       style={{
-        backgroundColor: hovered ? HOVER_BROWN : bg,
+        backgroundColor: containerBg,
         borderRadius: 12,
         width: 48,
         height: 48,
-        border: "none",
+        border: `1px solid ${borderColor}`,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
@@ -430,7 +452,7 @@ function IconButton({
         overflow: "hidden",
       }}
     >
-      {icon(BROWN, hovered)}
+      {icon(arrowColor, hovered)}
     </button>
   );
 }
@@ -491,7 +513,8 @@ export default function AboutPage() {
   const narrowPhotoH = isNarrow ? Math.max(100, Math.min(280 * narrowScale, vh > 0 ? vh - 72 - narrowTopPad - 330 * narrowScale - 48 - 64 : 200)) : 280;
   const cvIsStack = vw < 680;
   const cvIsCompact = vw >= 680 && vw < 1000;
-  const cvSidePad = "clamp(32px, 5vw, 96px)";
+  // Wide layout (≥1000px): content is centered within the 1200px cap; keep a 32px min side gutter.
+  const cvSidePad = cvIsStack || cvIsCompact ? "clamp(32px, 5vw, 96px)" : "32px";
 
 
   const router = useRouter();
@@ -540,7 +563,7 @@ export default function AboutPage() {
                     fontSize: 46 * narrowScale,
                     lineHeight: `${54 * narrowScale}px`,
                     letterSpacing: "-0.02em",
-                    color: BROWN,
+                    color: BODY,
                     margin: 0,
                     width: 340 * narrowScale,
                   }}
@@ -551,13 +574,13 @@ export default function AboutPage() {
                   <ScrambleSpan
                     defaultText="senior product designer"
                     hoverText="hobby & meme collector"
-                    baseColor={BROWN}
+                    baseColor={BODY}
                   />
                   {" who loves her cat, "}
                   <span
                     onMouseEnter={() => setSoupHovered(true)}
                     onMouseLeave={() => setSoupHovered(false)}
-                    style={{ color: soupHovered ? "var(--color-on-surface-secondary)" : BROWN, transition: "color 0.2s", cursor: "default" }}
+                    style={{ color: soupHovered ? FEATURE : BODY, transition: "color 0.2s", cursor: "default" }}
                   >
                     Soup 🐈‍⬛
                   </span>
@@ -618,7 +641,7 @@ export default function AboutPage() {
                       fontSize: 46,
                       lineHeight: "54px",
                       letterSpacing: "-0.02em",
-                      color: BROWN,
+                      color: BODY,
                       margin: 0,
                       width: 340,
                     }}
@@ -629,13 +652,13 @@ export default function AboutPage() {
                     <ScrambleSpan
                       defaultText="senior product designer"
                       hoverText="hobby & meme collector"
-                      baseColor={BROWN}
+                      baseColor={BODY}
                     />
                     {" who loves her cat, "}
                     <span
                       onMouseEnter={() => setSoupHovered(true)}
                       onMouseLeave={() => setSoupHovered(false)}
-                      style={{ color: soupHovered ? "var(--color-on-surface-secondary)" : BROWN, transition: "color 0.2s", cursor: "default" }}
+                      style={{ color: soupHovered ? FEATURE : BODY, transition: "color 0.2s", cursor: "default" }}
                     >
                       Soup 🐈‍⬛
                     </span>
@@ -716,7 +739,7 @@ export default function AboutPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 144, paddingBottom: 168 }}>
         <div
           ref={introRef}
-          style={{ padding: `32px ${cvSidePad} 0`, scrollMarginTop: 72 }}
+          style={{ width: "100%", maxWidth: 1280, margin: "0 auto", padding: `32px ${cvSidePad} 0`, scrollMarginTop: 72 }}
         >
           {cvIsStack ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
@@ -751,9 +774,9 @@ export default function AboutPage() {
         </div>
 
         {/* Shoutouts */}
-        <div style={{ padding: `0 ${cvSidePad}`, marginTop: -80 }}>
+        <div style={{ width: "100%", maxWidth: 1280, margin: "-80px auto 0", padding: `0 ${cvSidePad}` }}>
           <div style={{ textAlign: "center" }}><SectionHeader>Shoutouts</SectionHeader></div>
-          <div style={{ display: "flex", flexDirection: !cvIsStack && !cvIsCompact ? "row" : "column", gap: 24, alignItems: "stretch", marginTop: 24 }}>
+          <div style={{ display: "flex", flexDirection: !cvIsStack && !cvIsCompact ? "row" : "column", gap: 24, alignItems: "stretch", marginTop: 32 }}>
             <StickyNote t={TESTIMONIALS[0]} rotate={0} />
             <StickyNote t={TESTIMONIALS[1]} rotate={0} />
             <StickyNote t={TESTIMONIALS[2]} rotate={0} />
@@ -763,7 +786,7 @@ export default function AboutPage() {
         {/* Up arrow — desktop */}
         {!isNarrow && (
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} bg={BG} />
+            <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} />
           </div>
         )}
 
@@ -787,7 +810,7 @@ export default function AboutPage() {
         {/* Up arrow — narrow only */}
         {isNarrow && (
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} bg={BG} />
+            <IconButton onClick={scrollToTop} icon={(c, h) => <ArrowUp color={c} hovered={h} />} />
           </div>
         )}
       </div>

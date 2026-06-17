@@ -702,7 +702,7 @@ export default function PortfolioNav({
                   left: 0,
                   right: 0,
                   height: 2,
-                  backgroundColor: "#E4C298",
+                  backgroundColor: "var(--color-nav-underline)",
                   transformOrigin: "left",
                 }}
               />

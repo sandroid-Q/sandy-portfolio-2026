@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-const BROWN = "#4E3A34";
-const GOLD = "#E4C298";
+const TEXT_DEFAULT = "var(--color-on-surface-tertiary)";
+const TEXT_EMPHASIS = "var(--color-on-surface-primary)";
+const UNDERLINE = "var(--color-nav-underline)";
 
 const FLOORS = [
   { key: "G", label: "Ground", href: "/home" },
@@ -19,10 +20,12 @@ const FLOORS = [
 
 function FloorLink({ label, href, isActive }: { label: string; href: string; isActive: boolean }) {
   const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
 
-  const isBold = isActive || hovered;
-  const underlineColor = isActive ? GOLD : BROWN;
-  const underlineHeight = isActive ? 2 : 1;
+  const isEmphasized = isActive || hovered || pressed;
+  const isBold = isEmphasized;
+  const underlineColor = UNDERLINE;
+  const underlineHeight = 2;
 
   const inner = (
     <span
@@ -31,7 +34,7 @@ function FloorLink({ label, href, isActive }: { label: string; href: string; isA
         fontFamily: "var(--font-space-grotesk), system-ui, sans-serif",
         fontWeight: isBold ? 500 : 300,
         fontSize: 12,
-        color: BROWN,
+        color: isEmphasized ? TEXT_EMPHASIS : TEXT_DEFAULT,
         textTransform: "uppercase",
         letterSpacing: "0.1em",
         whiteSpace: "nowrap",
@@ -75,7 +78,12 @@ function FloorLink({ label, href, isActive }: { label: string; href: string; isA
       href={href}
       style={{ textDecoration: "none" }}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={() => {
+        setHovered(false);
+        setPressed(false);
+      }}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
     >
       {inner}
     </Link>
@@ -103,7 +111,7 @@ export default function FloorBreadcrumb({ activeFloor }: { activeFloor: string }
                 fontFamily: "var(--font-space-grotesk), system-ui, sans-serif",
                 fontWeight: 300,
                 fontSize: 14,
-                color: BROWN,
+                color: TEXT_DEFAULT,
                 lineHeight: 1,
               }}
             >

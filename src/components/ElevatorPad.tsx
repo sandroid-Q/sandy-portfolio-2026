@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useAudio } from "@/contexts/AudioContext";
@@ -52,7 +52,7 @@ function BellIcon({ color }: { color: string }) {
   );
 }
 
-function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, hoverAccent, activeContentColor }: { btn: PadButtonDef; onDing: () => void; dark: boolean; bg: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void; onSurface: string; hoverAccent: string; activeContentColor: string }) {
+function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, hoverAccent, activeContentColor, isLightTheme }: { btn: PadButtonDef; onDing: () => void; dark: boolean; bg: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void; onSurface: string; hoverAccent: string; activeContentColor: string; isLightTheme: boolean }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [ringing, setRinging] = useState(false);
@@ -127,6 +127,77 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
     : "0 0 0 0px transparent";
 
   const isContactModal = btn.variant === "contact" && !!onContact;
+
+  // Speech bubble colours from Figma tokens
+  const bubbleBg = "#0034FF";
+  const bubbleBorder = isLightTheme ? "#0034FF" : "#F8F8F8";
+  const bubbleInnerBg = isLightTheme ? "#FFB3D8" : "#0127BA";
+  const bubbleText = isLightTheme ? "#0034FF" : "#F8F8F8";
+
+  const speechBubble = (
+    <AnimatePresence>
+      {effectiveHovered && btn.variant === "about" && (
+        <motion.div
+          key="bubble"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 6 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          style={{
+            position: "absolute",
+            bottom: "calc(100% + 14px)",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 20,
+            pointerEvents: "none",
+          }}
+        >
+          {/* Outer bubble */}
+          <div style={{
+            backgroundColor: bubbleBg,
+            borderRadius: 28,
+            border: `2.5px solid ${bubbleBorder}`,
+            padding: 6,
+            width: 190,
+            boxSizing: "border-box",
+          }}>
+            {/* Inner frame */}
+            <div style={{
+              backgroundColor: bubbleInnerBg,
+              borderRadius: 20,
+              border: `2.5px solid ${bubbleBorder}`,
+              padding: "12px 16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <span style={{
+                fontFamily: "var(--font-space-grotesk)",
+                fontWeight: 500,
+                fontSize: 13,
+                color: bubbleText,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                whiteSpace: "nowrap",
+              }}>
+                Ello gov&apos;na!
+              </span>
+            </div>
+          </div>
+          {/* Triangle tail */}
+          <svg
+            width={24} height={12}
+            viewBox="0 0 24 12"
+            style={{ display: "block", margin: "0 auto", marginTop: -1 }}
+          >
+            <path d="M0 0 L12 12 L24 0 Z" fill={bubbleBg} />
+            <path d="M0 0 L12 12 L24 0" fill="none" stroke={bubbleBorder} strokeWidth={2.5} strokeLinejoin="round" />
+            <line x1={0} y1={1.25} x2={24} y2={1.25} stroke={bubbleBg} strokeWidth={2.5} />
+          </svg>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   const inner = (
     <motion.div
@@ -217,6 +288,20 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
       >
         {inner}
       </button>
+    );
+  }
+
+  if (btn.variant === "about") {
+    return (
+      <div style={{ position: "relative", display: "inline-block" }}>
+        <Link
+          href={btn.href}
+          style={{ display: "block", outline: "none", WebkitTapHighlightColor: "transparent", pointerEvents: isActive ? "none" : "auto" }}
+        >
+          {inner}
+        </Link>
+        {speechBubble}
+      </div>
     );
   }
 
@@ -330,7 +415,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
             }}
           >
             {row.map((btn) => (
-              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} bg={bg} onFloorHover={onFloorHover} onContact={onContact} onSurface={onSurface} hoverAccent={hoverAccent} activeContentColor={activeContentColor} />
+              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} bg={bg} onFloorHover={onFloorHover} onContact={onContact} onSurface={onSurface} hoverAccent={hoverAccent} activeContentColor={activeContentColor} isLightTheme={isLight} />
             ))}
           </div>
         ))}

@@ -9,6 +9,8 @@
   --color-on-surface-primary: #F8F8F8;
   --color-on-surface-secondary: #E7EAF1;
   --color-on-surface-tertiary: #C8CFDE;
+  /* About page body text: secondary in dark mode, primary in light mode */
+  --color-about-body: var(--color-on-surface-secondary);
   --color-surface-quaternary: #0034FF;
   --color-feature-primary: #FFB3D8;
   --color-feature-secondary: #FF82B8;
@@ -25,6 +27,7 @@
   --color-on-surface-primary: #161719;
   --color-on-surface-secondary: #0034FF;
   --color-on-surface-tertiary: #636674;
+  --color-about-body: var(--color-on-surface-primary);
   --color-surface-quaternary: #ffffff;
   --color-feature-primary: #FF82B8;
   --color-feature-secondary: #FFB3D8;
