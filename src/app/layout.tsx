@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Silkscreen, Space_Grotesk, Space_Mono } from "next/font/google";
 import { AudioProvider } from "@/contexts/AudioContext";
 import CustomCursor from "@/components/CustomCursor";
+import LoadingScreen from "@/components/LoadingScreen";
 import "./globals.css";
 
 const silkscreen = Silkscreen({
@@ -41,6 +42,7 @@ export default function RootLayout({
         <AudioProvider>
           <CustomCursor />
           {children}
+          <LoadingScreen />
         </AudioProvider>
       </body>
     </html>
