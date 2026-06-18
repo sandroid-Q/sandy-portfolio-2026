@@ -49,9 +49,10 @@ export default function LoadingScreen() {
     if (typeof window === "undefined") return;
 
     // Play once per browser session — don't replay on hard refresh / deep links.
+    // Hide on the next frame (not synchronously) to avoid a cascading render.
     if (sessionStorage.getItem("loadingShown")) {
-      setShow(false);
-      return;
+      const raf = requestAnimationFrame(() => setShow(false));
+      return () => cancelAnimationFrame(raf);
     }
     sessionStorage.setItem("loadingShown", "1");
 
