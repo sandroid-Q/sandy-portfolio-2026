@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useLayoutEffect, useMemo, Fragment } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useAnimation } from "framer-motion";
+import { motion, useAnimation, useInView, type Variants } from "framer-motion";
 import Image from "next/image";
 import ElevatorPad from "@/components/ElevatorPad";
 import FloorBreadcrumb from "@/components/FloorBreadcrumb";
@@ -101,6 +101,17 @@ const TESTIMONIALS = [
 ];
 
 const SCRAMBLE_CHARS = "abcdefghijklmnopqrstuvwxyz";
+
+// Scroll-in reveal: body rows fade up from nothing, one after another, with smooth ease-in-out.
+const staggerContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
+};
+const fadeUpItem: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.65, 0, 0.35, 1] } },
+};
+const STAGGER_VIEWPORT = { once: true, amount: 0.2 } as const;
 
 function ScrambleSpan({
   defaultText,
@@ -358,9 +369,43 @@ function RevealCurtain() {
   );
 }
 
+// Types `text` once it scrolls into view, with the same blinking caret as the intro
+// (caret disappears on completion).
+function TypewriterText({ text, style }: { text: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "0px 0px -12% 0px" });
+  const graphemes = useMemo(() => toGraphemes(text), [text]);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    if (prefersReducedMotion()) {
+      const raf = requestAnimationFrame(() => setCount(graphemes.length));
+      return () => cancelAnimationFrame(raf);
+    }
+    let i = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      i++;
+      setCount(i);
+      if (i >= graphemes.length) return;
+      timer = setTimeout(tick, typingDelay(graphemes[i - 1]));
+    };
+    timer = setTimeout(tick, 80);
+    return () => clearTimeout(timer);
+  }, [inView, graphemes]);
+
+  return (
+    <span ref={ref} style={style} aria-label={text}>
+      <RevealChars graphemes={graphemes} start={0} count={count} />
+    </span>
+  );
+}
+
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
-    <span
+    <TypewriterText
+      text={typeof children === "string" ? children : String(children)}
       style={{
         display: "block",
         fontFamily: "var(--font-silkscreen)",
@@ -368,9 +413,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
         fontSize: 24,
         color: BROWN,
       }}
-    >
-      {children}
-    </span>
+    />
   );
 }
 
@@ -413,9 +456,15 @@ function WorkSection() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       <SectionHeader>Work</SectionHeader>
-      <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={STAGGER_VIEWPORT}
+        style={{ display: "flex", flexDirection: "column", gap: 28 }}
+      >
         {WORK.map((job) => (
-          <div key={job.company} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <motion.div variants={fadeUpItem} key={job.company} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <Label>{job.company}</Label>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {job.roles.map((r) => (
@@ -425,9 +474,9 @@ function WorkSection() {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -436,9 +485,17 @@ function EducationSection() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       <SectionHeader>Education</SectionHeader>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <Label>University of New South Wales</Label>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={STAGGER_VIEWPORT}
+        style={{ display: "flex", flexDirection: "column", gap: 12 }}
+      >
+        <motion.div variants={fadeUpItem}>
+          <Label>University of New South Wales</Label>
+        </motion.div>
+        <motion.div variants={fadeUpItem} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {EDUCATION_DETAILS.map((item, i) =>
             item.empty ? (
               <div key={i} style={{ height: 8 }} />
@@ -451,8 +508,8 @@ function EducationSection() {
               </span>
             )
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
@@ -461,25 +518,31 @@ function SkillsSection({ oneCol = false }: { oneCol?: boolean }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       <SectionHeader>Skills</SectionHeader>
-      <div style={{ display: "grid", gridTemplateColumns: oneCol ? "1fr" : "1fr 1fr", gap: "24px 32px" }}>
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={STAGGER_VIEWPORT}
+        style={{ display: "grid", gridTemplateColumns: oneCol ? "1fr" : "1fr 1fr", gap: "24px 32px" }}
+      >
         {SKILLS.map((skill) => (
-          <div key={skill.label} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <motion.div variants={fadeUpItem} key={skill.label} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <span style={{ display: "block", fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BODY }}>{skill.label}</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {skill.items.map((item) => (
                 <Detail key={item}>{item}</Detail>
               ))}
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-function StickyNote({ t, rotate, color = "#FBD5E8", quoteColor = "var(--color-on-surface-secondary)" }: { t: typeof TESTIMONIALS[0]; rotate: number; color?: string; quoteColor?: string }) {
+function StickyNote({ t, color = "#FBD5E8", quoteColor = "var(--color-on-surface-secondary)" }: { t: typeof TESTIMONIALS[0]; color?: string; quoteColor?: string }) {
   return (
-    <div className="testimonial-card" style={{
+    <motion.div variants={fadeUpItem} className="testimonial-card" style={{
       position: "relative",
       flex: 1,
       backgroundColor: color,
@@ -487,7 +550,6 @@ function StickyNote({ t, rotate, color = "#FBD5E8", quoteColor = "var(--color-on
       display: "flex",
       flexDirection: "column",
       gap: 40,
-      transform: `rotate(${rotate}deg)`,
       borderRadius: 20,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -534,7 +596,7 @@ function StickyNote({ t, rotate, color = "#FBD5E8", quoteColor = "var(--color-on
           {t.title}
         </span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -928,11 +990,17 @@ export default function AboutPage() {
         {/* Shoutouts */}
         <div style={{ width: "100%", maxWidth: 1280, margin: "-80px auto 0", padding: `0 ${cvSidePad}` }}>
           <div style={{ textAlign: "center" }}><SectionHeader>Shoutouts</SectionHeader></div>
-          <div style={{ display: "flex", flexDirection: !cvIsStack && !cvIsCompact ? "row" : "column", gap: 24, alignItems: "stretch", marginTop: 36 }}>
-            <StickyNote t={TESTIMONIALS[0]} rotate={0} />
-            <StickyNote t={TESTIMONIALS[1]} rotate={0} />
-            <StickyNote t={TESTIMONIALS[2]} rotate={0} />
-          </div>
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={STAGGER_VIEWPORT}
+            style={{ display: "flex", flexDirection: !cvIsStack && !cvIsCompact ? "row" : "column", gap: 24, alignItems: "stretch", marginTop: 36 }}
+          >
+            <StickyNote t={TESTIMONIALS[0]} />
+            <StickyNote t={TESTIMONIALS[1]} />
+            <StickyNote t={TESTIMONIALS[2]} />
+          </motion.div>
         </div>
 
         {/* Up arrow — desktop */}
