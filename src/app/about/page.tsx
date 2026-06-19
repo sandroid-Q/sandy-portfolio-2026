@@ -8,6 +8,7 @@ import ElevatorPad from "@/components/ElevatorPad";
 import FloorBreadcrumb from "@/components/FloorBreadcrumb";
 import PortfolioNav from "@/components/PortfolioNav";
 import ContactModal from "@/components/ContactModal";
+import { useAudio } from "@/contexts/AudioContext";
 
 const BG = "var(--color-surface-primary)";
 const HERO_BG = "var(--color-surface-primary)";
@@ -404,6 +405,7 @@ function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
 }
 
 function IconButton({ onClick, icon }: { onClick: () => void; icon: (c: string, h: boolean) => React.ReactNode }) {
+  const { playButton } = useAudio();
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [isLight, setIsLight] = useState(false);
@@ -430,7 +432,7 @@ function IconButton({ onClick, icon }: { onClick: () => void; icon: (c: string, 
 
   return (
     <button
-      onClick={onClick}
+      onClick={() => { playButton(); onClick(); }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setPressed(false); }}
       onMouseDown={() => setPressed(true)}

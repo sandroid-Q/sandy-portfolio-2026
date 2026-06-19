@@ -9,6 +9,7 @@ import PortfolioNav from "@/components/PortfolioNav";
 import IDCard from "@/components/IDCard";
 import ElevatorPad from "@/components/ElevatorPad";
 import ContactModal from "@/components/ContactModal";
+import { useAudio } from "@/contexts/AudioContext";
 
 const SCALE_MIN = 0.8;
 
@@ -80,6 +81,7 @@ function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
 }
 
 function IconButton({ onClick, icon }: { onClick: () => void; icon: (color: string, hovered: boolean) => React.ReactNode }) {
+  const { playButton } = useAudio();
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [isLight, setIsLight] = useState(false);
@@ -106,7 +108,7 @@ function IconButton({ onClick, icon }: { onClick: () => void; icon: (color: stri
 
   return (
     <button
-      onClick={onClick}
+      onClick={() => { playButton(); onClick(); }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setPressed(false); }}
       onMouseDown={() => setPressed(true)}

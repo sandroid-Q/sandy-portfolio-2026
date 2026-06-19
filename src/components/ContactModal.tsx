@@ -198,6 +198,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
   const { muted } = useAudio();
   const bellRef = useRef<HTMLAudioElement | null>(null);
   const beansRef = useRef<HTMLAudioElement | null>(null);
+  const closeRef = useRef<HTMLAudioElement | null>(null);
   const beansTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [copied, setCopied] = useState(false);
   const [rainKey, setRainKey] = useState(0);
@@ -205,8 +206,17 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
   useEffect(() => {
     bellRef.current = new Audio("/bell.mp3");
     beansRef.current = new Audio("/beans.mp3");
+    closeRef.current = new Audio("/close.mp3");
     return () => { if (beansTimerRef.current) clearTimeout(beansTimerRef.current); };
   }, []);
+
+  const handleClose = () => {
+    if (closeRef.current && !muted) {
+      closeRef.current.currentTime = 0;
+      closeRef.current.play().catch(() => {});
+    }
+    onClose();
+  };
 
   useEffect(() => {
     if (open && bellRef.current && !muted) {
@@ -296,7 +306,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               >
                 {/* Close button */}
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   aria-label="Close"
                   style={{
                     position: "absolute",

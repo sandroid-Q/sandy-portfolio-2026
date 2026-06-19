@@ -25,6 +25,7 @@ function CoverPageInner() {
   const [vw, setVw] = useState(1200);
   const dingRef = useRef<HTMLAudioElement | null>(null);
   const enterRef = useRef<HTMLAudioElement | null>(null);
+  const teleportRef = useRef<HTMLAudioElement | null>(null);
 
   const handleEnter = () => {
     if (exiting) return;
@@ -33,17 +34,23 @@ function CoverPageInner() {
       enterRef.current.currentTime = 0;
       enterRef.current.play().catch(() => {});
     }
+    if (teleportRef.current) {
+      teleportRef.current.currentTime = 0;
+      teleportRef.current.play().catch(() => {});
+    }
     setTimeout(() => router.push("/home"), 430);
   };
 
   useEffect(() => {
     dingRef.current = new Audio("/elevator-ding.mp3");
     enterRef.current = new Audio("/elevator-enter.mp3");
+    teleportRef.current = new Audio("/teleport.mp3");
   }, []);
 
   useEffect(() => {
     if (dingRef.current) dingRef.current.volume = muted ? 0 : 1;
     if (enterRef.current) enterRef.current.volume = muted ? 0 : 1;
+    if (teleportRef.current) teleportRef.current.volume = muted ? 0 : 1;
   }, [muted]);
 
   useEffect(() => {

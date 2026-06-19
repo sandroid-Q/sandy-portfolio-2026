@@ -6,9 +6,10 @@ import { usePathname } from "next/navigation";
 interface AudioContextValue {
   muted: boolean;
   setMuted: (v: boolean) => void;
+  playButton: () => void;
 }
 
-const AudioCtx = createContext<AudioContextValue>({ muted: false, setMuted: () => {} });
+const AudioCtx = createContext<AudioContextValue>({ muted: false, setMuted: () => {}, playButton: () => {} });
 
 const MUSIC_ROUTES = new Set(["/", "/home", "/about"]);
 const TRACKS = ["/jazz-1.mp3", "/jazz-2.mp3", "/jazz-3.mp3"];
@@ -16,9 +17,21 @@ const TRACKS = ["/jazz-1.mp3", "/jazz-2.mp3", "/jazz-3.mp3"];
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [muted, setMutedState] = useState(false);
   const bgRef = useRef<HTMLAudioElement | null>(null);
+  const buttonRef = useRef<HTMLAudioElement | null>(null);
   const trackIndexRef = useRef(0);
   const mutedRef = useRef(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    buttonRef.current = new Audio("/button.mp3");
+  }, []);
+
+  const playButton = () => {
+    const sfx = buttonRef.current;
+    if (!sfx || mutedRef.current) return;
+    sfx.currentTime = 0;
+    sfx.play().catch(() => {});
+  };
 
   useEffect(() => {
     const audio = new Audio(TRACKS[0]);
@@ -86,7 +99,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  return <AudioCtx.Provider value={{ muted, setMuted }}>{children}</AudioCtx.Provider>;
+  return <AudioCtx.Provider value={{ muted, setMuted, playButton }}>{children}</AudioCtx.Provider>;
 }
 
 export const useAudio = () => useContext(AudioCtx);
