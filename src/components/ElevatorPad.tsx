@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValue, type MotionValue } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useAudio } from "@/contexts/AudioContext";
@@ -52,7 +52,22 @@ function BellIcon({ color }: { color: string }) {
   );
 }
 
-function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, hoverAccent, activeContentColor }: { btn: PadButtonDef; onDing: () => void; dark: boolean; bg: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void; onSurface: string; hoverAccent: string; activeContentColor: string }) {
+interface PadButtonProps {
+  btn: PadButtonDef;
+  onDing: () => void;
+  dark: boolean;
+  bg: string;
+  onFloorHover?: (floor: string | null) => void;
+  onContact?: () => void;
+  onSurface: string;
+  hoverAccent: string;
+  activeContentColor: string;
+  // When provided, drives a scroll-linked reveal: 0 = hidden, 1 = fully shown.
+  // Outer ring draws in first, then inner ring, then the content/number fades in.
+  revealProgress?: MotionValue<number>;
+}
+
+function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, hoverAccent, activeContentColor, revealProgress }: PadButtonProps) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [ringing, setRinging] = useState(false);
@@ -73,6 +88,17 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
       if (ringTimeoutRef.current) clearTimeout(ringTimeoutRef.current);
     };
   }, []);
+
+  // Scroll-linked reveal. Falls back to 1 (fully shown) when no progress is
+  // supplied, so non-Home usages render statically. Staggered windows make the
+  // outer ring draw in first, then the inner ring, then the content.
+  const fallbackReveal = useMotionValue(1);
+  const reveal = revealProgress ?? fallbackReveal;
+  const outerOpacity   = useTransform(reveal, [0, 0.25], [0, 1]);
+  const outerScale     = useTransform(reveal, [0, 0.35], [0.4, 1]);
+  const innerOpacity   = useTransform(reveal, [0.3, 0.6], [0, 1]);
+  const innerScale     = useTransform(reveal, [0.3, 0.65], [0.4, 1]);
+  const contentOpacity = useTransform(reveal, [0.65, 1], [0, 1]);
 
   const startRing = () => {
     if (ringing) return;
@@ -151,6 +177,8 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
       onTouchStart={() => { if (ringing) return; setPressed(true); }}
       onTouchEnd={() => setPressed(false)}
       style={{
+        scale: outerScale,
+        opacity: outerOpacity,
         borderRadius: "50%",
         border: `2px solid ${stroke}`,
         padding: 10,
@@ -167,6 +195,8 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
         animate={{ backgroundColor: innerBg, borderColor: innerBorderColor, boxShadow: innerShadow }}
         transition={{ duration: 0.12 }}
         style={{
+          scale: innerScale,
+          opacity: innerOpacity,
           width: 80,
           height: 80,
           borderRadius: "50%",
@@ -187,6 +217,7 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
             animate={{ color: contentColor }}
             transition={{ duration: 0.12 }}
             style={{
+              opacity: contentOpacity,
               fontFamily: "var(--font-silkscreen)",
               fontSize: 60,
               lineHeight: 1,
@@ -196,15 +227,21 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
           </motion.span>
         )}
         {btn.variant === "about" && (
-          <Image
-            src="/sandy-avatar.png"
-            alt="About Sandy"
-            width={66}
-            height={66}
-            style={{ borderRadius: 40 }}
-          />
+          <motion.div style={{ opacity: contentOpacity, display: "flex" }}>
+            <Image
+              src="/sandy-avatar.png"
+              alt="About Sandy"
+              width={66}
+              height={66}
+              style={{ borderRadius: 40 }}
+            />
+          </motion.div>
         )}
-        {btn.variant === "contact" && <BellIcon color={contentColor} />}
+        {btn.variant === "contact" && (
+          <motion.div style={{ opacity: contentOpacity, display: "flex" }}>
+            <BellIcon color={contentColor} />
+          </motion.div>
+        )}
       </motion.div>
     </motion.div>
   );
@@ -230,10 +267,36 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
   );
 }
 
-export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, bg = "var(--color-surface-primary)", onFloorHover, onContact }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; bg?: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void }) {
+// Carves a staggered slice out of the pad's overall scroll progress so buttons
+// reveal in document order (top row first) as the pad scrolls into view, and
+// un-reveal on the way back up. SPAN is each button's reveal duration; the
+// remaining range is divided evenly into the stagger between buttons.
+const REVEAL_SPAN = 0.5;
+
+function RevealPadButton({ scrollYProgress, index, total, ...rest }: PadButtonProps & { scrollYProgress: MotionValue<number>; index: number; total: number }) {
+  const gap = total > 1 ? (1 - REVEAL_SPAN) / (total - 1) : 0;
+  const start = index * gap;
+  const revealProgress = useTransform(scrollYProgress, [start, start + REVEAL_SPAN], [0, 1]);
+  return <PadButton {...rest} revealProgress={revealProgress} />;
+}
+
+export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, bg = "var(--color-surface-primary)", onFloorHover, onContact, scrollReveal = false }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; bg?: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void; scrollReveal?: boolean }) {
   const { muted } = useAudio();
   const dingRef = useRef<HTMLAudioElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isLight, setIsLight] = useState(false);
+
+  // Scroll-linked reveal for the Home page. Progress runs 0 → 1 as the pad
+  // rises from the bottom of the viewport up toward the centre, and reverses
+  // when scrolling back up. Buttons stagger across this range.
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end center"],
+    // Use a passive effect so the ref is measured after hydration commits,
+    // avoiding "target ref defined but not hydrated" when the Home page swaps
+    // pad layouts on mount.
+    layoutEffect: false,
+  });
 
   useEffect(() => {
     dingRef.current = new Audio("/elevator-ding.mp3");
@@ -274,9 +337,16 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
     }))
   );
 
+  // Flatten to a running index so reveal order spans rows top-to-bottom.
+  const rowStartIndex: number[] = [];
+  rows.reduce((acc, row, i) => { rowStartIndex[i] = acc; return acc + row.length; }, 0);
+  const totalButtons = rows.reduce((acc, row) => acc + row.length, 0);
+
   return (
     <div
+      ref={containerRef}
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -329,9 +399,14 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
               gap: 60,
             }}
           >
-            {row.map((btn) => (
-              <PadButton key={btn.href} btn={btn} onDing={playDing} dark={dark} bg={bg} onFloorHover={onFloorHover} onContact={onContact} onSurface={onSurface} hoverAccent={hoverAccent} activeContentColor={activeContentColor} />
-            ))}
+            {row.map((btn, colIdx) => {
+              const sharedProps = { btn, onDing: playDing, dark, bg, onFloorHover, onContact, onSurface, hoverAccent, activeContentColor };
+              return scrollReveal ? (
+                <RevealPadButton key={btn.href} scrollYProgress={scrollYProgress} index={rowStartIndex[rowIdx] + colIdx} total={totalButtons} {...sharedProps} />
+              ) : (
+                <PadButton key={btn.href} {...sharedProps} />
+              );
+            })}
           </div>
         ))}
       </div>
