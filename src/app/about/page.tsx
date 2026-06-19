@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useLayoutEffect } from "react";
+import { useRef, useState, useEffect, useLayoutEffect, useMemo, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useAnimation } from "framer-motion";
 import Image from "next/image";
@@ -175,6 +175,186 @@ function ScrambleSpan({
     >
       {displayState}
     </span>
+  );
+}
+
+// The intro as ordered segments. "scramble"/"soup" become interactive (hover) once typing finishes.
+const INTRO_SEGMENTS: Array<{ kind: "text" | "br" | "scramble" | "soup"; text?: string }> = [
+  { kind: "text", text: "Hello, it's" },
+  { kind: "br" },
+  { kind: "text", text: " Sandy here. A " },
+  { kind: "scramble", text: "senior product designer" },
+  { kind: "text", text: " who loves her cat, " },
+  { kind: "soup", text: "Soup 🐈‍⬛" },
+];
+const INTRO_PLAIN = INTRO_SEGMENTS.map((s) => s.text ?? " ").join("");
+
+interface GraphemeSegmenter { segment(input: string): Iterable<{ segment: string }> }
+type SegmenterCtor = new (locales?: string, options?: { granularity: "grapheme" }) => GraphemeSegmenter;
+
+// Split into user-perceived characters so multi-codepoint emoji (🐈‍⬛) reveal as one unit.
+function toGraphemes(str: string): string[] {
+  const Seg = (Intl as unknown as { Segmenter?: SegmenterCtor }).Segmenter;
+  if (Seg) return Array.from(new Seg(undefined, { granularity: "grapheme" }).segment(str), (s) => s.segment);
+  return Array.from(str);
+}
+
+// Per-character delay: quick base + jitter, with longer pauses after punctuation so it reads as natural typing.
+function typingDelay(justTyped: string): number {
+  let d = 12 + Math.random() * 26;
+  if (justTyped === ",") d += 130;
+  else if (justTyped === ".") d += 210;
+  else if (justTyped === "'") d += 22;
+  else if (justTyped === " ") d += 8;
+  return d;
+}
+
+function prefersReducedMotion(): boolean {
+  return typeof window !== "undefined" && (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
+}
+
+// Blinking caret in feature-primary, sized relative to the surrounding text.
+function Caret() {
+  return (
+    <motion.span
+      aria-hidden
+      style={{
+        display: "inline-block",
+        width: "0.07em",
+        height: "0.92em",
+        backgroundColor: FEATURE,
+        marginLeft: "0.06em",
+        borderRadius: 1,
+        verticalAlign: "-0.12em",
+      }}
+      animate={{ opacity: [1, 1, 0, 0] }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear", times: [0, 0.5, 0.5, 1] }}
+    />
+  );
+}
+
+// Renders every grapheme up front (so layout is final from the first frame) and reveals them
+// in place via visibility. The caret is injected at the current reveal boundary.
+function RevealChars({ graphemes, start, count }: { graphemes: string[]; start: number; count: number }) {
+  return (
+    <>
+      {graphemes.map((g, i) => {
+        const gi = start + i;
+        return (
+          <Fragment key={i}>
+            {gi === count && <Caret />}
+            <span style={{ visibility: gi < count ? "visible" : "hidden" }}>{g}</span>
+          </Fragment>
+        );
+      })}
+    </>
+  );
+}
+
+// Types the intro on landing. The full paragraph is laid out from frame 1 (characters hidden, not
+// removed), so text reveals exactly where it finally lands — no reflow. scramble/soup swap to their
+// interactive versions on completion, at identical width, so there's no shift afterwards either.
+function IntroParagraph({
+  pStyle,
+  soupHovered,
+  setSoupHovered,
+}: {
+  pStyle: React.CSSProperties;
+  soupHovered: boolean;
+  setSoupHovered: (v: boolean) => void;
+}) {
+  const segs = useMemo(() => {
+    const perSeg = INTRO_SEGMENTS.map((s) => (s.text ? toGraphemes(s.text) : []));
+    return INTRO_SEGMENTS.map((s, i) => ({
+      ...s,
+      graphemes: perSeg[i],
+      start: perSeg.slice(0, i).reduce((sum, g) => sum + g.length, 0),
+    }));
+  }, []);
+  const flat = useMemo(() => segs.flatMap((s) => s.graphemes), [segs]);
+  const total = flat.length;
+
+  const [count, setCount] = useState(0);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (prefersReducedMotion()) {
+      const raf = requestAnimationFrame(() => {
+        setCount(total);
+        setDone(true);
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+    let i = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      i++;
+      setCount(i);
+      if (i >= total) {
+        setDone(true);
+        return;
+      }
+      timer = setTimeout(tick, typingDelay(flat[i - 1]));
+    };
+    timer = setTimeout(tick, 220);
+    return () => clearTimeout(timer);
+  }, [flat, total]);
+
+  return (
+    <p style={pStyle} aria-label={INTRO_PLAIN}>
+      {segs.map((s, idx) => {
+        if (s.kind === "br") return <br key={idx} />;
+        if (s.kind === "scramble") {
+          return done ? (
+            <ScrambleSpan
+              key={idx}
+              defaultText="senior product designer"
+              hoverText="hobby & meme collector"
+              baseColor={BODY}
+            />
+          ) : (
+            <span key={idx} style={{ display: "inline-block" }}>
+              <RevealChars graphemes={s.graphemes} start={s.start} count={count} />
+            </span>
+          );
+        }
+        if (s.kind === "soup") {
+          return done ? (
+            <span
+              key={idx}
+              onMouseEnter={() => setSoupHovered(true)}
+              onMouseLeave={() => setSoupHovered(false)}
+              style={{ color: soupHovered ? FEATURE : BODY, transition: "color 0.2s", cursor: "default" }}
+            >
+              Soup 🐈‍⬛
+            </span>
+          ) : (
+            <RevealChars key={idx} graphemes={s.graphemes} start={s.start} count={count} />
+          );
+        }
+        return <RevealChars key={idx} graphemes={s.graphemes} start={s.start} count={count} />;
+      })}
+    </p>
+  );
+}
+
+// Background-coloured panel covering a photo, sliding down on landing to reveal the image top-first.
+function RevealCurtain() {
+  const [reduce, setReduce] = useState(false);
+  useEffect(() => {
+    if (!prefersReducedMotion()) return;
+    const raf = requestAnimationFrame(() => setReduce(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  if (reduce) return null;
+  return (
+    <motion.div
+      aria-hidden
+      initial={{ y: 0 }}
+      animate={{ y: "101%" }}
+      transition={{ duration: 1.25, ease: [0.4, 0, 0.2, 1], delay: 0.15 }}
+      style={{ position: "absolute", inset: 0, backgroundColor: HERO_BG, zIndex: 4 }}
+    />
   );
 }
 
@@ -555,8 +735,8 @@ export default function AboutPage() {
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 style={{ display: "flex", flexDirection: "column", gap: 48 }}
               >
-                <p
-                  style={{
+                <IntroParagraph
+                  pStyle={{
                     fontFamily: "var(--font-space-grotesk)",
                     fontWeight: 500,
                     fontSize: 46 * narrowScale,
@@ -566,24 +746,9 @@ export default function AboutPage() {
                     margin: 0,
                     width: 340 * narrowScale,
                   }}
-                >
-                  {"Hello, it's"}
-                  <br />
-                  {" Sandy here. A "}
-                  <ScrambleSpan
-                    defaultText="senior product designer"
-                    hoverText="hobby & meme collector"
-                    baseColor={BODY}
-                  />
-                  {" who loves her cat, "}
-                  <span
-                    onMouseEnter={() => setSoupHovered(true)}
-                    onMouseLeave={() => setSoupHovered(false)}
-                    style={{ color: soupHovered ? FEATURE : BODY, transition: "color 0.2s", cursor: "default" }}
-                  >
-                    Soup 🐈‍⬛
-                  </span>
-                </p>
+                  soupHovered={soupHovered}
+                  setSoupHovered={setSoupHovered}
+                />
                 <div
                   onMouseEnter={() => setProfileHovered(true)}
                   onMouseLeave={() => setProfileHovered(false)}
@@ -592,6 +757,7 @@ export default function AboutPage() {
                   <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
                     <Image src="/sandy-qi.jpeg" fill sizes="210px" alt="Sandy Qi"
                       style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                    <RevealCurtain />
                   </div>
                   {profileHovered && (
                     <Image src="/me-azer.JPG" width={345} height={230} alt="Sandy alt"
@@ -633,8 +799,8 @@ export default function AboutPage() {
                 }}
               >
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: isMedium ? 48 : 24 }}>
-                  <p
-                    style={{
+                  <IntroParagraph
+                    pStyle={{
                       fontFamily: "var(--font-space-grotesk)",
                       fontWeight: 500,
                       fontSize: 46,
@@ -644,24 +810,9 @@ export default function AboutPage() {
                       margin: 0,
                       width: 340,
                     }}
-                  >
-                    {"Hello, it's"}
-                    <br />
-                    {" Sandy here. A "}
-                    <ScrambleSpan
-                      defaultText="senior product designer"
-                      hoverText="hobby & meme collector"
-                      baseColor={BODY}
-                    />
-                    {" who loves her cat, "}
-                    <span
-                      onMouseEnter={() => setSoupHovered(true)}
-                      onMouseLeave={() => setSoupHovered(false)}
-                      style={{ color: soupHovered ? FEATURE : BODY, transition: "color 0.2s", cursor: "default" }}
-                    >
-                      Soup 🐈‍⬛
-                    </span>
-                  </p>
+                    soupHovered={soupHovered}
+                    setSoupHovered={setSoupHovered}
+                  />
 
                   {/* Medium only: photo under the text in the left column */}
                   {isMedium && (
@@ -673,6 +824,7 @@ export default function AboutPage() {
                       <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
                         <Image src="/sandy-qi.jpeg" fill sizes="280px" alt="Sandy Qi"
                           style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                        <RevealCurtain />
                       </div>
                       {profileHovered && (
                         <Image src="/me-azer.JPG" width={345} height={230} alt="Sandy alt"
@@ -714,6 +866,7 @@ export default function AboutPage() {
                     <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
                       <Image src="/sandy-qi.jpeg" fill sizes="280px" alt="Sandy Qi"
                         style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                      <RevealCurtain />
                     </div>
                     {profileHovered && (
                       <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
