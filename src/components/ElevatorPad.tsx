@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion, useScroll, useTransform, useMotionValue, type MotionValue } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useAudio } from "@/contexts/AudioContext";
@@ -9,6 +9,15 @@ import { useAudio } from "@/contexts/AudioContext";
 const BROWN = "#4E3A34";
 const RED = "#DE211D";
 const BG = "#F3F2F0";
+
+// Button geometry (px). The two concentric rings are drawn as SVG circle
+// strokes so their outline can sweep on around the circle during the scroll
+// reveal; the fills and content sit in divs beneath the SVG overlay.
+const BTN_SIZE = 108;
+const OUTER_R = 53;
+const INNER_R = 41;
+const INNER_FILL = 80;
+const STROKE_W = 2;
 
 type ButtonVariant = "floor" | "about" | "contact";
 
@@ -62,12 +71,14 @@ interface PadButtonProps {
   onSurface: string;
   hoverAccent: string;
   activeContentColor: string;
-  // When provided, drives a scroll-linked reveal: 0 = hidden, 1 = fully shown.
-  // Outer ring draws in first, then inner ring, then the content/number fades in.
-  revealProgress?: MotionValue<number>;
+  // When set, the rings draw on once the first time the pad scrolls into view
+  // (outer ring, then inner, then content). `delay` is this button's stagger
+  // offset; `play` flips true when in view. Absent on non-Home usages, which
+  // render fully drawn with no animation.
+  reveal?: { delay: number; play: boolean };
 }
 
-function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, hoverAccent, activeContentColor, revealProgress }: PadButtonProps) {
+function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, hoverAccent, activeContentColor, reveal }: PadButtonProps) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [ringing, setRinging] = useState(false);
@@ -89,16 +100,19 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
     };
   }, []);
 
-  // Scroll-linked reveal. Falls back to 1 (fully shown) when no progress is
-  // supplied, so non-Home usages render statically. Staggered windows make the
-  // outer ring draw in first, then the inner ring, then the content.
-  const fallbackReveal = useMotionValue(1);
-  const reveal = revealProgress ?? fallbackReveal;
-  const outerOpacity   = useTransform(reveal, [0, 0.25], [0, 1]);
-  const outerScale     = useTransform(reveal, [0, 0.35], [0.4, 1]);
-  const innerOpacity   = useTransform(reveal, [0.3, 0.6], [0, 1]);
-  const innerScale     = useTransform(reveal, [0.3, 0.65], [0.4, 1]);
-  const contentOpacity = useTransform(reveal, [0.65, 1], [0, 1]);
+  // One-time draw-on animation (Home only). Timing is deliberately slow so the
+  // stroke sweep is visible as the pad scrolls into view; the sequence runs
+  // outer ring → inner ring → content. Non-Home usages render fully drawn.
+  const drawing = !!reveal;
+  const play = reveal?.play ?? false;
+  const base = reveal?.delay ?? 0;
+  const OUTER_DUR = 0.45;
+  const INNER_DUR = 0.45;
+  const CONTENT_DUR = 0.3;
+  const innerDelay = base + 0.28;
+  const contentDelay = base + 0.62;
+  const drawTarget = drawing ? (play ? 1 : 0) : 1; // pathLength
+  const contentTarget = drawing ? (play ? 1 : 0) : 1; // opacity
 
   const startRing = () => {
     if (ringing) return;
@@ -154,96 +168,147 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
 
   const isContactModal = btn.variant === "contact" && !!onContact;
 
+  const center = BTN_SIZE / 2;
+  // Start the stroke sweep from the left of each circle (9 o'clock).
+  const drawFromLeft = `rotate(180 ${center} ${center})`;
+
   const inner = (
-    <motion.div
-      initial={false}
-      animate={outerAnimate}
-      transition={{ duration: 0.12 }}
-      onHoverStart={() => {
-        if (ringing) return;
-        setHovered(true);
-        playPop();
-        if (btn.variant === "floor") onFloorHover?.(btn.label ?? null);
-        else if (btn.variant === "about") onFloorHover?.("about");
-      }}
-      onHoverEnd={() => {
-        if (ringing) return;
-        setHovered(false);
-        setPressed(false);
-        if (btn.variant === "floor" || btn.variant === "about") onFloorHover?.(null);
-      }}
-      onMouseDown={() => { if (ringing) return; setPressed(true); if (!isContactModal) onDing(); }}
-      onMouseUp={() => setPressed(false)}
-      onTouchStart={() => { if (ringing) return; setPressed(true); }}
-      onTouchEnd={() => setPressed(false)}
+    <div
       style={{
-        scale: outerScale,
-        opacity: outerOpacity,
-        borderRadius: "50%",
-        border: `2px solid ${stroke}`,
-        padding: 10,
-        overflow: dark ? "hidden" : undefined,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        position: "relative",
+        width: BTN_SIZE,
+        height: BTN_SIZE,
         cursor: isActive ? "default" : ringing ? "wait" : "pointer",
         userSelect: "none",
       }}
     >
+      {/* Fills + content. Ring outlines are drawn by the SVG overlay below. */}
       <motion.div
         initial={false}
-        animate={{ backgroundColor: innerBg, borderColor: innerBorderColor, boxShadow: innerShadow }}
+        animate={outerAnimate}
         transition={{ duration: 0.12 }}
+        onHoverStart={() => {
+          if (ringing) return;
+          setHovered(true);
+          playPop();
+          if (btn.variant === "floor") onFloorHover?.(btn.label ?? null);
+          else if (btn.variant === "about") onFloorHover?.("about");
+        }}
+        onHoverEnd={() => {
+          if (ringing) return;
+          setHovered(false);
+          setPressed(false);
+          if (btn.variant === "floor" || btn.variant === "about") onFloorHover?.(null);
+        }}
+        onMouseDown={() => { if (ringing) return; setPressed(true); if (!isContactModal) onDing(); }}
+        onMouseUp={() => setPressed(false)}
+        onTouchStart={() => { if (ringing) return; setPressed(true); }}
+        onTouchEnd={() => setPressed(false)}
         style={{
-          scale: innerScale,
-          opacity: innerOpacity,
-          width: 80,
-          height: 80,
+          position: "absolute",
+          inset: 0,
           borderRadius: "50%",
-          borderWidth: 2,
-          borderStyle: "solid",
+          overflow: dark ? "hidden" : undefined,
           display: "flex",
-          flexDirection: "column",
-          ...(btn.variant === "floor"
-            ? { justifyContent: "center", alignItems: "center", paddingBottom: 8 }
-            : btn.variant === "about"
-            ? { justifyContent: "flex-end", alignItems: "center", paddingBottom: 2 }
-            : { justifyContent: "center", alignItems: "center" }),
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        {btn.variant === "floor" && (
-          <motion.span
-            initial={false}
-            animate={{ color: contentColor }}
-            transition={{ duration: 0.12 }}
-            style={{
-              opacity: contentOpacity,
-              fontFamily: "var(--font-silkscreen)",
-              fontSize: 60,
-              lineHeight: 1,
-            }}
-          >
-            {btn.label}
-          </motion.span>
-        )}
-        {btn.variant === "about" && (
-          <motion.div style={{ opacity: contentOpacity, display: "flex" }}>
-            <Image
-              src="/sandy-avatar.png"
-              alt="About Sandy"
-              width={66}
-              height={66}
-              style={{ borderRadius: 40 }}
-            />
-          </motion.div>
-        )}
-        {btn.variant === "contact" && (
-          <motion.div style={{ opacity: contentOpacity, display: "flex" }}>
-            <BellIcon color={contentColor} />
-          </motion.div>
-        )}
+        <motion.div
+          initial={false}
+          animate={{ backgroundColor: innerBg, boxShadow: innerShadow }}
+          transition={{ duration: 0.12 }}
+          style={{
+            width: INNER_FILL,
+            height: INNER_FILL,
+            borderRadius: "50%",
+            display: "flex",
+            flexDirection: "column",
+            ...(btn.variant === "floor"
+              ? { justifyContent: "center", alignItems: "center", paddingBottom: 8 }
+              : btn.variant === "about"
+              ? { justifyContent: "flex-end", alignItems: "center", paddingBottom: 2 }
+              : { justifyContent: "center", alignItems: "center" }),
+          }}
+        >
+          {btn.variant === "floor" && (
+            <motion.span
+              initial={drawing ? { opacity: 0 } : false}
+              animate={{ color: contentColor, opacity: contentTarget }}
+              transition={{ color: { duration: 0.12 }, opacity: { duration: CONTENT_DUR, delay: drawing ? contentDelay : 0 } }}
+              style={{
+                fontFamily: "var(--font-silkscreen)",
+                fontSize: 60,
+                lineHeight: 1,
+              }}
+            >
+              {btn.label}
+            </motion.span>
+          )}
+          {btn.variant === "about" && (
+            <motion.div
+              initial={drawing ? { opacity: 0 } : false}
+              animate={{ opacity: contentTarget }}
+              transition={{ duration: CONTENT_DUR, delay: drawing ? contentDelay : 0 }}
+              style={{ display: "flex" }}
+            >
+              <Image
+                src="/sandy-avatar.png"
+                alt="About Sandy"
+                width={66}
+                height={66}
+                style={{ borderRadius: 40 }}
+              />
+            </motion.div>
+          )}
+          {btn.variant === "contact" && (
+            <motion.div
+              initial={drawing ? { opacity: 0 } : false}
+              animate={{ opacity: contentTarget }}
+              transition={{ duration: CONTENT_DUR, delay: drawing ? contentDelay : 0 }}
+              style={{ display: "flex" }}
+            >
+              <BellIcon color={contentColor} />
+            </motion.div>
+          )}
+        </motion.div>
       </motion.div>
-    </motion.div>
+
+      {/* Outline strokes — pathLength sweeps them on from the left as the
+          pad scrolls into view (outer ring first, then inner). */}
+      <svg
+        width={BTN_SIZE}
+        height={BTN_SIZE}
+        viewBox={`0 0 ${BTN_SIZE} ${BTN_SIZE}`}
+        style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}
+      >
+        <motion.circle
+          cx={center}
+          cy={center}
+          r={OUTER_R}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={STROKE_W}
+          strokeLinecap="butt"
+          transform={drawFromLeft}
+          initial={drawing ? { pathLength: 0 } : false}
+          animate={{ pathLength: drawTarget }}
+          transition={{ duration: OUTER_DUR, delay: drawing ? base : 0, ease: "easeInOut" }}
+        />
+        <motion.circle
+          cx={center}
+          cy={center}
+          r={INNER_R}
+          fill="none"
+          strokeWidth={STROKE_W}
+          strokeLinecap="butt"
+          transform={drawFromLeft}
+          initial={drawing ? { pathLength: 0 } : false}
+          animate={{ stroke: innerBorderColor, pathLength: drawTarget }}
+          transition={{ stroke: { duration: 0.12 }, pathLength: { duration: INNER_DUR, delay: drawing ? innerDelay : 0, ease: "easeInOut" } }}
+        />
+      </svg>
+    </div>
   );
 
   if (isContactModal) {
@@ -267,18 +332,9 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
   );
 }
 
-// Carves a staggered slice out of the pad's overall scroll progress so buttons
-// reveal in document order (top row first) as the pad scrolls into view, and
-// un-reveal on the way back up. SPAN is each button's reveal duration; the
-// remaining range is divided evenly into the stagger between buttons.
-const REVEAL_SPAN = 0.5;
-
-function RevealPadButton({ scrollYProgress, index, total, ...rest }: PadButtonProps & { scrollYProgress: MotionValue<number>; index: number; total: number }) {
-  const gap = total > 1 ? (1 - REVEAL_SPAN) / (total - 1) : 0;
-  const start = index * gap;
-  const revealProgress = useTransform(scrollYProgress, [start, start + REVEAL_SPAN], [0, 1]);
-  return <PadButton {...rest} revealProgress={revealProgress} />;
-}
+// Per-button stagger (seconds) for the one-time draw, applied in document
+// order so buttons draw on top-row-first.
+const DRAW_STAGGER = 0.07;
 
 export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, bg = "var(--color-surface-primary)", onFloorHover, onContact, scrollReveal = false }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; bg?: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void; scrollReveal?: boolean }) {
   const { muted } = useAudio();
@@ -286,17 +342,9 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLight, setIsLight] = useState(false);
 
-  // Scroll-linked reveal for the Home page. Progress runs 0 → 1 as the pad
-  // rises from the bottom of the viewport up toward the centre, and reverses
-  // when scrolling back up. Buttons stagger across this range.
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end center"],
-    // Use a passive effect so the ref is measured after hydration commits,
-    // avoiding "target ref defined but not hydrated" when the Home page swaps
-    // pad layouts on mount.
-    layoutEffect: false,
-  });
+  // One-time draw-on of the ring strokes, triggered the first time the pad
+  // enters the viewport (Home only).
+  const drawInView = useInView(containerRef, { once: true, amount: 0.3 });
 
   useEffect(() => {
     dingRef.current = new Audio("/elevator-ding.mp3");
@@ -337,16 +385,15 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
     }))
   );
 
-  // Flatten to a running index so reveal order spans rows top-to-bottom.
+  // Flatten to a running index so the draw staggers in document order (top row
+  // first).
   const rowStartIndex: number[] = [];
   rows.reduce((acc, row, i) => { rowStartIndex[i] = acc; return acc + row.length; }, 0);
-  const totalButtons = rows.reduce((acc, row) => acc + row.length, 0);
 
   return (
     <div
       ref={containerRef}
       style={{
-        position: "relative",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -400,11 +447,21 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
             }}
           >
             {row.map((btn, colIdx) => {
-              const sharedProps = { btn, onDing: playDing, dark, bg, onFloorHover, onContact, onSurface, hoverAccent, activeContentColor };
-              return scrollReveal ? (
-                <RevealPadButton key={btn.href} scrollYProgress={scrollYProgress} index={rowStartIndex[rowIdx] + colIdx} total={totalButtons} {...sharedProps} />
-              ) : (
-                <PadButton key={btn.href} {...sharedProps} />
+              const index = rowStartIndex[rowIdx] + colIdx;
+              return (
+                <PadButton
+                  key={btn.href}
+                  btn={btn}
+                  onDing={playDing}
+                  dark={dark}
+                  bg={bg}
+                  onFloorHover={onFloorHover}
+                  onContact={onContact}
+                  onSurface={onSurface}
+                  hoverAccent={hoverAccent}
+                  activeContentColor={activeContentColor}
+                  reveal={scrollReveal ? { delay: index * DRAW_STAGGER, play: drawInView } : undefined}
+                />
               );
             })}
           </div>
