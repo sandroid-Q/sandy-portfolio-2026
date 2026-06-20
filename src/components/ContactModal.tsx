@@ -155,18 +155,28 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
 
 // ─── Coffee rain easter egg ───────────────────────────────────────────────────
 
-const COFFEE_DROPS = Array.from({ length: 36 }, (_, i) => ({
-  id: i,
-  left: (i / 35) * 96 + (Math.random() - 0.5) * 2.5,
-  rotation: Math.random() * 360,
-  rotationDelta: (Math.random() - 0.5) * 540,
-  delay: Math.random() * 0.7,
-  duration: 1.4 + Math.random() * 0.9,
-}));
+const DROP_COUNT = 36;
+
+// Freshly randomised drops each call, so the fall pattern differs every press.
+// One random drop becomes a black cat hiding among the coffee cups.
+function makeDrops() {
+  const drops = Array.from({ length: DROP_COUNT }, (_, i) => ({
+    id: i,
+    left: (i / (DROP_COUNT - 1)) * 96 + (Math.random() - 0.5) * 2.5,
+    rotation: Math.random() * 360,
+    rotationDelta: (Math.random() - 0.5) * 540,
+    delay: Math.random() * 0.7,
+    duration: 1.4 + Math.random() * 0.9,
+    emoji: "☕️",
+  }));
+  drops[Math.floor(Math.random() * drops.length)].emoji = "🐈‍⬛";
+  return drops;
+}
 
 function CoffeeRain({ onDone }: { onDone: () => void }) {
   const screenH = typeof window !== "undefined" ? window.innerHeight : 900;
-  const drops = COFFEE_DROPS;
+  // useRef so the pattern is generated once per mount (each press remounts via key).
+  const drops = useRef(makeDrops()).current;
 
   useEffect(() => {
     const maxMs = Math.max(...drops.map(d => (d.delay + d.duration) * 1000));
@@ -184,7 +194,7 @@ function CoffeeRain({ onDone }: { onDone: () => void }) {
           transition={{ duration: drop.duration, delay: drop.delay, ease: "easeIn" }}
           style={{ position: "absolute", top: 0, left: `${drop.left}vw`, fontSize: 80, lineHeight: 1 }}
         >
-          ☕️
+          {drop.emoji}
         </motion.div>
       ))}
     </div>
