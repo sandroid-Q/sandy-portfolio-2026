@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useRef, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useRef, useState, useEffect, useCallback, ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
 interface AudioContextValue {
@@ -9,6 +9,8 @@ interface AudioContextValue {
   playButton: () => void;
   playNav: () => void;
   playHover: () => void;
+  // Starts the looping keyboard-typing sound and returns a function to stop it.
+  playKeeb: () => () => void;
 }
 
 const AudioCtx = createContext<AudioContextValue>({
@@ -17,13 +19,15 @@ const AudioCtx = createContext<AudioContextValue>({
   playButton: () => {},
   playNav: () => {},
   playHover: () => {},
+  playKeeb: () => () => {},
 });
 
 // One-shot UI sound effects, preloaded once and replayed on demand.
 const SFX_SRCS = ["/button.mp3", "/wooou.mp3"];
-// Breadcrumb hover sound is routed through the Web Audio API so its gain can be
-// boosted above the 1.0 ceiling of an <audio> element.
+// Hover and keyboard sounds are routed through the Web Audio API so their gain
+// can be boosted above the 1.0 ceiling of an <audio> element.
 const HOVER_GAIN = 4;
+const KEEB_GAIN = 4;
 
 const MUSIC_ROUTES = new Set(["/", "/home", "/about"]);
 const TRACKS = ["/jazz-1.mp3", "/jazz-2.mp3", "/jazz-3.mp3"];
@@ -34,6 +38,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const sfxRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const hoverCtxRef = useRef<AudioContext | null>(null);
   const hoverBufferRef = useRef<AudioBuffer | null>(null);
+  const keebBufferRef = useRef<AudioBuffer | null>(null);
   const trackIndexRef = useRef(0);
   const mutedRef = useRef(false);
   const pathname = usePathname();
@@ -49,6 +54,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       .then((r) => r.arrayBuffer())
       .then((ab) => ctx.decodeAudioData(ab))
       .then((buf) => { hoverBufferRef.current = buf; })
+      .catch(() => {});
+    fetch("/keeb.mp3")
+      .then((r) => r.arrayBuffer())
+      .then((ab) => ctx.decodeAudioData(ab))
+      .then((buf) => { keebBufferRef.current = buf; })
       .catch(() => {});
     return () => { ctx.close().catch(() => {}); };
   }, []);
@@ -82,6 +92,33 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       source.start();
     }).catch(() => {});
   };
+
+  // Loops the keyboard-typing sound (boosted gain) for as long as the caller
+  // wants, e.g. while the about-page intro types itself in. Returns a stopper.
+  const playKeeb = useCallback((): (() => void) => {
+    if (mutedRef.current) return () => {};
+    const ctx = hoverCtxRef.current;
+    const buffer = keebBufferRef.current;
+    if (!ctx || !buffer) return () => {};
+    let source: AudioBufferSourceNode | null = null;
+    let stopped = false;
+    ctx.resume().then(() => {
+      if (stopped) return;
+      source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      const gain = ctx.createGain();
+      gain.gain.value = KEEB_GAIN;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      // Skip the first second of the clip on playback.
+      source.start(0, 1);
+    }).catch(() => {});
+    return () => {
+      stopped = true;
+      try { source?.stop(); } catch {}
+    };
+  }, []);
 
   useEffect(() => {
     const audio = new Audio(TRACKS[0]);
@@ -149,7 +186,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  return <AudioCtx.Provider value={{ muted, setMuted, playButton, playNav, playHover }}>{children}</AudioCtx.Provider>;
+  return <AudioCtx.Provider value={{ muted, setMuted, playButton, playNav, playHover, playKeeb }}>{children}</AudioCtx.Provider>;
 }
 
 export const useAudio = () => useContext(AudioCtx);

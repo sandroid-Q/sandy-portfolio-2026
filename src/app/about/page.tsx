@@ -8,6 +8,8 @@ import ElevatorPad from "@/components/ElevatorPad";
 import FloorBreadcrumb from "@/components/FloorBreadcrumb";
 import PortfolioNav from "@/components/PortfolioNav";
 import ContactModal from "@/components/ContactModal";
+import ParallaxLayer from "@/components/ParallaxLayer";
+import { useMouseParallax } from "@/components/useMouseParallax";
 import { useAudio } from "@/contexts/AudioContext";
 
 const BG = "var(--color-surface-primary)";
@@ -287,6 +289,7 @@ function IntroParagraph({
 
   const [count, setCount] = useState(0);
   const [done, setDone] = useState(false);
+  const { playKeeb } = useAudio();
 
   useEffect(() => {
     if (prefersReducedMotion()) {
@@ -296,6 +299,8 @@ function IntroParagraph({
       });
       return () => cancelAnimationFrame(raf);
     }
+    // Boosted keyboard sound loops alongside the typing, stopping when it finishes.
+    const stopKeeb = playKeeb();
     let i = 0;
     let timer: ReturnType<typeof setTimeout>;
     const tick = () => {
@@ -303,13 +308,17 @@ function IntroParagraph({
       setCount(i);
       if (i >= total) {
         setDone(true);
+        stopKeeb();
         return;
       }
       timer = setTimeout(tick, typingDelay(flat[i - 1]));
     };
     timer = setTimeout(tick, 220);
-    return () => clearTimeout(timer);
-  }, [flat, total]);
+    return () => {
+      clearTimeout(timer);
+      stopKeeb();
+    };
+  }, [flat, total, playKeeb]);
 
   return (
     <p style={pStyle} aria-label={INTRO_PLAIN}>
@@ -736,6 +745,10 @@ export default function AboutPage() {
   const isNarrow = vw < 850;
   const isMobile = vw < 640;
   const isMedium = !isNarrow && vw < 1200;
+
+  // Cursor-driven depth across the hero (multi-column layouts only). Disabled on
+  // the narrow single-column layout, coarse pointers, and reduced-motion.
+  const { mx, my } = useMouseParallax(!isNarrow);
   const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
   const sidePadWide = "clamp(148px, calc(84px + 10vw), 212px)";
   const sidePadPx = Math.min(96, Math.max(32, vw * 0.1 - 32));
@@ -860,7 +873,7 @@ export default function AboutPage() {
                   ...(isMedium ? { paddingTop: mediumPaddingTop } : { height: clampedVh - 72 - 144 }),
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: isMedium ? 48 : 24 }}>
+                <ParallaxLayer mx={mx} my={my} enabled={!isNarrow} shift={11} style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: isMedium ? 48 : 24 }}>
                   <IntroParagraph
                     pStyle={{
                       fontFamily: "var(--font-space-grotesk)",
@@ -896,7 +909,7 @@ export default function AboutPage() {
                       )}
                     </div>
                   )}
-                </div>
+                </ParallaxLayer>
                 {soupHovered && (
                   <video src="/soup-boing-vid.mp4" autoPlay muted loop playsInline
                     style={{ position: "absolute", bottom: 292, right: 72, width: 220, pointerEvents: "none" }} />
@@ -904,9 +917,11 @@ export default function AboutPage() {
               </motion.div>
 
               {/* Center: elevator pad */}
-              <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "top center" }}>
-                <ElevatorPad activeFloor="about" bg={HERO_BG} onContact={() => setContactOpen(true)} />
-              </div>
+              <ParallaxLayer mx={mx} my={my} enabled={!isNarrow} shift={8}>
+                <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "top center" }}>
+                  <ElevatorPad activeFloor="about" bg={HERO_BG} onContact={() => setContactOpen(true)} />
+                </div>
+              </ParallaxLayer>
 
               {/* Right column: photo on wide (≥1200px), empty mirror on medium */}
               {!isMedium ? (
@@ -917,26 +932,29 @@ export default function AboutPage() {
                     alignItems: "center",
                     paddingLeft: 80,
                     height: clampedVh - 72 - 144,
+                    perspective: "1200px",
                   }}
                 >
-                  {/* Hover on the exact photo box only; nested overflow so overlay can spill outside */}
-                  <div
-                    onMouseEnter={() => setProfileHovered(true)}
-                    onMouseLeave={() => setProfileHovered(false)}
-                    style={{ width: 280, height: 373, position: "relative", flexShrink: 0 }}
-                  >
-                    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-                      <Image src="/sandy-qi.jpeg" fill sizes="280px" alt="Sandy Qi"
-                        style={{ objectFit: "cover", objectPosition: "center top" }} priority />
-                      <RevealCurtain />
+                  <ParallaxLayer mx={mx} my={my} enabled={!isNarrow} shift={12} tilt={8} scaleBoost={0.03}>
+                    {/* Hover on the exact photo box only; nested overflow so overlay can spill outside */}
+                    <div
+                      onMouseEnter={() => setProfileHovered(true)}
+                      onMouseLeave={() => setProfileHovered(false)}
+                      style={{ width: 280, height: 373, position: "relative", flexShrink: 0 }}
+                    >
+                      <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+                        <Image src="/sandy-qi.jpeg" fill sizes="280px" alt="Sandy Qi"
+                          style={{ objectFit: "cover", objectPosition: "center top" }} priority />
+                        <RevealCurtain />
+                      </div>
+                      {profileHovered && (
+                        <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
+                          style={{ position: "absolute", top: "50%", left: -40,
+                            transform: "translateY(-50%)", zIndex: 2, display: "block",
+                            width: 460, height: 307, maxWidth: "none" }} />
+                      )}
                     </div>
-                    {profileHovered && (
-                      <Image src="/me-azer.JPG" width={460} height={307} alt="Sandy alt"
-                        style={{ position: "absolute", top: "50%", left: -40,
-                          transform: "translateY(-50%)", zIndex: 2, display: "block",
-                          width: 460, height: 307, maxWidth: "none" }} />
-                    )}
-                  </div>
+                  </ParallaxLayer>
                 </div>
               ) : null}
             </div>
