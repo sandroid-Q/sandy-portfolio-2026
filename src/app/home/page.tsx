@@ -24,13 +24,18 @@ interface FloorPreview {
 }
 
 const FLOOR_DATA: Record<string, FloorPreview> = {
-  "1": { year: "2021", name: "MOOMOO: POWER LAUNCH", blurb: "Launching moomoo's investment platform into the Australian market", tags: ["Mobile", "Web", "Product design"] },
-  "2": { year: "2022", name: "BEEM APP", blurb: "Designing the core payments experience for Beem's flagship mobile app", tags: ["Mobile", "Product design"] },
-  "3": { year: "2023", name: "BEEMLANTIS", blurb: "Building Beem's internal design system and component library from the ground up", tags: ["Design system", "Web", "Mobile"] },
-  "4": { year: "2024", name: "TOTALLY BEEM", blurb: "A full rebrand and product redesign for Beem's peer-to-peer payments experience", tags: ["Mobile", "Brand", "Product design"] },
+  "1": { year: "2023", name: "MOOMOO: POWER LAUNCH", blurb: "Landing pages, marketing assets & brand strategy for the trading platforms’ power launch in Sydney", tags: ["Web", "Digital Design", "OOH Design", "Brand Direction"] },
+  "2": { year: "2023", name: "BEEM APP", blurb: "Animated stickers, brand alignment & more", tags: ["Mobile", "Animation"] },
+  "3": { year: "2023", name: "BEEMLANTIS", blurb: "Beem’s 2023 gamified Year in Review experience with an underwater theme", tags: ["Mobile", "Web", "Project Management", "Animation"] },
+  "4": { year: "2024", name: "TOTALLY BEEM", blurb: "Beem’s 2024 Year in Review experience with a nostalgic twist", tags: ["Mobile", "Web", "Project Management", "Product Strategy", "Animation"] },
   "5": { year: "2025", name: "AP+ PORTALS", blurb: "Harmonising AP+'s developer, testing automation and role management experiences", tags: ["Web", "Design system"] },
-  "6": { year: "2025", name: "BEEM BEEPS & SEARCH", blurb: "Sound design and search experience for the Beem payments app", tags: ["Mobile", "Sound design", "Product design"] },
+  "6": { year: "2026", name: "BEEM BEEPS & SEARCH", blurb: "Highly requested new app feature development", tags: ["Mobile", "User Research", "Product Strategy"] },
 };
+
+// Per-floor tilt for the hover-state video frame: 6/4/2 lean right (clockwise),
+// 5/3/1 lean left (counter-clockwise).
+const floorTilt = (floor: string): number =>
+  ["6", "4", "2"].includes(floor) ? 5 : ["5", "3", "1"].includes(floor) ? -5 : 0;
 
 function ArrowDown({ color, hovered }: { color: string; hovered: boolean }) {
   const controls = useAnimation();
@@ -136,12 +141,12 @@ function IconButton({ onClick, icon }: { onClick: () => void; icon: (color: stri
 
 function ProjectBlurb({ data }: { data: FloorPreview }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: "var(--color-on-surface-primary)" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <span style={{ fontFamily: "var(--font-space-mono), monospace", fontWeight: 400, fontSize: 13, letterSpacing: "0.1em", color: "var(--color-on-surface-primary)" }}>
           {data.year}
         </span>
-        <span style={{ fontFamily: "var(--font-silkscreen)", fontSize: 32, color: "var(--color-on-surface-primary)", textTransform: "uppercase", lineHeight: 1.1 }}>
+        <span style={{ fontFamily: "var(--font-silkscreen)", fontWeight: 400, fontSize: 32, color: "var(--color-on-surface-primary)", textTransform: "uppercase", lineHeight: 1.1 }}>
           {data.name}
         </span>
         <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: "var(--color-on-surface-primary)" }}>
@@ -154,10 +159,10 @@ function ProjectBlurb({ data }: { data: FloorPreview }) {
             key={tag}
             style={{
               fontFamily: "var(--font-space-grotesk)",
-              fontWeight: 400,
-              fontSize: 14,
+              fontWeight: 300,
+              fontSize: 13,
               color: "var(--color-on-surface-primary)",
-              border: "1px solid var(--color-on-surface-primary)",
+              border: "0.5px solid var(--color-on-surface-tertiary)",
               borderRadius: 100,
               padding: "4px 12px",
             }}
@@ -455,9 +460,9 @@ export default function HomePage() {
                   ) : hoveredFloor && FLOOR_DATA[hoveredFloor] ? (
                     <motion.div
                       key={hoveredFloor}
-                      initial={{ opacity: 0, x: 8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 8 }}
+                      initial={{ opacity: 0, x: 8, rotate: floorTilt(hoveredFloor) }}
+                      animate={{ opacity: 1, x: 0, rotate: floorTilt(hoveredFloor) }}
+                      exit={{ opacity: 0, x: 8, rotate: floorTilt(hoveredFloor) }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
                       style={{ width: "100%", height: "100%", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}
                     >
