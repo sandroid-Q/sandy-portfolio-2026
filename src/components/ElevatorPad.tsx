@@ -97,6 +97,13 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
     return () => {
       if (flashIntervalRef.current) clearInterval(flashIntervalRef.current);
       if (ringTimeoutRef.current) clearTimeout(ringTimeoutRef.current);
+      // Stop the looping ring on unmount (e.g. navigating away mid-ring),
+      // otherwise it keeps playing forever with no way to stop it and a new
+      // pad's button would overlap on top.
+      const ring = ringRef.current;
+      if (ring) { ring.pause(); ring.currentTime = 0; }
+      const pop = popRef.current;
+      if (pop) { pop.pause(); pop.currentTime = 0; }
     };
   }, []);
 
