@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useAudio } from "@/contexts/AudioContext";
 
 const FEATURE_SECONDARY = "#FF82B8";
 
@@ -15,10 +16,12 @@ interface ThemeToggleProps {
 }
 
 export default function ThemeToggle({ color: overrideColor }: ThemeToggleProps) {
+  const { muted } = useAudio();
   const [isDark, setIsDark] = useState(true);
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const wasTouched = useRef(false);
+  const bloopRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const update = () => setIsDark(document.documentElement.getAttribute("data-theme") !== "light");
@@ -28,7 +31,15 @@ export default function ThemeToggle({ color: overrideColor }: ThemeToggleProps) 
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    bloopRef.current = new Audio("/bloop.mp3");
+  }, []);
+
   const toggle = () => {
+    if (bloopRef.current && !muted) {
+      bloopRef.current.currentTime = 0;
+      bloopRef.current.play().catch(() => {});
+    }
     if (isDark) {
       document.documentElement.setAttribute("data-theme", "light");
     } else {

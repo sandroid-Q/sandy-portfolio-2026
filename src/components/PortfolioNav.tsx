@@ -48,6 +48,7 @@ function NavLink({
   menu?: boolean;
   color?: string;
 }) {
+  const { playNav } = useAudio();
   const originalText = (typeof children === "string" ? children : "").toUpperCase();
   const fontSize = menu ? 18 : 14;
   const [hovered, setHovered] = useState(false);
@@ -145,13 +146,13 @@ function NavLink({
 
   if (onClick) {
     return (
-      <button onClick={onClick} style={{ background: "none", border: "none", padding: 0 }}>
+      <button onClick={() => { playNav(); onClick(); }} style={{ background: "none", border: "none", padding: 0 }}>
         {inner}
       </button>
     );
   }
   return (
-    <Link href={href!} style={{ textDecoration: "none" }}>
+    <Link href={href!} style={{ textDecoration: "none" }} onClick={() => playNav()}>
       {inner}
     </Link>
   );
@@ -261,6 +262,7 @@ function LinkedInButton() {
 }
 
 function MenuLink({ href, onClick, children, active }: { href?: string; onClick?: () => void; children: string; active?: boolean }) {
+  const { playNav } = useAudio();
   const [hovered, setHovered] = useState(false);
   const INDENT = 24;
 
@@ -289,13 +291,14 @@ function MenuLink({ href, onClick, children, active }: { href?: string; onClick?
   );
 
   if (onClick) {
-    return <button onClick={onClick} style={{ background: "none", border: "none", padding: 0 }}>{inner}</button>;
+    return <button onClick={() => { playNav(); onClick(); }} style={{ background: "none", border: "none", padding: 0 }}>{inner}</button>;
   }
-  return <Link href={href!} style={{ textDecoration: "none" }}>{inner}</Link>;
+  return <Link href={href!} style={{ textDecoration: "none" }} onClick={() => playNav()}>{inner}</Link>;
 }
 
 
 function LogoButton({ onClick, isLightNav }: { onClick: () => void; isLightNav: boolean }) {
+  const { playNav } = useAudio();
   const LOGO_TEXT = "SANDY QI";
   const [hovered, setHovered] = useState(false);
   const [displayChars, setDisplayChars] = useState(LOGO_TEXT.split(""));
@@ -361,7 +364,7 @@ function LogoButton({ onClick, isLightNav }: { onClick: () => void; isLightNav: 
 
   return (
     <button
-      onClick={onClick}
+      onClick={() => { playNav(); onClick(); }}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
       style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex" }}

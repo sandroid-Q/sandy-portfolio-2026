@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useAudio } from "@/contexts/AudioContext";
 
 const TEXT_DEFAULT = "var(--color-on-surface-tertiary)";
 const TEXT_EMPHASIS = "var(--color-on-surface-primary)";
@@ -19,6 +20,7 @@ const FLOORS = [
 ];
 
 function FloorLink({ label, href, isActive }: { label: string; href: string; isActive: boolean }) {
+  const { playNav, playHover } = useAudio();
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
@@ -77,7 +79,8 @@ function FloorLink({ label, href, isActive }: { label: string; href: string; isA
     <Link
       href={href}
       style={{ textDecoration: "none" }}
-      onMouseEnter={() => setHovered(true)}
+      onClick={() => playNav()}
+      onMouseEnter={() => { setHovered(true); playHover(); }}
       onMouseLeave={() => {
         setHovered(false);
         setPressed(false);
