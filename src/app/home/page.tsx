@@ -9,6 +9,8 @@ import PortfolioNav from "@/components/PortfolioNav";
 import IDCard from "@/components/IDCard";
 import ElevatorPad from "@/components/ElevatorPad";
 import ContactModal from "@/components/ContactModal";
+import ParallaxLayer from "@/components/ParallaxLayer";
+import { useMouseParallax } from "@/components/useMouseParallax";
 import { useAudio } from "@/contexts/AudioContext";
 
 const SCALE_MIN = 0.8;
@@ -330,6 +332,11 @@ export default function HomePage() {
   const scrollToPad = () => padRef.current?.scrollIntoView({ behavior: "smooth" });
   const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: "smooth" });
 
+  // Cursor-driven depth: the hero card floats/tilts toward the mouse, the pad
+  // drifts more gently behind it. Disabled on mobile (and coarse pointers /
+  // reduced-motion, handled inside the hook).
+  const { mx, my } = useMouseParallax(!isMobile);
+
   return (
     <div style={{ backgroundColor: "var(--color-bg-secondary)", minHeight: "100vh" }}>
 
@@ -359,19 +366,22 @@ export default function HomePage() {
           flexDirection: "column",
           alignItems: "center",
           paddingBottom: 48,
+          perspective: "1200px",
         }}
       >
-        <div
-          style={{
-            marginTop: cardMarginTop,
-            marginLeft: -shrink,
-            marginRight: -shrink,
-            transform: `scale(${scale})`,
-            transformOrigin: "top center",
-          }}
-        >
-          <IDCard strapExtension={strapExtension} />
-        </div>
+        <ParallaxLayer mx={mx} my={my} enabled={!isMobile} shift={18} tilt={8} scaleBoost={0.03}>
+          <div
+            style={{
+              marginTop: cardMarginTop,
+              marginLeft: -shrink,
+              marginRight: -shrink,
+              transform: `scale(${scale})`,
+              transformOrigin: "top center",
+            }}
+          >
+            <IDCard strapExtension={strapExtension} />
+          </div>
+        </ParallaxLayer>
       </div>
 
       {/* Section 2: ElevatorPad */}
@@ -387,6 +397,7 @@ export default function HomePage() {
         <IconButton onClick={scrollToPad} icon={(c, h) => <ArrowDown color={c} hovered={h} />} />
 
         <div ref={padRef} id="elevator-pad" style={{ scrollMarginTop: 32 }}>
+          <ParallaxLayer mx={mx} my={my} enabled={!isMobile} shift={7}>
           {isMobile ? (
             /* Mobile: scaled pad, no panels */
             <div
@@ -458,6 +469,7 @@ export default function HomePage() {
 
             </div>
           )}
+          </ParallaxLayer>
         </div>
 
         {/* Condensed projects list — shown at <1190px, above the up arrow */}
