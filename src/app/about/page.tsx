@@ -551,16 +551,21 @@ function SkillsSection({ oneCol = false }: { oneCol?: boolean }) {
 
 function StickyNote({ t, color = "#FBD5E8", quoteColor = "var(--color-on-surface-secondary)" }: { t: typeof TESTIMONIALS[0]; color?: string; quoteColor?: string }) {
   return (
-    <motion.div variants={fadeUpItem} className="testimonial-card" style={{
-      position: "relative",
-      flex: 1,
-      backgroundColor: color,
-      padding: 32,
-      display: "flex",
-      flexDirection: "column",
-      gap: 40,
-      borderRadius: 20,
-    }}>
+    <motion.div
+      variants={fadeUpItem}
+      className="testimonial-card"
+      whileHover={{ rotate: -1.5, scale: 1.02, transition: { type: "spring", stiffness: 300, damping: 18 } }}
+      style={{
+        position: "relative",
+        flex: 1,
+        backgroundColor: color,
+        padding: 32,
+        display: "flex",
+        flexDirection: "column",
+        gap: 40,
+        borderRadius: 20,
+      }}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", position: "relative", flexShrink: 0, backgroundColor: HOVER_BROWN }}>
           {t.photo && <Image src={t.photo} fill sizes="56px" alt={t.name} style={{ objectFit: "cover", objectPosition: "center top" }} />}
