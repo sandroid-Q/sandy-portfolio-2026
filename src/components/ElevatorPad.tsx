@@ -187,14 +187,14 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
         initial={false}
         animate={outerAnimate}
         transition={{ duration: 0.12 }}
-        onHoverStart={() => {
+        onMouseEnter={() => {
           if (ringing) return;
           setHovered(true);
           playPop();
           if (btn.variant === "floor") onFloorHover?.(btn.label ?? null);
           else if (btn.variant === "about") onFloorHover?.("about");
         }}
-        onHoverEnd={() => {
+        onMouseLeave={() => {
           if (ringing) return;
           setHovered(false);
           setPressed(false);
@@ -427,6 +427,10 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
       </motion.button>
 
       <div
+        // Safety net: if a button's mouseleave is ever missed during fast
+        // hovering, leaving the whole pad still clears the hovered floor so
+        // the project preview can never stay frozen on a stale floor.
+        onMouseLeave={() => onFloorHover?.(null)}
         style={{
           display: "flex",
           flexDirection: "column",
