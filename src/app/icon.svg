@@ -1,12 +1,6 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    .ic-stroke { stroke: #0034FF; }
-    .ic-fill { fill: #0034FF; }
-    @media (prefers-color-scheme: dark) {
-      .ic-stroke { stroke: #FFFFFF; }
-      .ic-fill { fill: #FFFFFF; }
-    }
-  </style>
-  <circle class="ic-stroke" cx="16" cy="16" r="15.25" stroke-width="1.5" fill="none"/>
-  <path class="ic-fill" d="M7.61495 0.501408C8.01584 -0.166734 8.98416 -0.166735 9.38505 0.501407L16.8513 12.9452C17.2641 13.6331 16.7685 14.5084 15.9663 14.5084H1.03373C0.231453 14.5084 -0.264088 13.6331 0.148678 12.9452L7.61495 0.501408Z" transform="translate(7.5 7.65)"/>
+  <!-- Icon from Figma (node 40000187:4559): blue circle, pink border + up triangle -->
+  <circle cx="16" cy="16" r="15.25" fill="#0034FF" stroke="#FFB3D8" stroke-width="1.5"/>
+  <path transform="translate(16 15) scale(0.9) translate(-8.5 -7.5)" fill="#FFB3D8"
+    d="M7.61495 0.501156C8.01584 -0.166985 8.98416 -0.166987 9.38505 0.501155L16.8513 12.9449C17.2641 13.6329 16.7685 14.5081 15.9663 14.5081H1.03373C0.231453 14.5081 -0.264088 13.6329 0.148678 12.9449L7.61495 0.501156Z"/>
 </svg>
