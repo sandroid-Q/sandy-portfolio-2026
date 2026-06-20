@@ -142,7 +142,11 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
           {copied ? "copied email" : "sandra.jxq@gmail.com"}
         </span>
       </div>
-      <div style={{ transition: "color 0.12s", color: fg, display: "flex" }}>
+      <div style={{
+        transition: "color 0.12s", color: fg,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        width: 24, height: 23, flexShrink: 0,
+      }}>
         {copied ? <CheckIcon color={fg} /> : <CopyIcon color={fg} />}
       </div>
     </motion.button>
@@ -206,7 +210,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
   useEffect(() => {
     bellRef.current = new Audio("/bell.mp3");
     beansRef.current = new Audio("/beans.mp3");
-    closeRef.current = new Audio("/close.mp3");
+    closeRef.current = new Audio("/close-2.mp3");
     return () => { if (beansTimerRef.current) clearTimeout(beansTimerRef.current); };
   }, []);
 
