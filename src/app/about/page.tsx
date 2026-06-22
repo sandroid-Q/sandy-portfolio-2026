@@ -848,7 +848,7 @@ export default function AboutPage() {
                 </div>
               </motion.div>
               {soupHovered && (
-                <video src="/soup-boing-vid.mp4" autoPlay muted loop playsInline
+                <video src="/soup-boing-smaller.mp4" autoPlay muted loop playsInline
                   style={{ position: "absolute", bottom: 292, right: sidePad, width: 180, pointerEvents: "none" }} />
               )}
             </div>
@@ -916,7 +916,7 @@ export default function AboutPage() {
                   )}
                 </ParallaxLayer>
                 {soupHovered && (
-                  <video src="/soup-boing-vid.mp4" autoPlay muted loop playsInline
+                  <video src="/soup-boing-smaller.mp4" autoPlay muted loop playsInline
                     style={{ position: "absolute", bottom: 292, right: 72, width: 220, pointerEvents: "none" }} />
                 )}
               </motion.div>
