@@ -6,7 +6,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import "./globals.css";
 
 const silkscreen = Silkscreen({
-  weight: ["400", "700"],
+  weight: ["400"],
   variable: "--font-silkscreen",
   subsets: ["latin"],
 });
@@ -18,7 +18,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 const spaceMono = Space_Mono({
-  weight: ["400", "700"],
+  weight: ["400"],
   variable: "--font-space-mono",
   subsets: ["latin"],
 });
