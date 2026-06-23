@@ -98,7 +98,7 @@ const TESTIMONIALS = [
     title: "Creative Director",
     company: "AP+ / Beem",
     photo: "/ba.png",
-    quote: "TBA",
+    quote: "Sandy is an exceptionally talented product designer who combines strategic thinking with outstanding design execution. Her background in visual design brings a level of sophistication and polish to her UI work that is truly world-class. She has a keen eye for detail and consistently delivers thoughtful, refined experiences that balance user needs with business goals.\n\nBeyond her design expertise, Sandy is a strong communicator and an excellent collaborator. She works effectively across teams, builds alignment with stakeholders, and elevates the quality of discussions and outcomes. Any team would be fortunate to have her talent, creativity, and leadership.",
   },
 ];
 

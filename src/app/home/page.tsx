@@ -20,22 +20,18 @@ interface FloorPreview {
   name: string;
   blurb: string;
   tags: string[];
-  video?: string;
+  // Hover/preview cover asset — .mp4 renders as a looping video, .gif/.webp as an image.
+  cover?: string;
 }
 
 const FLOOR_DATA: Record<string, FloorPreview> = {
-  "1": { year: "2023", name: "MOOMOO: POWER LAUNCH", blurb: "Landing pages, marketing assets & brand strategy for the trading platforms’ power launch in Sydney", tags: ["Web", "Digital Design", "OOH Design", "Brand Direction"] },
-  "2": { year: "2023", name: "BEEM APP", blurb: "Animated stickers, brand alignment & more", tags: ["Mobile", "Animation"] },
-  "3": { year: "2023", name: "BEEMLANTIS", blurb: "Beem’s 2023 gamified Year in Review experience with an underwater theme", tags: ["Mobile", "Web", "Project Management", "Animation"] },
-  "4": { year: "2024", name: "TOTALLY BEEM", blurb: "Beem’s 2024 Year in Review experience with a nostalgic twist", tags: ["Mobile", "Web", "Project Management", "Product Strategy", "Animation"] },
-  "5": { year: "2025", name: "AP+ PORTALS", blurb: "Harmonising AP+'s developer, testing automation and role management experiences", tags: ["Web", "Design system"] },
-  "6": { year: "2026", name: "BEEM BEEPS & SEARCH", blurb: "Highly requested new app feature development", tags: ["Mobile", "User Research", "Product Strategy"] },
+  "1": { year: "2023", name: "MOOMOO: POWER LAUNCH", blurb: "Landing pages, marketing assets & brand strategy for the trading platforms’ power launch in Sydney", tags: ["Web", "Digital Design", "OOH Design", "Brand Direction"], cover: "/cover-moomoo.webp" },
+  "2": { year: "2023", name: "BEEM APP", blurb: "Animated stickers, brand alignment & more", tags: ["Mobile", "Animation"], cover: "/cover-beem-app.gif" },
+  "3": { year: "2023", name: "BEEMLANTIS", blurb: "Beem’s 2023 gamified Year in Review experience with an underwater theme", tags: ["Mobile", "Web", "Project Management", "Animation"], cover: "/cover-beemlantis2.mp4" },
+  "4": { year: "2024", name: "TOTALLY BEEM", blurb: "Beem’s 2024 Year in Review experience with a nostalgic twist", tags: ["Mobile", "Web", "Project Management", "Product Strategy", "Animation"], cover: "/cover-totallybeem2.mp4" },
+  "5": { year: "2025", name: "AP+ PORTALS", blurb: "Harmonising AP+'s developer, testing automation and role management experiences", tags: ["Web", "Design system"], cover: "/cover-portals.mp4" },
+  "6": { year: "2026", name: "BEEM BEEPS & SEARCH", blurb: "Highly requested new app feature development", tags: ["Mobile", "User Research", "Product Strategy"], cover: "/cover-beembeeps.mp4" },
 };
-
-// Per-floor tilt for the hover-state video frame: 6/4/2 lean right (clockwise),
-// 5/3/1 lean left (counter-clockwise).
-const floorTilt = (floor: string): number =>
-  ["6", "4", "2"].includes(floor) ? 5 : ["5", "3", "1"].includes(floor) ? -5 : 0;
 
 function ArrowDown({ color, hovered }: { color: string; hovered: boolean }) {
   const controls = useAnimation();
@@ -245,18 +241,38 @@ function AboutHoverCard() {
   );
 }
 
-function VideoPreview({ data }: { floor: string; data: FloorPreview }) {
-  if (!data.video) return null;
-  return (
-    <video
-      src={data.video}
-      autoPlay
-      muted
-      loop
-      playsInline
-      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-    />
-  );
+// Remembers each cover video's playback position so re-hovering resumes from
+// where it left off instead of restarting from the beginning.
+const coverPlaybackTimes = new Map<string, number>();
+
+function CoverMedia({ data }: { data: FloorPreview }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const src = data.cover;
+  if (!src) return null;
+  const style = { width: "100%", height: "100%", objectFit: "cover" as const, display: "block" };
+  if (src.endsWith(".mp4")) {
+    return (
+      <video
+        ref={videoRef}
+        src={src}
+        autoPlay
+        muted
+        loop
+        playsInline
+        onLoadedMetadata={() => {
+          const t = coverPlaybackTimes.get(src);
+          if (t && videoRef.current) videoRef.current.currentTime = t;
+        }}
+        onTimeUpdate={() => {
+          if (videoRef.current) coverPlaybackTimes.set(src, videoRef.current.currentTime);
+        }}
+        style={style}
+      />
+    );
+  }
+  // .gif / .webp — a plain <img> keeps animated gifs playing.
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={data.name} style={style} />;
 }
 
 export default function HomePage() {
@@ -460,13 +476,13 @@ export default function HomePage() {
                   ) : hoveredFloor && FLOOR_DATA[hoveredFloor] ? (
                     <motion.div
                       key={hoveredFloor}
-                      initial={{ opacity: 0, x: 8, rotate: floorTilt(hoveredFloor) }}
-                      animate={{ opacity: 1, x: 0, rotate: floorTilt(hoveredFloor) }}
-                      exit={{ opacity: 0, x: 8, rotate: floorTilt(hoveredFloor) }}
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 8 }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
-                      style={{ width: "100%", height: "100%", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}
+                      style={{ width: 320, height: 320, marginLeft: 12, borderRadius: 0, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}
                     >
-                      <VideoPreview floor={hoveredFloor} data={FLOOR_DATA[hoveredFloor]} />
+                      <CoverMedia data={FLOOR_DATA[hoveredFloor]} />
                     </motion.div>
                   ) : null}
                 </AnimatePresence>
@@ -504,7 +520,7 @@ export default function HomePage() {
                   {isStackedProject && (
                     <Link href={`/project/${floor}`} style={{ display: "block", width: "100%" }}>
                       <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}>
-                        <VideoPreview floor={floor} data={data} />
+                        <CoverMedia data={data} />
                       </div>
                     </Link>
                   )}
@@ -518,7 +534,7 @@ export default function HomePage() {
                   {!isStackedProject && (
                     <Link href={`/project/${floor}`} style={{ display: "block", flex: 1, minWidth: 280, maxWidth: 400 }}>
                       <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}>
-                        <VideoPreview floor={floor} data={data} />
+                        <CoverMedia data={data} />
                       </div>
                     </Link>
                   )}
