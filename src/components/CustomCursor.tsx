@@ -107,14 +107,9 @@ export default function CustomCursor() {
         mixBlendMode: "difference",
         opacity: visible ? 1 : 0,
         transition: "opacity 0.2s ease",
-        // Pin the blended layer to a stable GPU layer. Without this, Chrome
-        // demotes the idle mix-blend-mode layer and a later backdrop-filter /
-        // transform change elsewhere can leave it stuck unpainted (the cursor
-        // vanishes until a full repaint/refresh). Keeping it promoted avoids
-        // that corrupted demoted state.
-        transform: "translateZ(0)",
-        willChange: "transform",
-        backfaceVisibility: "hidden",
+        // NOTE: do not add transform/will-change/translateZ here. Promoting a
+        // mix-blend-mode element to its own GPU layer makes it blend against an
+        // empty buffer instead of the page, so the cursor renders invisibly.
       }}
     >
       {/* Ring — spring lag when idle, snaps to dot when clickable */}
@@ -132,8 +127,6 @@ export default function CustomCursor() {
           borderRadius: "50%",
           border: `0.7px solid ${CURSOR_COLOR}`,
           backgroundColor: "transparent",
-          willChange: "transform",
-          backfaceVisibility: "hidden",
         }}
       />
 
@@ -149,8 +142,6 @@ export default function CustomCursor() {
           translateY: "-50%",
           borderRadius: "50%",
           backgroundColor: CURSOR_COLOR,
-          willChange: "transform",
-          backfaceVisibility: "hidden",
         }}
         animate={{
           width: clickable ? RING_SIZE : DOT_DEFAULT,
