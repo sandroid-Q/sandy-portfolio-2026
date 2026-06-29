@@ -91,7 +91,7 @@ const TESTIMONIALS = [
     title: "General Manager of Engineering",
     company: "AP+",
     photo: "/ky.jpeg",
-    quote: "Testimonial text here.",
+    quote: "Sandy is a talented product designer who led UX for several portal applications we built at AP+, and she was a pleasure to work with. What impressed me the most was her ability to take ambiguous, often incomplete requirements and turn them into clear and workable designs that served as a solid foundation for stakeholder engagement and requirements elaboration / refinement.\n\nShe communicated well with the engineering team, navigated competing priorities, and consistently delivered high quality work that was both thoughtful and practical. I'd recommend her without hesitation.",
   },
   {
     name: "BRIDIE ALLAN",
