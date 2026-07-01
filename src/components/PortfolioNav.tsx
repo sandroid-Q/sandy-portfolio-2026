@@ -21,6 +21,8 @@ export interface PortfolioNavProps {
   projectsAction: string | (() => void);
   /** When true, renders in light colors (floating over a dark hero image) */
   isLightNav?: boolean;
+  /** Pin nav text/icons to light-theme (dark) ink — for bright cover images */
+  forceLight?: boolean;
   /** Background hex for the mobile frosted-glass — should match page bg */
   mobileBgColor?: string;
   /** Show the sound toggle (home page only) */
@@ -297,7 +299,7 @@ function MenuLink({ href, onClick, children, active }: { href?: string; onClick?
 }
 
 
-function LogoButton({ onClick, isLightNav }: { onClick: () => void; isLightNav: boolean }) {
+function LogoButton({ onClick, color }: { onClick: () => void; color: string }) {
   const { playNav } = useAudio();
   const LOGO_TEXT = "SANDY QI";
   const [hovered, setHovered] = useState(false);
@@ -305,7 +307,7 @@ function LogoButton({ onClick, isLightNav }: { onClick: () => void; isLightNav: 
   const [charWidths, setCharWidths] = useState<number[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const computedColor = "var(--color-on-surface-primary)";
+  const computedColor = color;
 
   useEffect(() => {
     const measure = () => {
@@ -404,6 +406,7 @@ export default function PortfolioNav({
   projectsAction,
   projectsActive = false,
   isLightNav = false,
+  forceLight = false,
   mobileBgColor = "#E5E0D7",
   showSound = false,
   onLogoClick,
@@ -459,8 +462,15 @@ export default function PortfolioNav({
     setTimeout(() => router.push("/"), 430);
   };
 
-  const hamburgerColor = "var(--color-on-surface-primary)";
-  const navLinkColor = "var(--color-on-surface-primary)";
+  // While floating over the cover image (isLightNav) the nav ink is pinned to
+  // whatever is legible on that cover — dark ink for a bright cover (forceLight),
+  // light ink for a dark cover — regardless of theme, since the cover never
+  // changes. Once scrolled onto the body it follows the theme.
+  const ink = isLightNav
+    ? (forceLight ? "#161719" : "#F8F8F8")
+    : "var(--color-on-surface-primary)";
+  const hamburgerColor = ink;
+  const navLinkColor = ink;
 
   const frostBg = mobileBgColor.startsWith("#")
     ? hexToRgba(mobileBgColor, 0.75)
@@ -591,12 +601,12 @@ export default function PortfolioNav({
             padding: isMobile ? "0 12px 0 24px" : "0 24px 0 36px",
           }}
         >
-        <LogoButton onClick={handleLogoClick} isLightNav={isLightNav} />
+        <LogoButton onClick={handleLogoClick} color={ink} />
 
         {isMobile ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ position: "relative", top: -2, left: 4 }}>
-              <ThemeToggle />
+              <ThemeToggle color={ink} />
             </div>
             {showSound && (
               <div style={{ position: "relative", top: -2 }}>
@@ -640,7 +650,7 @@ export default function PortfolioNav({
               />
             </div>
             <div style={{ position: "relative", top: -2, left: 4 }}>
-              <ThemeToggle />
+              <ThemeToggle color={ink} />
             </div>
             {showSound && (
               <div style={{ position: "relative", top: -2 }}>
@@ -684,7 +694,7 @@ export default function PortfolioNav({
                 fontFamily: "var(--font-space-grotesk)",
                 fontWeight: 300,
                 fontSize: 10,
-                color: "var(--color-on-surface-primary)",
+                color: ink,
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
               }}
@@ -692,7 +702,7 @@ export default function PortfolioNav({
               © Sandy Qi 2026
             </span>
             <div style={{ pointerEvents: "auto", position: "relative", display: "inline-block" }}>
-              <NavLink href="/about">
+              <NavLink href="/about" color={ink}>
                 About
               </NavLink>
               <motion.div

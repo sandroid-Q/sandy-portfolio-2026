@@ -6,8 +6,10 @@ export default function Level1Page() {
       floor="1"
       year="2021"
       name="Moomoo: Power Launch"
-      blurb="Launching moomoo's investment platform into the Australian market"
-      tags={["Mobile", "Web", "Product design"]}
+      blurb="Landing pages, marketing assets & brand strategy for the trading platforms’ power launch in Sydney"
+      tags={["Web", "Digital Design", "OOH Design", "Brand Direction"]}
+      coverImage="/level-1-smaller.jpg"
+      coverScrim={0.6}
       coverBg="#2A1200"
       darkPad
       role="Product Designer"

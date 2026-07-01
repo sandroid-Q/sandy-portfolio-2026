@@ -343,11 +343,14 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
 // order so buttons draw on top-row-first.
 const DRAW_STAGGER = 0.07;
 
-export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, bg = "var(--color-surface-primary)", onFloorHover, onContact, scrollReveal = false }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; bg?: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void; scrollReveal?: boolean }) {
+export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, bg = "var(--color-surface-primary)", onFloorHover, onContact, scrollReveal = false, forceTheme }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; bg?: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void; scrollReveal?: boolean; forceTheme?: "light" | "dark" }) {
   const { muted } = useAudio();
   const dingRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isLight, setIsLight] = useState(false);
+  const [themeLight, setThemeLight] = useState(false);
+  // `forceTheme` pins the pad's palette regardless of the active theme (used
+  // over cover images, which don't change with the theme).
+  const isLight = forceTheme ? forceTheme === "light" : themeLight;
 
   // One-time draw-on of the ring strokes, triggered the first time the pad
   // enters the viewport (Home only).
@@ -358,7 +361,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
   }, []);
 
   useEffect(() => {
-    const update = () => setIsLight(document.documentElement.getAttribute("data-theme") === "light");
+    const update = () => setThemeLight(document.documentElement.getAttribute("data-theme") === "light");
     update();
     const observer = new MutationObserver(update);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });

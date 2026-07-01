@@ -6,9 +6,11 @@ export default function Level4Page() {
       floor="4"
       year="2024"
       name="Totally Beem"
-      blurb="A full rebrand and product redesign for Beem's peer-to-peer payments experience"
-      tags={["Mobile", "Brand", "Product design"]}
+      blurb="Beem’s 2024 Year in Review experience with a nostalgic twist"
+      tags={["Mobile", "Web", "Project Management", "Product Strategy", "Animation"]}
+      coverImage="/level-4-smaller.jpg"
       coverBg="#1B2E1E"
+      lightCover
       darkPad
       role="Lead Designer"
       yearRange="2023–2024"

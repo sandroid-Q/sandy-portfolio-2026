@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, Fragment } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useAnimation } from "framer-motion";
+import { motion, useAnimation, useInView } from "framer-motion";
 import Image from "next/image";
 import ElevatorPad from "./ElevatorPad";
 import FloorBreadcrumb from "./FloorBreadcrumb";
@@ -10,7 +10,6 @@ import PortfolioNav from "./PortfolioNav";
 import ContactModal from "./ContactModal";
 import { useAudio } from "@/contexts/AudioContext";
 
-const BROWN = "#4E3A34";
 const BG = "#F3F2F0";
 const BG_SECONDARY = "#E5E0D7";
 
@@ -25,8 +24,14 @@ export interface ProjectData {
   name: string;
   blurb: string;
   tags: string[];
+  /** Overrides the metadata "Focus" field; falls back to `tags` when unset. */
+  focus?: string[];
   coverImage?: string;
   coverBg?: string;
+  /** Black scrim opacity (0–1) laid over the cover image, e.g. 0.6 for a 60% overlay */
+  coverScrim?: number;
+  /** Cover image is bright — render nav, pad and blurb with light-theme (dark) ink */
+  lightCover?: boolean;
   darkPad?: boolean;
   role: string;
   yearRange: string;
@@ -139,43 +144,127 @@ function IconButton({ onClick, icon }: { onClick: () => void; icon: (c: string, 
 
 function MetaField({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "row", alignItems: "baseline", gap: 24, padding: "18px 0" }}>
-      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: BROWN, textTransform: "uppercase", letterSpacing: "0.04em", width: 176, flexShrink: 0 }}>
+    <div style={{ display: "flex", flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", columnGap: 64, padding: "10px 0" }}>
+      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: "var(--color-on-surface-tertiary)", textTransform: "uppercase", letterSpacing: "0.1em", flexShrink: 0 }}>
         {label}
       </span>
-      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BROWN }}>
-        {value}
+      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: "var(--color-on-surface-primary)", textAlign: "right" }}>
+        {value.includes(", ")
+          ? value.split(", ").map((phrase, i, all) => (
+              <Fragment key={i}>
+                {/* Keep each comma-phrase intact; only the space after a comma can break. */}
+                <span style={{ whiteSpace: "nowrap" }}>{phrase}{i < all.length - 1 ? "," : ""}</span>
+                {i < all.length - 1 ? " " : ""}
+              </Fragment>
+            ))
+          : value}
       </span>
     </div>
   );
 }
 
 function MetaDivider() {
-  return <div style={{ height: 1, backgroundColor: BROWN, opacity: 0.2 }} />;
+  return <div style={{ height: 1, backgroundColor: "var(--color-on-surface-primary)", opacity: 0.15 }} />;
 }
 
 function ProjectInfo({ project, isMobile }: { project: ProjectData; isMobile: boolean }) {
+  // Bright covers (level 3/4) use light-theme ink so text stays legible.
+  const ink = project.lightCover ? "#161719" : BG;
+  const pillBorder = project.lightCover ? "rgba(22, 23, 25, 0.4)" : "rgba(243, 242, 240, 0.5)";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, width: isMobile ? "100%" : 320 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: BG }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 14, color: ink }}>
           {project.year}
         </span>
         <span
           style={{
             fontFamily: "var(--font-silkscreen)", fontWeight: 400,
             fontSize: isMobile ? 24 : 32,
-            color: BG, textTransform: "uppercase", lineHeight: 1.1,
+            color: ink, textTransform: "uppercase", lineHeight: 1.1,
           }}
         >
           {project.name}
         </span>
-        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BG }}>
+        <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: ink }}>
           {project.blurb}
         </span>
       </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {project.tags.map((tag) => (
+          <span
+            key={tag}
+            style={{
+              fontFamily: "var(--font-space-grotesk)",
+              fontWeight: 300,
+              fontSize: 13,
+              color: ink,
+              border: `0.5px solid ${pillBorder}`,
+              borderRadius: 100,
+              padding: "4px 12px",
+            }}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
     </div>
   );
+}
+
+const VIDEO_EXT = /\.(mov|mp4|webm)$/i;
+
+// Media fills the width of its (1000px-capped) content column and keeps its
+// natural aspect ratio via height:auto — so no cropping and no letterbox bars.
+const MEDIA_STYLE = { width: "100%", height: "auto", display: "block" as const, borderRadius: 28 };
+
+// These clips have a faint edge; crop it off then round — done in one clip-path
+// inset (top/bottom, then left/right) so the rounding is applied to the cropped
+// rectangle, not clipped away. Per-source since the crop amounts differ.
+const CROP_CLIP: Record<string, string> = {
+  "/TST-1.mp4": "inset(2px 4px round 28px)",
+  "/TST-2.mp4": "inset(2px 4px round 28px)",
+  "/UC-1.mp4": "inset(1px 2px round 28px)",
+};
+
+// Looping section video — lazy: preload="none" means it isn't downloaded until
+// it nears the viewport, then it plays only while in view and pauses when
+// scrolled away. Keeps several videos on one page from all loading at once.
+function SectionVideo({ src }: { src: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const inView = useInView(ref, { margin: "200px 0px" });
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    if (inView) v.play().catch(() => {});
+    else v.pause();
+  }, [inView]);
+
+  const clip = CROP_CLIP[src];
+  if (clip) {
+    return (
+      <video
+        ref={ref}
+        src={src}
+        muted
+        loop
+        playsInline
+        preload="none"
+        style={{ display: "block", width: "100%", height: "auto", clipPath: clip, WebkitClipPath: clip }}
+      />
+    );
+  }
+
+  return <video ref={ref} src={src} muted loop playsInline preload="none" style={MEDIA_STYLE} />;
+}
+
+// A single content-section media item — looping video for video files
+// (.mov/.mp4/.webm), an image otherwise.
+function SectionMedia({ src, title, index }: { src: string; title: string; index: number }) {
+  if (VIDEO_EXT.test(src)) return <SectionVideo src={src} />;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={`${title} ${index + 1}`} style={MEDIA_STYLE} />;
 }
 
 export default function ProjectPageTemplate(project: ProjectData) {
@@ -214,6 +303,12 @@ export default function ProjectPageTemplate(project: ProjectData) {
   // Fluid side padding: 32px at 640px → 96px at 1280px, continuous
   const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
 
+  // Intro layout: the Project Info column is 1/3 of the screen but never below
+  // 240px; once it would shrink past that, the intro stacks (Project Overview
+  // drops below the 4 rows). Mirrors the CSS calc above in JS to find the point.
+  const introSidePad = Math.min(96, Math.max(32, -32 + 0.1 * vw));
+  const stackIntro = vw / 3 - introSidePad < 240;
+
   // Clamp vh for the left-column height calculation (freezes at 700px).
   const clampedVh = Math.max(700, vh);
   // Natural pad height ≈ 774px. Scale = 1 when it fits; shrinks only when
@@ -230,12 +325,13 @@ export default function ProjectPageTemplate(project: ProjectData) {
   };
 
   return (
-    <div style={{ backgroundColor: BG, minHeight: "100vh" }}>
+    <div style={{ backgroundColor: "var(--color-project-surface)", minHeight: "100vh" }}>
 
       <PortfolioNav
         projectsAction={goToProjects}
         isLightNav={!pastHero}
-        mobileBgColor="#F3F2F0"
+        forceLight={project.lightCover}
+        mobileBgColor="var(--color-project-surface)"
         showSound
         blurBottom={blurBottom}
       />
@@ -259,6 +355,11 @@ export default function ProjectPageTemplate(project: ProjectData) {
             <Image src={project.coverImage} fill alt={project.name} style={{ objectFit: "cover" }} priority />
           ) : (
             <div style={{ position: "absolute", inset: 0, backgroundColor: project.coverBg ?? BG_SECONDARY }} />
+          )}
+
+          {/* Black scrim over the cover image */}
+          {project.coverImage && project.coverScrim != null && (
+            <div style={{ position: "absolute", inset: 0, backgroundColor: `rgba(0, 0, 0, ${project.coverScrim})` }} />
           )}
 
           {isNarrow ? (
@@ -306,7 +407,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
 
               {/* Center column: elevator pad — no animation, just updates active floor */}
               <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "top center" }}>
-                <ElevatorPad activeFloor={project.floor} dark={project.darkPad} onContact={() => setContactOpen(true)} />
+                <ElevatorPad activeFloor={project.floor} dark={project.lightCover ? false : project.darkPad} forceTheme={project.lightCover ? "light" : "dark"} onContact={() => setContactOpen(true)} />
               </div>
 
               {/* Right column: empty mirror so the grid stays symmetric */}
@@ -334,31 +435,32 @@ export default function ProjectPageTemplate(project: ProjectData) {
           style={{
             width: "100%",
             display: "flex",
-            flexDirection: isMobile ? "column" : "row",
+            flexDirection: stackIntro ? "column" : "row",
             justifyContent: "space-between",
-            gap: isMobile ? 32 : 0,
-            padding: `32px ${sidePad} 0`,
+            gap: stackIntro ? 72 : 192,
+            padding: `96px ${sidePad} 0`,
+            marginBottom: 32,
             scrollMarginTop: 72,
           }}
         >
           {/* Metadata columns */}
-          <div style={{ display: "flex", flexDirection: "column", width: isMobile ? "100%" : "calc(50vw - clamp(32px, calc(-32px + 10vw), 96px))" }}>
+          <div style={{ display: "flex", flexDirection: "column", width: stackIntro ? "100%" : "calc(33.333vw - clamp(32px, calc(-32px + 10vw), 96px))", minWidth: stackIntro ? undefined : 240 }}>
             <MetaField label="Role" value={project.role} />
             <MetaDivider />
             <MetaField label="Year" value={project.yearRange} />
             <MetaDivider />
             <MetaField label="Platform" value={project.platform} />
             <MetaDivider />
-            <MetaField label="Focus" value={project.tags.join(", ")} />
+            <MetaField label="Focus" value={(project.focus ?? project.tags).join(", ")} />
             <MetaDivider />
           </div>
 
           {/* Overview */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16, width: isMobile ? "100%" : 400 }}>
-            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: BROWN, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, width: stackIntro ? "100%" : "calc(66.667vw - clamp(32px, calc(-32px + 10vw), 96px) - 192px)" }}>
+            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: "var(--color-on-surface-tertiary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
               Project overview
             </span>
-            <p style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BROWN, margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 18, color: "var(--color-on-surface-primary)", margin: 0, lineHeight: 1.6 }}>
               {project.overview}
             </p>
           </div>
@@ -375,28 +477,26 @@ export default function ProjectPageTemplate(project: ProjectData) {
               padding: `0 ${sidePad}`,
             }}
           >
-            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: BROWN, alignSelf: "center" }}>
+            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: "var(--color-on-surface-primary)", alignSelf: "center" }}>
               {section.title}
             </span>
             {(section.images ?? []).length === 0 ? (
               <div
                 style={{
                   width: "100%", height: 400,
-                  backgroundColor: BG_SECONDARY,
+                  backgroundColor: "var(--color-surface-transparent)",
                   borderRadius: 26,
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}
               >
-                <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: BROWN }}>
+                <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: "var(--color-on-surface-secondary)" }}>
                   Images coming soon
                 </span>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 144 }}>
+              <div style={{ width: "100%", maxWidth: 1000, display: "flex", flexDirection: "column", gap: 144, alignItems: "center" }}>
                 {section.images!.map((src, i) => (
-                  <div key={i} style={{ position: "relative", width: 1000, height: 721, borderRadius: 26, overflow: "hidden" }}>
-                    <Image src={src} fill alt={`${section.title} ${i + 1}`} style={{ objectFit: "cover" }} />
-                  </div>
+                  <SectionMedia key={i} src={src} title={section.title} index={i} />
                 ))}
               </div>
             )}
@@ -443,7 +543,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
               fontFamily: "var(--font-space-grotesk)",
               fontWeight: 300,
               fontSize: 10,
-              color: "#72503C",
+              color: "var(--color-on-surface-tertiary)",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
             }}

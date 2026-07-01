@@ -6,8 +6,8 @@ export default function Level6Page() {
       floor="6"
       year="2025"
       name="Beem Beeps & Search"
-      blurb="Sound design and search experience for the Beem payments app"
-      tags={["Mobile", "Sound design", "Product design"]}
+      blurb="Highly requested new app feature development"
+      tags={["Mobile", "User Research", "Product Strategy"]}
       coverBg="#1A0A2E"
       darkPad
       role="Lead Designer"

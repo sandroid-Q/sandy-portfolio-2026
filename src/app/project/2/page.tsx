@@ -6,8 +6,9 @@ export default function Level2Page() {
       floor="2"
       year="2022"
       name="Beem App"
-      blurb="Designing the core payments experience for Beem's flagship mobile app"
-      tags={["Mobile", "Product design"]}
+      blurb="Animated stickers, brand alignment & more"
+      tags={["Mobile", "Animation"]}
+      coverImage="/level-2.png"
       coverBg="#1A1040"
       darkPad
       role="Senior Product Designer"

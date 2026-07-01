@@ -6,9 +6,11 @@ export default function Level3Page() {
       floor="3"
       year="2023"
       name="Beemlantis"
-      blurb="Building Beem's internal design system and component library from the ground up"
-      tags={["Design system", "Web", "Mobile"]}
+      blurb="Beem’s 2023 gamified Year in Review experience with an underwater theme"
+      tags={["Mobile", "Web", "Project Management", "Animation"]}
+      coverImage="/level-3-smaller.jpg"
       coverBg="#0A1F2E"
+      lightCover
       darkPad
       role="Lead Designer"
       yearRange="2022–2023"

@@ -6,6 +6,8 @@
   --color-surface-secondary: #161719;
   --color-surface-tertiary: #F8F8F8;
   --color-surface-transparent: rgba(22, 23, 25, 0.15);
+  /* Project/level page background: surface-secondary in dark, surface-primary in light */
+  --color-project-surface: var(--color-surface-secondary);
   --color-on-surface-primary: #F8F8F8;
   --color-on-surface-secondary: #E7EAF1;
   --color-on-surface-tertiary: #C8CFDE;
@@ -30,6 +32,7 @@
   --color-surface-secondary: #E7EAF1;
   --color-surface-tertiary: #161719;
   --color-surface-transparent: rgba(22, 23, 25, 0.15);
+  --color-project-surface: var(--color-surface-primary);
   --color-on-surface-primary: #161719;
   --color-on-surface-secondary: #0034FF;
   --color-on-surface-tertiary: #636674;
