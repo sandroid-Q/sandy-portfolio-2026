@@ -159,9 +159,10 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
   const activeContent  = activeContentColor;
 
   // Light mode: outer bg animates to hoverAccent on hover; inner circle masks center with bg fill.
-  // Dark mode: outer bg only fills on active. Inner circle box-shadow spreads 10px outward
-  //            into the padding gap, clipped by overflow:hidden on the outer circle — so
-  //            only the ring between the two strokes turns hoverAccent, center stays transparent.
+  // Dark mode: outer bg only fills on active. Inner circle box-shadow spreads outward to fill
+  //            the full 14px padding gap (INNER_FILL→outer circle), clipped by overflow:hidden
+  //            on the outer circle — so the ring between the two strokes turns hoverAccent right
+  //            up to the outer ring, and the center stays transparent.
   const outerAnimate = dark
     ? { backgroundColor: isActivated ? activeFill : "rgba(0,0,0,0)" }
     : { backgroundColor: isActivated ? activeFill : effectiveHovered ? hoverAccent : defaultFill };
@@ -170,7 +171,7 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
   const innerBorderColor = isActivated ? activeContent : stroke;
   const contentColor     = isActivated ? activeContent : defaultContent;
   const innerShadow      = dark && effectiveHovered && !isActivated
-    ? `0 0 0 10px ${hoverAccent}`
+    ? `0 0 0 14px ${hoverAccent}`
     : "0 0 0 0px transparent";
 
   const isContactModal = btn.variant === "contact" && !!onContact;

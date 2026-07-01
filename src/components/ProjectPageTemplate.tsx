@@ -407,7 +407,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
 
               {/* Center column: elevator pad — no animation, just updates active floor */}
               <div style={{ transform: `scale(${desktopPadScale})`, transformOrigin: "top center" }}>
-                <ElevatorPad activeFloor={project.floor} dark={project.lightCover ? false : project.darkPad} forceTheme={project.lightCover ? "light" : "dark"} onContact={() => setContactOpen(true)} />
+                <ElevatorPad activeFloor={project.floor} dark={project.darkPad} forceTheme={project.lightCover ? "light" : "dark"} onContact={() => setContactOpen(true)} />
               </div>
 
               {/* Right column: empty mirror so the grid stays symmetric */}
