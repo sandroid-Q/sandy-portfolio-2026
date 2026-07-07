@@ -3,50 +3,68 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useInView } from "framer-motion";
 
-// Crop + rounding, as percentages so it scales with the video (no gap
-// discrepancies as things resize). ~0.99% v / ~1.40% h ≈ 5px / 4px at the
-// widest (~285×507) grid cell.
-const CLIP = "inset(0.99% 1.4% round 16.5px)";
-
 // Below this viewport (screen) width the grid becomes a swipe carousel.
 const CAROUSEL_VW = 600;
 // Container width at which the desktop grid gap reaches its 16px minimum.
 const GRID_MIN_W = 540;
 
-function CroppedVideo({ src }: { src: string }) {
+const VIDEO_EXT = /\.(mp4|mov|webm)$/i;
+
+// A single gallery item — a looping, in-view-only video for video files, an
+// image otherwise. `clip` applies a clip-path (crop + rounding); `aspectRatio`
+// reserves height so nothing collapses before the media loads.
+function GalleryItem({ src, clip, aspectRatio, alt }: { src: string; clip?: string; aspectRatio?: string; alt: string }) {
+  const isVideo = VIDEO_EXT.test(src);
   const ref = useRef<HTMLVideoElement>(null);
   const inView = useInView(ref, { margin: "200px 0px" });
 
-  // Play whenever visible (covers the centred card and the peeking neighbours);
-  // off-screen cards pause. aspect-ratio reserves the correct height before the
-  // video loads so the peek never collapses to an empty rectangle.
   useEffect(() => {
+    if (!isVideo) return;
     const v = ref.current;
     if (!v) return;
     if (inView) v.play().catch(() => {});
     else v.pause();
-  }, [inView]);
+  }, [inView, isVideo]);
 
-  return (
-    <div style={{ position: "relative", width: "100%" }}>
-      <video
-        ref={ref}
-        src={src}
-        muted
-        loop
-        playsInline
-        preload="none"
-        style={{ display: "block", width: "100%", height: "auto", aspectRatio: "540 / 960", clipPath: CLIP, WebkitClipPath: CLIP }}
-      />
-    </div>
-  );
+  const style: React.CSSProperties = {
+    display: "block",
+    width: "100%",
+    height: "auto",
+    ...(aspectRatio ? { aspectRatio } : {}),
+    ...(clip ? { clipPath: clip, WebkitClipPath: clip } : {}),
+  };
+
+  if (isVideo) {
+    return <video ref={ref} src={src} muted loop playsInline preload="none" style={style} />;
+  }
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={alt} style={{ ...style, objectFit: "cover" }} />;
 }
 
-export default function TotallyBeemGallery({ videos }: { videos: string[] }) {
+interface MediaGalleryProps {
+  /** Media srcs (videos and/or images), rendered in order. */
+  items: string[];
+  /** Desktop grid column count. Defaults to 3. */
+  columns?: number;
+  /** Optional clip-path (crop + rounding) applied to every item. */
+  clip?: string;
+  /** Optional aspect-ratio (e.g. "540 / 960") to reserve item height. */
+  aspectRatio?: string;
+  /** Accessible label base, e.g. "Meebsona" → "Meebsona 1". */
+  label?: string;
+}
+
+/**
+ * Responsive media gallery: a fluid multi-column grid on desktop that becomes a
+ * full-bleed, centre-peek swipe carousel below 600px viewport width — with a
+ * 4-point-star counter, scale-on-active, click/tap-to-advance, and an eased
+ * height on the layout swap.
+ */
+export default function MediaGallery({ items, columns = 3, clip, aspectRatio, label = "Item" }: MediaGalleryProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(1000);   // container width (for grid gap)
-  const [vw, setVw] = useState(CAROUSEL_VW + 1); // viewport width (for the breakpoint)
+  const [width, setWidth] = useState(1000);        // container width (for grid gap)
+  const [vw, setVw] = useState(CAROUSEL_VW + 1);   // viewport width (for the breakpoint)
   const [active, setActive] = useState(0);
   // Gates rendering until we've measured, so the correct layout paints first
   // (via useLayoutEffect) instead of flashing the wrong one on mount.
@@ -67,7 +85,7 @@ export default function TotallyBeemGallery({ videos }: { videos: string[] }) {
   const isCarousel = vw < CAROUSEL_VW;
 
   // Desktop grid gap shrinks from 72px (at the 1000px max) down to 16px as the
-  // container narrows, so the gap absorbs the change and the videos stay large.
+  // container narrows, so the gap absorbs the change and the items stay large.
   const gridGap = Math.round(Math.max(16, Math.min(72, 16 + ((width - GRID_MIN_W) / (1000 - GRID_MIN_W)) * (72 - 16))));
 
   // Entering carousel mode: start centred on (and enlarge) the first card.
@@ -130,17 +148,17 @@ export default function TotallyBeemGallery({ videos }: { videos: string[] }) {
         // spans the whole viewport width. `calc(50% - 50vw)` resolves to
         // -sidePad, pinning the left edge to the screen edge.
         <div style={{ width: "100vw", marginLeft: "calc(50% - 50vw)" }}>
-          <style>{`.tb-carousel::-webkit-scrollbar{display:none}`}</style>
+          <style>{`.mg-carousel::-webkit-scrollbar{display:none}`}</style>
           {/* Centre-aligned active card with the neighbours peeking; swipe, or
-              click a peek / counter dot to advance. End margins let the first
+              click a peek / counter star to advance. End margins let the first
               and last cards centre too. */}
           <div
             ref={scrollRef}
-            className="tb-carousel"
+            className="mg-carousel"
             onScroll={onScroll}
             style={{ position: "relative", display: "flex", gap: 16, overflowX: "auto", scrollSnapType: "x mandatory", scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
-            {videos.map((src, i) => (
+            {items.map((src, i) => (
               <div
                 key={i}
                 onClick={() => { if (i !== active) goTo(i); }}
@@ -148,7 +166,7 @@ export default function TotallyBeemGallery({ videos }: { videos: string[] }) {
                   flex: "0 0 70%",
                   scrollSnapAlign: "center",
                   marginLeft: i === 0 ? "15%" : 0,
-                  marginRight: i === videos.length - 1 ? "15%" : 0,
+                  marginRight: i === items.length - 1 ? "15%" : 0,
                   cursor: i === active ? "default" : "pointer",
                   // Neighbours sit a little smaller; the active card enlarges
                   // smoothly as it becomes centred.
@@ -157,17 +175,17 @@ export default function TotallyBeemGallery({ videos }: { videos: string[] }) {
                   transition: "transform 0.35s ease",
                 }}
               >
-                <CroppedVideo src={src} />
+                <GalleryItem src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} />
               </div>
             ))}
           </div>
           {/* 4-pointed-star carousel counter */}
           <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center", marginTop: 24 }}>
-            {videos.map((_, i) => (
+            {items.map((_, i) => (
               <button
                 key={i}
                 type="button"
-                aria-label={`Go to video ${i + 1}`}
+                aria-label={`Go to ${label.toLowerCase()} ${i + 1}`}
                 onClick={() => goTo(i)}
                 style={{ border: "none", padding: 0, background: "none", cursor: "pointer", display: "flex", lineHeight: 0 }}
               >
@@ -185,10 +203,10 @@ export default function TotallyBeemGallery({ videos }: { videos: string[] }) {
           </div>
         </div>
       ) : (
-        // Desktop: 3-column grid; gap shrinks with the viewport (min 16px).
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: gridGap, alignItems: "start" }}>
-          {videos.map((src, i) => (
-            <CroppedVideo key={i} src={src} />
+        // Desktop: fixed-column grid; gap shrinks with the viewport (min 16px).
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: gridGap, alignItems: "start" }}>
+          {items.map((src, i) => (
+            <GalleryItem key={i} src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} />
           ))}
         </div>
         )

@@ -1,6 +1,5 @@
 import ProjectPageTemplate from "@/components/ProjectPageTemplate";
-import MeebsonasGallery from "@/components/MeebsonasGallery";
-import TotallyBeemGallery from "@/components/TotallyBeemGallery";
+import MediaGallery from "@/components/MediaGallery";
 
 const TOTALLY_BEEM = [
   "/TB%20vids/TB-1.mp4",
@@ -42,11 +41,11 @@ export default function Level4Page() {
       sections={[
         {
           title: "Totally Beem",
-          content: <TotallyBeemGallery videos={TOTALLY_BEEM} />,
+          content: <MediaGallery items={TOTALLY_BEEM} label="Totally Beem video" clip="inset(0.99% 1.4% round 16.5px)" aspectRatio="540 / 960" />,
         },
         {
           title: "Meebsonas",
-          content: <MeebsonasGallery images={MEEBSONAS} />,
+          content: <MediaGallery items={MEEBSONAS} label="Meebsona" aspectRatio="750 / 1337" />,
           images: [
             { src: "/meebsona-mapping-sandyqi.png", width: 373, radius: 18 },
           ],
