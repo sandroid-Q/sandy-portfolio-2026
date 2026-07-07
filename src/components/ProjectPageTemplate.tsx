@@ -13,9 +13,22 @@ import { useAudio } from "@/contexts/AudioContext";
 const BG = "#F3F2F0";
 const BG_SECONDARY = "#E5E0D7";
 
+/** A stacked media item: a src string (full-width, 28px radius) or an object
+ *  overriding width (px, not full-width) and/or corner radius. */
+export type SectionMediaItem = string | { src: string; width?: number; radius?: number };
+
 export interface ProjectSection {
   title: string;
-  images?: string[];
+  /** Custom content rendered above the stacked media (e.g. a bespoke gallery). */
+  content?: React.ReactNode;
+  /** Media rendered full-width (or a fixed width), stacked. */
+  images?: SectionMediaItem[];
+  /** Media rendered side-by-side in a responsive grid (e.g. phone screens). */
+  grid?: string[];
+  /** Fixed column count for the grid (collapses to 1 on mobile). Omit for a responsive auto-fit grid. */
+  gridColumns?: number;
+  /** Gap between grid items — px number or any CSS length (e.g. a clamp()). Defaults to 24. */
+  gridGap?: number | string;
 }
 
 export interface ProjectData {
@@ -260,11 +273,17 @@ function SectionVideo({ src }: { src: string }) {
 }
 
 // A single content-section media item — looping video for video files
-// (.mov/.mp4/.webm), an image otherwise.
-function SectionMedia({ src, title, index }: { src: string; title: string; index: number }) {
+// (.mov/.mp4/.webm), an image otherwise. `width` (px) renders it at a fixed
+// width (centered, not full-width); `radius` overrides the corner rounding.
+function SectionMedia({ src, title, index, width, radius }: { src: string; title: string; index: number; width?: number; radius?: number }) {
   if (VIDEO_EXT.test(src)) return <SectionVideo src={src} />;
+  const style = {
+    ...MEDIA_STYLE,
+    ...(width != null ? { width, maxWidth: "100%" } : {}),
+    ...(radius != null ? { borderRadius: radius } : {}),
+  };
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={`${title} ${index + 1}`} style={MEDIA_STYLE} />;
+  return <img src={src} alt={`${title} ${index + 1}`} style={style} />;
 }
 
 export default function ProjectPageTemplate(project: ProjectData) {
@@ -480,7 +499,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
             <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: "var(--color-on-surface-primary)", alignSelf: "center" }}>
               {section.title}
             </span>
-            {(section.images ?? []).length === 0 ? (
+            {section.content == null && (section.grid?.length ?? 0) === 0 && (section.images?.length ?? 0) === 0 ? (
               <div
                 style={{
                   width: "100%", height: 400,
@@ -495,9 +514,27 @@ export default function ProjectPageTemplate(project: ProjectData) {
               </div>
             ) : (
               <div style={{ width: "100%", maxWidth: 1000, display: "flex", flexDirection: "column", gap: 144, alignItems: "center" }}>
-                {section.images!.map((src, i) => (
-                  <SectionMedia key={i} src={src} title={section.title} index={i} />
-                ))}
+                {section.content}
+                {section.grid && section.grid.length > 0 && (
+                  <div style={{
+                    width: "100%", display: "grid",
+                    gridTemplateColumns: section.gridColumns
+                      ? `repeat(${isMobile ? 1 : section.gridColumns}, 1fr)`
+                      : "repeat(auto-fit, minmax(min(240px, 100%), 1fr))",
+                    gap: section.gridGap ?? 24,
+                    alignItems: "start",
+                  }}>
+                    {section.grid.map((src, i) => (
+                      <SectionMedia key={`g${i}`} src={src} title={section.title} index={i} />
+                    ))}
+                  </div>
+                )}
+                {(section.images ?? []).map((item, i) => {
+                  const media = typeof item === "string" ? { src: item } : item;
+                  return (
+                    <SectionMedia key={i} src={media.src} title={section.title} index={i} width={media.width} radius={media.radius} />
+                  );
+                })}
               </div>
             )}
           </div>
