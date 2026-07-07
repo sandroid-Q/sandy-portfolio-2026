@@ -31,6 +31,7 @@ export default function Level4Page() {
       blurb="Beem’s 2024 Year in Review experience with a nostalgic twist"
       tags={["Mobile", "Web", "Project Management", "Product Strategy", "Animation"]}
       coverImage="/level-4-smaller.jpg"
+      coverPosition="min(0px, calc((100vw - 1600px) * 0.12)) bottom"
       coverBg="#1B2E1E"
       lightCover
       darkPad
@@ -45,7 +46,7 @@ export default function Level4Page() {
         },
         {
           title: "Meebsonas",
-          content: <MediaGallery items={MEEBSONAS} label="Meebsona" aspectRatio="750 / 1337" />,
+          content: <MediaGallery items={MEEBSONAS} label="Meebsona" aspectRatio="750 / 1337" rows={[5, 4]} />,
           images: [
             { src: "/meebsona-mapping-sandyqi.png", width: 373, radius: 18 },
           ],

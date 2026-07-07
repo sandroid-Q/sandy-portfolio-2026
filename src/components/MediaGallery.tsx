@@ -5,6 +5,9 @@ import { useInView } from "framer-motion";
 
 // Below this viewport (screen) width the grid becomes a swipe carousel.
 const CAROUSEL_VW = 600;
+// At/above this viewport width, a `rows` gallery uses its centred-rows layout
+// (e.g. 5 + 4); below it (down to CAROUSEL_VW) it falls back to the grid.
+const ROWS_VW = 1000;
 // Container width at which the desktop grid gap reaches its 16px minimum.
 const GRID_MIN_W = 540;
 
@@ -52,6 +55,9 @@ interface MediaGalleryProps {
   aspectRatio?: string;
   /** Accessible label base, e.g. "Meebsona" → "Meebsona 1". */
   label?: string;
+  /** Item counts per row for the widest tier (e.g. [5, 4]); centred rows of
+   *  equal-size items. Above ROWS_VW only; below it uses the grid. */
+  rows?: number[];
 }
 
 /**
@@ -60,7 +66,7 @@ interface MediaGalleryProps {
  * 4-point-star counter, scale-on-active, click/tap-to-advance, and an eased
  * height on the layout swap.
  */
-export default function MediaGallery({ items, columns = 3, clip, aspectRatio, label = "Item" }: MediaGalleryProps) {
+export default function MediaGallery({ items, columns = 3, clip, aspectRatio, label = "Item", rows }: MediaGalleryProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(1000);        // container width (for grid gap)
@@ -83,6 +89,20 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
   }, []);
 
   const isCarousel = vw < CAROUSEL_VW;
+  // Layout tier: carousel (<600), centred rows (≥1000, if `rows` given), else grid.
+  const mode: "carousel" | "rows" | "grid" = isCarousel ? "carousel" : (rows && vw >= ROWS_VW ? "rows" : "grid");
+
+  // Split items into the per-row groups for the rows layout; every item is sized
+  // to 1/maxPerRow so the shorter row matches the longer one and centres.
+  const maxPerRow = rows ? Math.max(...rows) : columns;
+  const rowGroups: { src: string; i: number }[][] = [];
+  if (rows) {
+    let idx = 0;
+    for (const count of rows) {
+      rowGroups.push(items.slice(idx, idx + count).map((src, k) => ({ src, i: idx + k })));
+      idx += count;
+    }
+  }
 
   // Desktop grid gap shrinks from 72px (at the 1000px max) down to 16px as the
   // container narrows, so the gap absorbs the change and the items stay large.
@@ -96,7 +116,7 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
     setActive(0);
   }, [isCarousel]);
 
-  // On a layout swap (grid ↔ carousel) the two heights differ; ease the gallery's
+  // On any layout swap the tiers have different heights; ease the gallery's
   // occupied height from the old to the new so the content below slides into
   // place instead of jumping. No overflow clipping (it would fight the carousel's
   // full-bleed) — the brief grow overflow is absorbed by the section gap below.
@@ -108,7 +128,7 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
     if (from != null && from > 0 && to > 0 && from !== to) {
       el.animate([{ height: `${from}px` }, { height: `${to}px` }], { duration: 240, easing: "ease-in-out" });
     }
-  }, [isCarousel]);
+  }, [mode]);
 
   // Record the height after every render (defined after the ease effect so that
   // one reads the pre-swap height first).
@@ -143,7 +163,7 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
   return (
     <div ref={wrapRef} style={{ width: "100%" }}>
       {ready && (
-        isCarousel ? (
+        mode === "carousel" ? (
         // Full-bleed: break out of the page's side padding so the carousel
         // spans the whole viewport width. `calc(50% - 50vw)` resolves to
         // -sidePad, pinning the left edge to the screen edge.
@@ -202,8 +222,22 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
             ))}
           </div>
         </div>
+      ) : mode === "rows" ? (
+        // Widest tier: centred rows (e.g. 5 + 4); every item is 1/maxPerRow wide
+        // so the shorter row matches the longer one and centres.
+        <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+          {rowGroups.map((group, r) => (
+            <div key={r} style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+              {group.map(({ src, i }) => (
+                <div key={i} style={{ width: `calc((100% - ${(maxPerRow - 1) * 16}px) / ${maxPerRow})`, flexShrink: 0 }}>
+                  <GalleryItem src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       ) : (
-        // Desktop: fixed-column grid; gap shrinks with the viewport (min 16px).
+        // Mid tier: fixed-column grid; gap shrinks with the viewport (min 16px).
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: gridGap, alignItems: "start" }}>
           {items.map((src, i) => (
             <GalleryItem key={i} src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} />
