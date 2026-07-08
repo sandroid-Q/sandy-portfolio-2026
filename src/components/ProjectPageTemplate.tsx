@@ -40,6 +40,8 @@ export interface ProjectData {
   /** Overrides the metadata "Focus" field; falls back to `tags` when unset. */
   focus?: string[];
   coverImage?: string;
+  /** object-position for the cover image (e.g. "left bottom"). Defaults to center. */
+  coverPosition?: string;
   coverBg?: string;
   /** Black scrim opacity (0–1) laid over the cover image, e.g. 0.6 for a 60% overlay */
   coverScrim?: number;
@@ -193,7 +195,7 @@ function ProjectInfo({ project, isMobile }: { project: ProjectData; isMobile: bo
         <span
           style={{
             fontFamily: "var(--font-silkscreen)", fontWeight: 400,
-            fontSize: isMobile ? 24 : 32,
+            fontSize: 32,
             color: ink, textTransform: "uppercase", lineHeight: 1.1,
           }}
         >
@@ -282,8 +284,10 @@ function SectionMedia({ src, title, index, width, radius }: { src: string; title
     ...(width != null ? { width, maxWidth: "100%" } : {}),
     ...(radius != null ? { borderRadius: radius } : {}),
   };
+  // loading="lazy" keeps these below-the-fold images from being eagerly
+  // preloaded (which triggers "preloaded but not used" warnings).
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={`${title} ${index + 1}`} style={style} />;
+  return <img src={src} alt={`${title} ${index + 1}`} loading="lazy" style={style} />;
 }
 
 export default function ProjectPageTemplate(project: ProjectData) {
@@ -371,7 +375,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
         >
           {/* Cover image or placeholder */}
           {project.coverImage ? (
-            <Image src={project.coverImage} fill alt={project.name} style={{ objectFit: "cover" }} priority />
+            <Image src={project.coverImage} fill alt={project.name} style={{ objectFit: "cover", objectPosition: project.coverPosition }} priority />
           ) : (
             <div style={{ position: "absolute", inset: 0, backgroundColor: project.coverBg ?? BG_SECONDARY }} />
           )}

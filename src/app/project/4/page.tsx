@@ -45,8 +45,8 @@ export default function Level4Page() {
           content: <MediaGallery items={TOTALLY_BEEM} label="Totally Beem video" clip="inset(0.99% 1.4% round 16.5px)" aspectRatio="540 / 960" />,
         },
         {
-          title: "Meebsonas",
-          content: <MediaGallery items={MEEBSONAS} label="Meebsona" aspectRatio="750 / 1337" rows={[5, 4]} />,
+          title: "Beemsona",
+          content: <MediaGallery items={MEEBSONAS} label="Beemsona" aspectRatio="750 / 1337" rows={[5, 4]} />,
           images: [
             { src: "/meebsona-mapping-sandyqi.png", width: 373, radius: 18 },
           ],

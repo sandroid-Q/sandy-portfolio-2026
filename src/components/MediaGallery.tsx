@@ -41,7 +41,7 @@ function GalleryItem({ src, clip, aspectRatio, alt }: { src: string; clip?: stri
     return <video ref={ref} src={src} muted loop playsInline preload="none" style={style} />;
   }
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} style={{ ...style, objectFit: "cover" }} />;
+  return <img src={src} alt={alt} loading="lazy" style={{ ...style, objectFit: "cover" }} />;
 }
 
 interface MediaGalleryProps {
