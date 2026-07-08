@@ -42,6 +42,9 @@ export interface ProjectData {
   coverImage?: string;
   /** object-position for the cover image (e.g. "left bottom"). Defaults to center. */
   coverPosition?: string;
+  /** Shift the (bottom-anchored) cover left as the screen narrows, clamped in JS
+   *  to the real overflow so the image always fills the width. */
+  coverShiftLeft?: boolean;
   coverBg?: string;
   /** Black scrim opacity (0–1) laid over the cover image, e.g. 0.6 for a 60% overlay */
   coverScrim?: number;
@@ -299,6 +302,8 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const [pastHero, setPastHero] = useState(false);
   const [blurBottom, setBlurBottom] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [coverAspect, setCoverAspect] = useState<number | null>(null);
+  const [coverX, setCoverX] = useState(0);
 
   useEffect(() => {
     const update = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
@@ -306,6 +311,19 @@ export default function ProjectPageTemplate(project: ProjectData) {
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
+
+  // Cover left-shift: shift the image left as the screen narrows, but clamp it in
+  // JS to the actual overflow (measured hero size × image aspect) so the right
+  // edge always stays covered. Recomputes on resize and once the aspect is known.
+  useEffect(() => {
+    const el = heroImgRef.current;
+    if (!project.coverShiftLeft || !coverAspect || !el) return;
+    const W = el.clientWidth;
+    const H = el.clientHeight;
+    const desired = Math.min(0, (W - 1600) * 0.12);
+    const overflow = Math.max(0, H * coverAspect - W);
+    setCoverX(Math.max(desired, -overflow));
+  }, [coverAspect, vw, vh, project.coverShiftLeft]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -348,7 +366,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
   };
 
   return (
-    <div style={{ backgroundColor: "var(--color-project-surface)", minHeight: "100vh" }}>
+    <div style={{ backgroundColor: "var(--color-project-surface)", minHeight: "100vh", overflowX: "clip" }}>
 
       <PortfolioNav
         projectsAction={goToProjects}
@@ -375,7 +393,17 @@ export default function ProjectPageTemplate(project: ProjectData) {
         >
           {/* Cover image or placeholder */}
           {project.coverImage ? (
-            <Image src={project.coverImage} fill alt={project.name} style={{ objectFit: "cover", objectPosition: project.coverPosition }} priority />
+            <Image
+              src={project.coverImage}
+              fill
+              alt={project.name}
+              priority
+              onLoad={project.coverShiftLeft ? (e) => {
+                const img = e.currentTarget;
+                if (img.naturalWidth && img.naturalHeight) setCoverAspect(img.naturalWidth / img.naturalHeight);
+              } : undefined}
+              style={{ objectFit: "cover", objectPosition: project.coverShiftLeft ? `${coverX}px bottom` : project.coverPosition }}
+            />
           ) : (
             <div style={{ position: "absolute", inset: 0, backgroundColor: project.coverBg ?? BG_SECONDARY }} />
           )}
