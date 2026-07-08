@@ -19,6 +19,8 @@ export type SectionMediaItem = string | { src: string; width?: number; radius?: 
 
 export interface ProjectSection {
   title: string;
+  /** Rendered inline to the right of the section title (e.g. a sound toggle). */
+  titleAccessory?: React.ReactNode;
   /** Custom content rendered above the stacked media (e.g. a bespoke gallery). */
   content?: React.ReactNode;
   /** Media rendered full-width (or a fixed width), stacked. */
@@ -528,9 +530,12 @@ export default function ProjectPageTemplate(project: ProjectData) {
               padding: `0 ${sidePad}`,
             }}
           >
-            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: "var(--color-on-surface-primary)", alignSelf: "center" }}>
-              {section.title}
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, alignSelf: "center" }}>
+              <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: "var(--color-on-surface-primary)" }}>
+                {section.title}
+              </span>
+              {section.titleAccessory}
+            </div>
             {section.content == null && (section.grid?.length ?? 0) === 0 && (section.images?.length ?? 0) === 0 ? (
               <div
                 style={{

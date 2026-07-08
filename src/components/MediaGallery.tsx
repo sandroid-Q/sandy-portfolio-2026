@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useInView } from "framer-motion";
+import { useAudio } from "@/contexts/AudioContext";
 
 // Below this viewport (screen) width the grid becomes a swipe carousel.
 const CAROUSEL_VW = 600;
@@ -15,19 +16,50 @@ const VIDEO_EXT = /\.(mp4|mov|webm)$/i;
 
 // A single gallery item — a looping, in-view-only video for video files, an
 // image otherwise. `clip` applies a clip-path (crop + rounding); `aspectRatio`
-// reserves height so nothing collapses before the media loads.
-function GalleryItem({ src, clip, aspectRatio, alt }: { src: string; clip?: string; aspectRatio?: string; alt: string }) {
+// reserves height so nothing collapses before the media loads. `sound` marks the
+// one item that plays audio; `soundMuted` is its externally-controlled mute.
+function GalleryItem({ src, clip, aspectRatio, alt, sound, soundMuted }: { src: string; clip?: string; aspectRatio?: string; alt: string; sound?: boolean; soundMuted?: boolean }) {
   const isVideo = VIDEO_EXT.test(src);
   const ref = useRef<HTMLVideoElement>(null);
   const inView = useInView(ref, { margin: "200px 0px" });
+  const { muted: siteMuted } = useAudio();
+  // A video may only play *with sound* after the document has been user-activated.
+  // Sticky activation carries across SPA navigation (same document), so arriving
+  // via a link click already satisfies it (navigator.userActivation.hasBeenActive);
+  // otherwise we unmute on the first gesture. Until then the item autoplays muted.
+  const [activated, setActivated] = useState(false);
+
+  useEffect(() => {
+    if (!sound) return;
+    const ua = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot: activation already carried over from SPA nav
+    if (ua?.hasBeenActive) { setActivated(true); return; }
+    const act = () => setActivated(true);
+    const opts: AddEventListenerOptions = { once: true };
+    window.addEventListener("pointerdown", act, opts);
+    window.addEventListener("keydown", act, opts);
+    window.addEventListener("touchstart", act, opts);
+    return () => {
+      window.removeEventListener("pointerdown", act);
+      window.removeEventListener("keydown", act);
+      window.removeEventListener("touchstart", act);
+    };
+  }, [sound]);
+
+  // The sound item wants audio unless the site or the (external) toggle muted it;
+  // everything else — and a sound item before activation — stays muted so autoplay
+  // works. The site mute always overrides.
+  const wantSound = !!sound && !siteMuted && !soundMuted;
+  const playMuted = !wantSound || !activated;
 
   useEffect(() => {
     if (!isVideo) return;
     const v = ref.current;
     if (!v) return;
+    v.muted = playMuted;
     if (inView) v.play().catch(() => {});
     else v.pause();
-  }, [inView, isVideo]);
+  }, [isVideo, inView, playMuted]);
 
   const style: React.CSSProperties = {
     display: "block",
@@ -38,7 +70,7 @@ function GalleryItem({ src, clip, aspectRatio, alt }: { src: string; clip?: stri
   };
 
   if (isVideo) {
-    return <video ref={ref} src={src} muted loop playsInline preload="none" style={style} />;
+    return <video ref={ref} src={src} muted={playMuted} loop playsInline preload="none" style={style} />;
   }
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt={alt} loading="lazy" style={{ ...style, objectFit: "cover" }} />;
@@ -58,6 +90,17 @@ interface MediaGalleryProps {
   /** Item counts per row for the widest tier (e.g. [5, 4]); centred rows of
    *  equal-size items. Above ROWS_VW only; below it uses the grid. */
   rows?: number[];
+  /** What the gallery becomes below CAROUSEL_VW. "carousel" (default) is the
+   *  swipe carousel; "stack" is a centred vertical stack sized to match the
+   *  carousel card width (70vw). */
+  mobileLayout?: "carousel" | "stack";
+  /** Index of the one item that plays with audio (bound to the site mute). All
+   *  other items stay muted. */
+  soundIndex?: number;
+  /** Externally-controlled mute for the `soundIndex` item (the toggle lives
+   *  outside the gallery, e.g. next to the section heading). The site mute
+   *  always overrides this. */
+  soundMuted?: boolean;
 }
 
 /**
@@ -66,7 +109,7 @@ interface MediaGalleryProps {
  * 4-point-star counter, scale-on-active, click/tap-to-advance, and an eased
  * height on the layout swap.
  */
-export default function MediaGallery({ items, columns = 3, clip, aspectRatio, label = "Item", rows }: MediaGalleryProps) {
+export default function MediaGallery({ items, columns = 3, clip, aspectRatio, label = "Item", rows, mobileLayout = "carousel", soundIndex, soundMuted }: MediaGalleryProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(1000);        // container width (for grid gap)
@@ -88,9 +131,13 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
     return () => ro.disconnect();
   }, []);
 
-  const isCarousel = vw < CAROUSEL_VW;
-  // Layout tier: carousel (<600), centred rows (≥1000, if `rows` given), else grid.
-  const mode: "carousel" | "rows" | "grid" = isCarousel ? "carousel" : (rows && vw >= ROWS_VW ? "rows" : "grid");
+  const belowCarousel = vw < CAROUSEL_VW;
+  const isCarousel = belowCarousel && mobileLayout === "carousel";
+  // Layout tier: below CAROUSEL_VW → carousel or centred stack (per mobileLayout);
+  // else centred rows (≥1000, if `rows` given), else grid.
+  const mode: "carousel" | "stack" | "rows" | "grid" = belowCarousel
+    ? (mobileLayout === "stack" ? "stack" : "carousel")
+    : (rows && vw >= ROWS_VW ? "rows" : "grid");
 
   // Split items into the per-row groups for the rows layout; every item is sized
   // to 1/maxPerRow so the shorter row matches the longer one and centres.
@@ -163,7 +210,17 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
   return (
     <div ref={wrapRef} style={{ width: "100%" }}>
       {ready && (
-        mode === "carousel" ? (
+        mode === "stack" ? (
+        // Centred vertical stack; each item matches the carousel card width (70vw)
+        // so it reads at the same size as the swipe carousel would.
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 32 }}>
+          {items.map((src, i) => (
+            <div key={i} style={{ width: "70vw" }}>
+              <GalleryItem src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} sound={i === soundIndex} soundMuted={soundMuted} />
+            </div>
+          ))}
+        </div>
+      ) : mode === "carousel" ? (
         // Full-bleed: break out of the page's side padding so the carousel
         // spans the whole viewport width. `calc(50% - 50vw)` resolves to
         // -sidePad, pinning the left edge to the screen edge.
@@ -195,7 +252,7 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
                   transition: "transform 0.35s ease",
                 }}
               >
-                <GalleryItem src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} />
+                <GalleryItem src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} sound={i === soundIndex} soundMuted={soundMuted} />
               </div>
             ))}
           </div>
@@ -230,17 +287,23 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
             <div key={r} style={{ display: "flex", gap: 16, justifyContent: "center" }}>
               {group.map(({ src, i }) => (
                 <div key={i} style={{ width: `calc((100% - ${(maxPerRow - 1) * 16}px) / ${maxPerRow})`, flexShrink: 0 }}>
-                  <GalleryItem src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} />
+                  <GalleryItem src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} sound={i === soundIndex} soundMuted={soundMuted} />
                 </div>
               ))}
             </div>
           ))}
         </div>
       ) : (
-        // Mid tier: fixed-column grid; gap shrinks with the viewport (min 16px).
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: gridGap, alignItems: "start" }}>
+        // Mid tier: fixed-column layout; gap shrinks with the viewport (min 16px).
+        // Flex-wrap (not CSS grid) so an incomplete last row centres — e.g. the
+        // 7th of 7 across 3 columns, or a row of 3 under a row of 4. Items are
+        // sized to a column width (minus 0.5px slack so rounding never overflows
+        // and wraps a full row early).
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: gridGap, alignItems: "flex-start" }}>
           {items.map((src, i) => (
-            <GalleryItem key={i} src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} />
+            <div key={i} style={{ width: `calc((100% - ${(columns - 1) * gridGap}px) / ${columns} - 0.5px)` }}>
+              <GalleryItem src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} sound={i === soundIndex} soundMuted={soundMuted} />
+            </div>
           ))}
         </div>
         )
