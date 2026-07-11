@@ -18,7 +18,7 @@ const VIDEO_EXT = /\.(mp4|mov|webm)$/i;
 // image otherwise. `clip` applies a clip-path (crop + rounding); `aspectRatio`
 // reserves height so nothing collapses before the media loads. `sound` marks the
 // one item that plays audio; `soundMuted` is its externally-controlled mute.
-function GalleryItem({ src, clip, aspectRatio, alt, sound, soundMuted }: { src: string; clip?: string; aspectRatio?: string; alt: string; sound?: boolean; soundMuted?: boolean }) {
+function GalleryItem({ src, clip, aspectRatio, objectPosition, alt, sound, soundMuted }: { src: string; clip?: string; aspectRatio?: string; objectPosition?: string; alt: string; sound?: boolean; soundMuted?: boolean }) {
   const isVideo = VIDEO_EXT.test(src);
   const ref = useRef<HTMLVideoElement>(null);
   const inView = useInView(ref, { margin: "200px 0px" });
@@ -73,7 +73,7 @@ function GalleryItem({ src, clip, aspectRatio, alt, sound, soundMuted }: { src: 
     return <video ref={ref} src={src} muted={playMuted} loop playsInline preload="none" style={style} />;
   }
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} loading="lazy" style={{ ...style, objectFit: "cover" }} />;
+  return <img src={src} alt={alt} loading="lazy" style={{ ...style, objectFit: "cover", ...(objectPosition ? { objectPosition } : {}) }} />;
 }
 
 interface MediaGalleryProps {
@@ -85,6 +85,11 @@ interface MediaGalleryProps {
   clip?: string;
   /** Optional aspect-ratio (e.g. "540 / 960") to reserve item height. */
   aspectRatio?: string;
+  /** Per-item crop applied only in the mobile carousel/stack tiers: an
+   *  aspect-ratio (crops via object-fit cover) and optional object-position
+   *  (e.g. "top" to crop from the bottom). null/omitted → that item stays
+   *  natural. Indexed to `items`. */
+  carouselCrops?: ({ aspectRatio: string; objectPosition?: string } | null)[];
   /** Accessible label base, e.g. "Meebsona" → "Meebsona 1". */
   label?: string;
   /** Item counts per row for the widest tier (e.g. [5, 4]); centred rows of
@@ -109,7 +114,10 @@ interface MediaGalleryProps {
  * 4-point-star counter, scale-on-active, click/tap-to-advance, and an eased
  * height on the layout swap.
  */
-export default function MediaGallery({ items, columns = 3, clip, aspectRatio, label = "Item", rows, mobileLayout = "carousel", soundIndex, soundMuted }: MediaGalleryProps) {
+export default function MediaGallery({ items, columns = 3, clip, aspectRatio, carouselCrops, label = "Item", rows, mobileLayout = "carousel", soundIndex, soundMuted }: MediaGalleryProps) {
+  // Per-item aspect/object-position for the mobile tiers (falls back to natural).
+  const mobileAspect = (i: number) => carouselCrops?.[i]?.aspectRatio ?? aspectRatio;
+  const mobilePos = (i: number) => carouselCrops?.[i]?.objectPosition;
   const wrapRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(1000);        // container width (for grid gap)
@@ -216,7 +224,7 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 32 }}>
           {items.map((src, i) => (
             <div key={i} style={{ width: "70vw" }}>
-              <GalleryItem src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} sound={i === soundIndex} soundMuted={soundMuted} />
+              <GalleryItem src={src} clip={clip} aspectRatio={mobileAspect(i)} objectPosition={mobilePos(i)} alt={`${label} ${i + 1}`} sound={i === soundIndex} soundMuted={soundMuted} />
             </div>
           ))}
         </div>
@@ -252,7 +260,7 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, la
                   transition: "transform 0.35s ease",
                 }}
               >
-                <GalleryItem src={src} clip={clip} aspectRatio={aspectRatio} alt={`${label} ${i + 1}`} sound={i === soundIndex} soundMuted={soundMuted} />
+                <GalleryItem src={src} clip={clip} aspectRatio={mobileAspect(i)} objectPosition={mobilePos(i)} alt={`${label} ${i + 1}`} sound={i === soundIndex} soundMuted={soundMuted} />
               </div>
             ))}
           </div>

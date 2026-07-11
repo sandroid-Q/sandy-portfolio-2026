@@ -56,7 +56,12 @@ export interface ProjectData {
   role: string;
   yearRange: string;
   platform: string;
-  overview: string;
+  /** Optional "In collaboration with" metadata row. */
+  collaborators?: string;
+  overview?: string;
+  /** Multi-part overview: each block is an optional sub-heading + body paragraph.
+   *  Takes precedence over `overview`. */
+  overviewBlocks?: { heading?: string; body: string }[];
   sections?: ProjectSection[];
 }
 
@@ -162,14 +167,14 @@ function IconButton({ onClick, icon }: { onClick: () => void; icon: (c: string, 
   );
 }
 
-function MetaField({ label, value }: { label: string; value: string }) {
+function MetaField({ label, value, phraseWrap = true }: { label: string; value: string; phraseWrap?: boolean }) {
   return (
     <div style={{ display: "flex", flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", columnGap: 64, padding: "10px 0" }}>
-      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: "var(--color-on-surface-tertiary)", textTransform: "uppercase", letterSpacing: "0.1em", flexShrink: 0 }}>
+      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: "var(--color-on-surface-tertiary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
         {label}
       </span>
       <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: "var(--color-on-surface-primary)", textAlign: "right" }}>
-        {value.includes(", ")
+        {phraseWrap && value.includes(", ")
           ? value.split(", ").map((phrase, i, all) => (
               <Fragment key={i}>
                 {/* Keep each comma-phrase intact; only the space after a comma can break. */}
@@ -504,6 +509,12 @@ export default function ProjectPageTemplate(project: ProjectData) {
             <MetaDivider />
             <MetaField label="Platform" value={project.platform} />
             <MetaDivider />
+            {project.collaborators && (
+              <>
+                <MetaField label="In collaboration with" value={project.collaborators} phraseWrap={false} />
+                <MetaDivider />
+              </>
+            )}
             <MetaField label="Focus" value={(project.focus ?? project.tags).join(", ")} />
             <MetaDivider />
           </div>
@@ -513,9 +524,26 @@ export default function ProjectPageTemplate(project: ProjectData) {
             <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: "var(--color-on-surface-tertiary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
               Project overview
             </span>
-            <p style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 18, color: "var(--color-on-surface-primary)", margin: 0, lineHeight: 1.6 }}>
-              {project.overview}
-            </p>
+            {project.overviewBlocks ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                {project.overviewBlocks.map((block, i) => (
+                  <div key={i} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {block.heading && (
+                      <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: "var(--color-on-surface-primary)" }}>
+                        {block.heading}
+                      </span>
+                    )}
+                    <p style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 18, color: "var(--color-on-surface-primary)", margin: 0, lineHeight: 1.6 }}>
+                      {block.body}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 18, color: "var(--color-on-surface-primary)", margin: 0, lineHeight: 1.6 }}>
+                {project.overview}
+              </p>
+            )}
           </div>
         </div>
 
