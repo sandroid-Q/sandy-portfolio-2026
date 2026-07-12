@@ -30,7 +30,7 @@ const FLOOR_DATA: Record<string, FloorPreview> = {
   "3": { year: "2023", name: "BEEMLANTIS", blurb: "Beem’s 2023 gamified Year in Review experience with an underwater theme", tags: ["Mobile", "Web", "Project Management", "Animation"], cover: "/cover-beemlantis2.mp4" },
   "4": { year: "2024", name: "TOTALLY BEEM", blurb: "Beem’s 2024 Year in Review experience with a nostalgic twist", tags: ["Mobile", "Web", "Project Management", "Product Strategy", "Animation"], cover: "/cover-totallybeem2.mp4" },
   "5": { year: "2025", name: "AP+ PORTALS", blurb: "Harmonising AP+'s developer, testing automation and role management experiences", tags: ["Web", "Design system"], cover: "/cover-portals.mp4" },
-  "6": { year: "2026", name: "BEEM BEEPS & SEARCH", blurb: "Highly requested new app feature development", tags: ["Mobile", "User Research", "Product Strategy"], cover: "/cover-beembeeps.mp4" },
+  "6": { year: "2026", name: "BEEM BEEPS: REMINDERS", blurb: "Highly requested new app feature development", tags: ["Mobile", "User Research", "Product Strategy"], cover: "/cover-beembeeps.mp4" },
 };
 
 function ArrowDown({ color, hovered }: { color: string; hovered: boolean }) {
