@@ -3,6 +3,7 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import Caption from "./Caption";
 import BeforeAfterSlider from "./BeforeAfterSlider";
+import SwipeCarousel from "../gallery/SwipeCarousel";
 
 const BEFORE = "/beem beeps/before-new.png";
 
@@ -32,7 +33,13 @@ const RADIUS = 38;
 
 const LINE = "color-mix(in srgb, var(--color-on-surface-tertiary) 60%, transparent)";
 const DOT = "var(--color-feature-secondary)";
+// Below this the results reflow to a 2-up grid.
 const STACK_W = 640;
+// At/below this the results become a swipe carousel.
+const CAROUSEL_W = 400;
+// Below this the row compresses enough that the connectors would overlap the
+// top screen, so they're hidden (while the images stay in a row down to STACK_W).
+const LINES_W = 880;
 
 type Seg = { d: string; sx: number; sy: number; ex: number; ey: number };
 
@@ -43,16 +50,19 @@ export default function ActivityFilters() {
   const [segs, setSegs] = useState<Seg[]>([]);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [stack, setStack] = useState(false);
+  const [carousel, setCarousel] = useState(false);
 
   const measure = useCallback(() => {
     const c = containerRef.current;
     const top = topRef.current;
     if (!c) return;
-    const narrow = window.innerWidth < STACK_W;
-    setStack(narrow);
+    const vw = window.innerWidth;
+    setStack(vw < STACK_W);
+    setCarousel(vw <= CAROUSEL_W);
     const cr = c.getBoundingClientRect();
     setSize({ w: cr.width, h: cr.height });
-    if (narrow || !top) { setSegs([]); return; }
+    // Hide the connectors once the row compresses enough to overlap the top screen.
+    if (vw < LINES_W || !top) { setSegs([]); return; }
     const tr = top.getBoundingClientRect();
     const next: Seg[] = [];
     RESULTS.forEach((_, i) => {
@@ -116,34 +126,49 @@ export default function ActivityFilters() {
         />
       </div>
 
-      {/* Bottom: four filtered result screens */}
-      <div
-        style={{
-          width: "100%",
-          display: stack ? "grid" : "flex",
-          gridTemplateColumns: stack ? "repeat(2, 1fr)" : undefined,
-          justifyContent: "center",
-          gap: stack ? 24 : "clamp(16px, 4vw, 40px)",
-          position: "relative", zIndex: 1,
-        }}
-      >
-        {RESULTS.map((r, i) => (
-          <div
-            key={r.src}
-            ref={(el) => { resultRefs.current[i] = el; }}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, width: "100%", maxWidth: stack ? "100%" : 186, justifySelf: "center" }}
-          >
-            <Caption>{r.caption}</Caption>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={r.src}
-              alt={r.alt}
-              loading="lazy"
-              style={{ display: "block", width: "100%", borderRadius: 16, border: "1px solid var(--color-surface-secondary)", boxShadow: "var(--phone-shadow)" }}
-            />
-          </div>
-        ))}
-      </div>
+      {/* Bottom: four filtered result screens — swipe carousel on the narrowest
+          screens, else a centred grid/row. */}
+      {carousel ? (
+        <div style={{ width: "100%", position: "relative", zIndex: 1 }}>
+          <SwipeCarousel label="Filter" cards={RESULTS.map((r) => <ResultCard key={r.src} r={r} />)} />
+        </div>
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            display: stack ? "grid" : "flex",
+            gridTemplateColumns: stack ? "repeat(2, 1fr)" : undefined,
+            justifyContent: "center",
+            gap: stack ? 24 : "clamp(16px, 4vw, 40px)",
+            position: "relative", zIndex: 1,
+          }}
+        >
+          {RESULTS.map((r, i) => (
+            <div
+              key={r.src}
+              ref={(el) => { resultRefs.current[i] = el; }}
+              style={{ width: "100%", maxWidth: stack ? "100%" : 186, justifySelf: "center" }}
+            >
+              <ResultCard r={r} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResultCard({ r }: { r: (typeof RESULTS)[number] }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+      <Caption>{r.caption}</Caption>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={r.src}
+        alt={r.alt}
+        loading="lazy"
+        style={{ display: "block", width: "100%", borderRadius: 16, border: "1px solid var(--color-surface-secondary)", boxShadow: "var(--phone-shadow)" }}
+      />
     </div>
   );
 }
