@@ -15,6 +15,8 @@ export default function Level6Page() {
       name="Beem Beeps: Reminders"
       blurb="Highly requested new app feature development"
       tags={["Mobile", "User Research", "Product Strategy"]}
+      coverImage="/level-6-cover-purple2.png"
+      coverPinRightFreezeW={675}
       coverBg="#1A0A2E"
       darkPad
       role="Lead Designer"

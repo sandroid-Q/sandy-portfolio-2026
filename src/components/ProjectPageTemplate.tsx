@@ -47,6 +47,11 @@ export interface ProjectData {
   /** Shift the (bottom-anchored) cover left as the screen narrows, clamped in JS
    *  to the real overflow so the image always fills the width. */
   coverShiftLeft?: boolean;
+  /** Right-pin the (centre-anchored) cover, but freeze the horizontal position
+   *  once the screen narrows past this width (px) — so the composition below it
+   *  stays put (keeping a right-side subject clear of the left-hand text) and the
+   *  far edge crops instead of the subject shifting further in. */
+  coverPinRightFreezeW?: number;
   coverBg?: string;
   /** Black scrim opacity (0–1) laid over the cover image, e.g. 0.6 for a 60% overlay */
   coverScrim?: number;
@@ -332,6 +337,20 @@ export default function ProjectPageTemplate(project: ProjectData) {
     setCoverX(Math.max(desired, -overflow));
   }, [coverAspect, vw, vh, project.coverShiftLeft]);
 
+  // Right-pin with freeze: right-pin the cover (crops the left as it narrows),
+  // but stop shifting once the width drops below `coverPinRightFreezeW` by
+  // clamping the overflow to that width — so the subject holds its position and
+  // the far edge crops instead of it sliding into the left-hand text.
+  useEffect(() => {
+    const el = heroImgRef.current;
+    const freezeW = project.coverPinRightFreezeW;
+    if (!freezeW || !coverAspect || !el) return;
+    const W = el.clientWidth;
+    const H = el.clientHeight;
+    const overflow = Math.max(0, H * coverAspect - Math.max(W, freezeW));
+    setCoverX(-overflow);
+  }, [coverAspect, vw, vh, project.coverPinRightFreezeW]);
+
   useEffect(() => {
     const onScroll = () => {
       if (!heroImgRef.current) return;
@@ -405,11 +424,11 @@ export default function ProjectPageTemplate(project: ProjectData) {
               fill
               alt={project.name}
               priority
-              onLoad={project.coverShiftLeft ? (e) => {
+              onLoad={(project.coverShiftLeft || project.coverPinRightFreezeW) ? (e) => {
                 const img = e.currentTarget;
                 if (img.naturalWidth && img.naturalHeight) setCoverAspect(img.naturalWidth / img.naturalHeight);
               } : undefined}
-              style={{ objectFit: "cover", objectPosition: project.coverShiftLeft ? `${coverX}px bottom` : project.coverPosition }}
+              style={{ objectFit: "cover", objectPosition: project.coverShiftLeft ? `${coverX}px bottom` : project.coverPinRightFreezeW ? `${coverX}px center` : project.coverPosition }}
             />
           ) : (
             <div style={{ position: "absolute", inset: 0, backgroundColor: project.coverBg ?? BG_SECONDARY }} />
@@ -435,7 +454,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                style={{ maxWidth: 336 }}
+                style={{ maxWidth: 320 }}
               >
                 <ProjectInfo project={project} isMobile={isMobile} />
               </motion.div>

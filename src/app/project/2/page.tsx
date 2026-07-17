@@ -13,6 +13,7 @@ export default function Level2Page() {
       tags={["Mobile", "Animation"]}
       focus={["Mobile", "Animation", "Brand"]}
       coverImage="/level-2.png"
+      coverPosition="20% bottom"
       coverBg="#1A1040"
       darkPad
       role="Senior Product & Visual Designer"
