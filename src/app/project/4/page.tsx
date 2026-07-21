@@ -30,7 +30,7 @@ export default function Level4Page() {
       name="Totally Beem"
       blurb="Beem’s 2024 Year in Review experience with a nostalgic twist"
       tags={["Mobile", "Web", "Project Management", "Product Strategy", "Animation"]}
-      coverImage="/level-4-cover-final.png"
+      coverImage="/new covers/cover_L4.png"
       coverShiftLeft
       coverBg="#1B2E1E"
       lightCover

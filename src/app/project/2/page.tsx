@@ -12,7 +12,7 @@ export default function Level2Page() {
       blurb="Animated stickers, brand alignment & more"
       tags={["Mobile", "Animation"]}
       focus={["Mobile", "Animation", "Brand"]}
-      coverImage="/level-2.png"
+      coverImage="/new covers/cover_L2.png"
       coverPosition="20% bottom"
       coverBg="#1A1040"
       darkPad

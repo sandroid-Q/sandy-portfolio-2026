@@ -9,7 +9,8 @@ export default function Level5Page() {
       blurb="Harmonising AP+'s developer, testing automation and role management experiences"
       tags={["Web", "Design system"]}
       focus={["Information Architecture", "Solution design", "Design System"]}
-      coverImage="/level-5.png"
+      coverImage="/new covers/cover_L5.png"
+      coverPosition="left center"
       coverBg="#0D033C"
       darkPad
       role="Lead Designer"

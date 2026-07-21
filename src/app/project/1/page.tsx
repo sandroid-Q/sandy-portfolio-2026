@@ -20,8 +20,7 @@ export default function Level1Page() {
       name="Moomoo: Power Launch"
       blurb="Landing pages, marketing assets & brand strategy for the trading platforms’ power launch in Sydney"
       tags={["Web", "Digital Design", "OOH Design", "Brand Direction"]}
-      coverImage="/level-1-smaller.jpg"
-      coverScrim={0.6}
+      coverImage="/new covers/cover_L1.jpg"
       coverBg="#2A1200"
       darkPad
       role="Senior Visual & Product Designer"
