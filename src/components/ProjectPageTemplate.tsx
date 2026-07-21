@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, Fragment } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useAnimation, useInView } from "framer-motion";
+import { motion, useAnimation, useInView, type Variants } from "framer-motion";
 import Image from "next/image";
 import ElevatorPad from "./ElevatorPad";
 import FloorBreadcrumb from "./FloorBreadcrumb";
@@ -12,6 +12,18 @@ import { useAudio } from "@/contexts/AudioContext";
 
 const BG = "#F3F2F0";
 const BG_SECONDARY = "#E5E0D7";
+
+// Scroll-in reveal (matches the About page): rows fade up from nothing, one after
+// another, with a smooth ease-in-out — triggered once as they scroll into view.
+const staggerContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
+};
+const fadeUpItem: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.65, 0, 0.35, 1] } },
+};
+const STAGGER_VIEWPORT = { once: true, amount: 0.2 } as const;
 
 /** A stacked media item: a src string (full-width, 28px radius) or an object
  *  overriding width (px, not full-width) and/or corner radius. */
@@ -63,6 +75,8 @@ export interface ProjectData {
   platform: string;
   /** Optional "In collaboration with" metadata row. */
   collaborators?: string;
+  /** Optional "Design Team" metadata row (rendered above Focus). */
+  designTeam?: string;
   overview?: string;
   /** Multi-part overview: each block is an optional sub-heading + body paragraph.
    *  Takes precedence over `overview`. */
@@ -521,32 +535,58 @@ export default function ProjectPageTemplate(project: ProjectData) {
           }}
         >
           {/* Metadata columns */}
-          <div style={{ display: "flex", flexDirection: "column", width: stackIntro ? "100%" : "calc(33.333vw - clamp(32px, calc(-32px + 10vw), 96px))", minWidth: stackIntro ? undefined : 240 }}>
-            <MetaField label="Role" value={project.role} />
-            <MetaDivider />
-            <MetaField label="Year" value={project.yearRange} />
-            <MetaDivider />
-            <MetaField label="Platform" value={project.platform} />
-            <MetaDivider />
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={STAGGER_VIEWPORT}
+            style={{ display: "flex", flexDirection: "column", width: stackIntro ? "100%" : "calc(33.333vw - clamp(32px, calc(-32px + 10vw), 96px))", minWidth: stackIntro ? undefined : 240 }}
+          >
+            <motion.div variants={fadeUpItem}>
+              <MetaField label="Role" value={project.role} />
+              <MetaDivider />
+            </motion.div>
+            <motion.div variants={fadeUpItem}>
+              <MetaField label="Year" value={project.yearRange} />
+              <MetaDivider />
+            </motion.div>
+            <motion.div variants={fadeUpItem}>
+              <MetaField label="Platform" value={project.platform} />
+              <MetaDivider />
+            </motion.div>
             {project.collaborators && (
-              <>
+              <motion.div variants={fadeUpItem}>
                 <MetaField label="In collaboration with" value={project.collaborators} phraseWrap={false} />
                 <MetaDivider />
-              </>
+              </motion.div>
             )}
-            <MetaField label="Focus" value={(project.focus ?? project.tags).join(", ")} />
-            <MetaDivider />
-          </div>
+            {project.designTeam && (
+              <motion.div variants={fadeUpItem}>
+                <MetaField label="Design Support" value={project.designTeam} phraseWrap={false} />
+                <MetaDivider />
+              </motion.div>
+            )}
+            <motion.div variants={fadeUpItem}>
+              <MetaField label="Focus" value={(project.focus ?? project.tags).join(", ")} />
+              <MetaDivider />
+            </motion.div>
+          </motion.div>
 
           {/* Overview */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16, width: stackIntro ? "100%" : "calc(66.667vw - clamp(32px, calc(-32px + 10vw), 96px) - 192px)" }}>
-            <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: "var(--color-on-surface-tertiary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={STAGGER_VIEWPORT}
+            style={{ display: "flex", flexDirection: "column", gap: 16, width: stackIntro ? "100%" : "calc(66.667vw - clamp(32px, calc(-32px + 10vw), 96px) - 192px)" }}
+          >
+            <motion.span variants={fadeUpItem} style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 13, color: "var(--color-on-surface-tertiary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
               Project overview
-            </span>
+            </motion.span>
             {project.overviewBlocks ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
                 {project.overviewBlocks.map((block, i) => (
-                  <div key={i} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <motion.div variants={fadeUpItem} key={i} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {block.heading && (
                       <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: "var(--color-on-surface-primary)" }}>
                         {block.heading}
@@ -555,15 +595,15 @@ export default function ProjectPageTemplate(project: ProjectData) {
                     <p style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 18, color: "var(--color-on-surface-primary)", margin: 0, lineHeight: 1.6 }}>
                       {block.body}
                     </p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             ) : (
-              <p style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 18, color: "var(--color-on-surface-primary)", margin: 0, lineHeight: 1.6 }}>
+              <motion.p variants={fadeUpItem} style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 18, color: "var(--color-on-surface-primary)", margin: 0, lineHeight: 1.6 }}>
                 {project.overview}
-              </p>
+              </motion.p>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* Project content sections */}

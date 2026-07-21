@@ -48,6 +48,7 @@ export default function Level3Page() {
       role="Lead Designer, Project Lead"
       yearRange="2023"
       platform="Web · iOS · Android"
+      designTeam="Corbin Nash, Ariana Boydell"
       overview="Beemlantis is Beem’s interactive, gamified Year in Review experience, created to increase community engagement and brand awareness & sentiment. The mobile and desktop experience enable users to choose a ship and dive underwater, visiting personalised data points (in relation to their Beem usage). Large consideration is always placed on data privacy and sentiments surrounding financial data."
       sections={[
         {

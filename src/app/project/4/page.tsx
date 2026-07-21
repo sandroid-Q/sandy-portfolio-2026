@@ -38,6 +38,7 @@ export default function Level4Page() {
       role="Lead Designer, Project Lead"
       yearRange="2024"
       platform="Web, mobile"
+      designTeam="Corbin Nash, Bridie Allan, Bennett Kowald, Kalyani Jegendran"
       overview="A rewind edition to Beem’s Year in Review project, taking on the look and feel of a 2000’s magazine. Rather than the usual collection of financial data points, the team opted for a fun, shareable persona (Meebsona) quiz for this year’s experience after testing from previous Year in Review project metrics."
       sections={[
         {
