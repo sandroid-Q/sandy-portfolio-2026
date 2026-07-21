@@ -23,7 +23,39 @@ const fadeUpItem: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.65, 0, 0.35, 1] } },
 };
+// Divider lines "draw" in left-to-right (scaleX) as their row reveals.
+const drawLine: Variants = {
+  hidden: { scaleX: 0 },
+  show: { scaleX: 1, transition: { duration: 0.6, ease: [0.65, 0, 0.35, 1] } },
+};
 const STAGGER_VIEWPORT = { once: true, amount: 0.2 } as const;
+
+// Generic scroll-in reveal: a subtle fade + gentle upward drift (a light
+// parallax rise) as the element scrolls into view. Fires once. Height-agnostic
+// trigger (margin-based) so tall media reveal as their top edge nears the fold.
+function Reveal({
+  children,
+  y = 28,
+  delay = 0,
+  style,
+}: {
+  children: React.ReactNode;
+  y?: number;
+  delay?: number;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "0px 0px -12% 0px" }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay }}
+      style={style}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 /** A stacked media item: a src string (full-width, 28px radius) or an object
  *  overriding width (px, not full-width) and/or corner radius. */
@@ -102,8 +134,12 @@ function ArrowDown({ color, hovered }: { color: string; hovered: boolean }) {
   return (
     <motion.div animate={controls}>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M12 0.75L12 23.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M1.5 12.75L12 23.25L22.5 12.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <motion.path d="M12 0.75L12 23.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
+          transition={{ duration: 0.5, ease: "easeInOut" }} />
+        <motion.path d="M1.5 12.75L12 23.25L22.5 12.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
+          transition={{ duration: 0.4, ease: "easeInOut", delay: 0.35 }} />
       </svg>
     </motion.div>
   );
@@ -127,8 +163,12 @@ function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
   return (
     <motion.div animate={controls}>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M12 23.25L12 0.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M22.5 11.25L12 0.75L1.5 11.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <motion.path d="M12 23.25L12 0.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
+          transition={{ duration: 0.5, ease: "easeInOut" }} />
+        <motion.path d="M22.5 11.25L12 0.75L1.5 11.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
+          transition={{ duration: 0.4, ease: "easeInOut", delay: 0.35 }} />
       </svg>
     </motion.div>
   );
@@ -208,7 +248,12 @@ function MetaField({ label, value, phraseWrap = true }: { label: string; value: 
 }
 
 function MetaDivider() {
-  return <div style={{ height: 1, backgroundColor: "var(--color-on-surface-primary)", opacity: 0.15 }} />;
+  return (
+    <motion.div
+      variants={drawLine}
+      style={{ height: 1, backgroundColor: "var(--color-on-surface-primary)", opacity: 0.15, transformOrigin: "left" }}
+    />
+  );
 }
 
 function ProjectInfo({ project, isMobile }: { project: ProjectData; isMobile: boolean }) {
@@ -542,34 +587,26 @@ export default function ProjectPageTemplate(project: ProjectData) {
             viewport={STAGGER_VIEWPORT}
             style={{ display: "flex", flexDirection: "column", width: stackIntro ? "100%" : "calc(33.333vw - clamp(32px, calc(-32px + 10vw), 96px))", minWidth: stackIntro ? undefined : 240 }}
           >
-            <motion.div variants={fadeUpItem}>
-              <MetaField label="Role" value={project.role} />
-              <MetaDivider />
-            </motion.div>
-            <motion.div variants={fadeUpItem}>
-              <MetaField label="Year" value={project.yearRange} />
-              <MetaDivider />
-            </motion.div>
-            <motion.div variants={fadeUpItem}>
-              <MetaField label="Platform" value={project.platform} />
-              <MetaDivider />
-            </motion.div>
+            <motion.div variants={fadeUpItem}><MetaField label="Role" value={project.role} /></motion.div>
+            <MetaDivider />
+            <motion.div variants={fadeUpItem}><MetaField label="Year" value={project.yearRange} /></motion.div>
+            <MetaDivider />
+            <motion.div variants={fadeUpItem}><MetaField label="Platform" value={project.platform} /></motion.div>
+            <MetaDivider />
             {project.collaborators && (
-              <motion.div variants={fadeUpItem}>
-                <MetaField label="In collaboration with" value={project.collaborators} phraseWrap={false} />
+              <>
+                <motion.div variants={fadeUpItem}><MetaField label="In collaboration with" value={project.collaborators} phraseWrap={false} /></motion.div>
                 <MetaDivider />
-              </motion.div>
+              </>
             )}
             {project.designTeam && (
-              <motion.div variants={fadeUpItem}>
-                <MetaField label="Design Support" value={project.designTeam} phraseWrap={false} />
+              <>
+                <motion.div variants={fadeUpItem}><MetaField label="Design Support" value={project.designTeam} phraseWrap={false} /></motion.div>
                 <MetaDivider />
-              </motion.div>
+              </>
             )}
-            <motion.div variants={fadeUpItem}>
-              <MetaField label="Focus" value={(project.focus ?? project.tags).join(", ")} />
-              <MetaDivider />
-            </motion.div>
+            <motion.div variants={fadeUpItem}><MetaField label="Focus" value={(project.focus ?? project.tags).join(", ")} /></motion.div>
+            <MetaDivider />
           </motion.div>
 
           {/* Overview */}
@@ -617,14 +654,14 @@ export default function ProjectPageTemplate(project: ProjectData) {
               padding: `0 ${sidePad}`,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, alignSelf: "center" }}>
+            <Reveal y={20} style={{ display: "flex", alignItems: "center", gap: 8, alignSelf: "center" }}>
               <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 500, fontSize: 20, color: "var(--color-on-surface-primary)" }}>
                 {section.title}
               </span>
               {section.titleAccessory}
-            </div>
+            </Reveal>
             {section.content == null && (section.grid?.length ?? 0) === 0 && (section.images?.length ?? 0) === 0 ? (
-              <div
+              <Reveal
                 style={{
                   width: "100%", height: 400,
                   backgroundColor: "var(--color-surface-transparent)",
@@ -635,28 +672,42 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 <span style={{ fontFamily: "var(--font-space-grotesk)", fontWeight: 300, fontSize: 14, color: "var(--color-on-surface-secondary)" }}>
                   Images coming soon
                 </span>
-              </div>
+              </Reveal>
             ) : (
               <div style={{ width: "100%", maxWidth: 1000, display: "flex", flexDirection: "column", gap: 144, alignItems: "center" }}>
-                {section.content}
+                {section.content && (
+                  <Reveal style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+                    {section.content}
+                  </Reveal>
+                )}
                 {section.grid && section.grid.length > 0 && (
-                  <div style={{
-                    width: "100%", display: "grid",
-                    gridTemplateColumns: section.gridColumns
-                      ? `repeat(${isMobile ? 1 : section.gridColumns}, 1fr)`
-                      : "repeat(auto-fit, minmax(min(240px, 100%), 1fr))",
-                    gap: section.gridGap ?? 24,
-                    alignItems: "start",
-                  }}>
+                  <motion.div
+                    variants={staggerContainer}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={STAGGER_VIEWPORT}
+                    style={{
+                      width: "100%", display: "grid",
+                      gridTemplateColumns: section.gridColumns
+                        ? `repeat(${isMobile ? 1 : section.gridColumns}, 1fr)`
+                        : "repeat(auto-fit, minmax(min(240px, 100%), 1fr))",
+                      gap: section.gridGap ?? 24,
+                      alignItems: "start",
+                    }}
+                  >
                     {section.grid.map((src, i) => (
-                      <SectionMedia key={`g${i}`} src={src} title={section.title} index={i} />
+                      <motion.div variants={fadeUpItem} key={`g${i}`}>
+                        <SectionMedia src={src} title={section.title} index={i} />
+                      </motion.div>
                     ))}
-                  </div>
+                  </motion.div>
                 )}
                 {(section.images ?? []).map((item, i) => {
                   const media = typeof item === "string" ? { src: item } : item;
                   return (
-                    <SectionMedia key={i} src={media.src} title={section.title} index={i} width={media.width} radius={media.radius} />
+                    <Reveal key={i} style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+                      <SectionMedia src={media.src} title={section.title} index={i} width={media.width} radius={media.radius} />
+                    </Reveal>
                   );
                 })}
               </div>
