@@ -51,8 +51,12 @@ function ArrowDown({ color, hovered }: { color: string; hovered: boolean }) {
   return (
     <motion.div animate={controls}>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M12 0.75L12 23.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M1.5 12.75L12 23.25L22.5 12.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <motion.path d="M12 0.75L12 23.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
+          transition={{ duration: 0.5, ease: "easeInOut" }} />
+        <motion.path d="M1.5 12.75L12 23.25L22.5 12.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
+          transition={{ duration: 0.4, ease: "easeInOut", delay: 0.35 }} />
       </svg>
     </motion.div>
   );
@@ -76,8 +80,12 @@ function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
   return (
     <motion.div animate={controls}>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M12 23.25L12 0.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M22.5 11.25L12 0.75L1.5 11.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <motion.path d="M12 23.25L12 0.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
+          transition={{ duration: 0.5, ease: "easeInOut" }} />
+        <motion.path d="M22.5 11.25L12 0.75L1.5 11.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
+          transition={{ duration: 0.4, ease: "easeInOut", delay: 0.35 }} />
       </svg>
     </motion.div>
   );
