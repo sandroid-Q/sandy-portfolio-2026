@@ -24,6 +24,16 @@ const FADE_STOPS =
 const FADE_MASK_TOP = `linear-gradient(to bottom, ${FADE_STOPS})`;
 const FADE_MASK_BOTTOM = `linear-gradient(to top, ${FADE_STOPS})`;
 
+// Mobile-menu level items — "L{n} / {name}", each linking to /project/{n}.
+const LEVELS: { n: number; name: string }[] = [
+  { n: 1, name: "Moomoo" },
+  { n: 2, name: "Beem App" },
+  { n: 3, name: "Beemlantis" },
+  { n: 4, name: "Totally Beem" },
+  { n: 5, name: "AP+ Portals" },
+  { n: 6, name: "Beem Beeps" },
+];
+
 export interface PortfolioNavProps {
   /** "Projects" link: pass a href string, or a scroll-to handler */
   projectsAction: string | (() => void);
@@ -288,7 +298,7 @@ function MenuLink({ href, onClick, children, active }: { href?: string; onClick?
         style={{
           fontFamily: "var(--font-space-grotesk)",
           fontWeight: 500,
-          fontSize: 72,
+          fontSize: 64,
           letterSpacing: "-0.055em",
           lineHeight: 0.88,
           color: (active || hovered) ? "var(--color-interactive-hover)" : "var(--color-on-surface-primary)",
@@ -306,6 +316,56 @@ function MenuLink({ href, onClick, children, active }: { href?: string; onClick?
   return <Link href={href!} style={{ textDecoration: "none" }} onClick={() => playNav()}>{inner}</Link>;
 }
 
+// Level link — a small "L{n}" index (Space Grotesk Light) next to the project
+// name at the full menu size. Same hover (indent + colour) + active behaviour.
+function LevelLink({ label, name, onClick, active }: { label: string; name: string; onClick: () => void; active?: boolean }) {
+  const { playNav } = useAudio();
+  const [hovered, setHovered] = useState(false);
+  const INDENT = 24;
+  const color = (active || hovered) ? "var(--color-interactive-hover)" : "var(--color-on-surface-primary)";
+  return (
+    <button
+      onClick={() => { playNav(); onClick(); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ display: "block", background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}
+    >
+      <motion.div
+        animate={{ x: hovered ? INDENT : 0 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+        style={{ display: "flex", alignItems: "flex-start", gap: 8 }}
+      >
+        <span
+          style={{
+            fontFamily: "var(--font-space-grotesk)",
+            fontWeight: 300,
+            fontSize: "10pt",
+            lineHeight: 1,
+            whiteSpace: "nowrap",
+            color,
+            transition: "color 0.15s",
+          }}
+        >
+          {label}
+        </span>
+        <span
+          style={{
+            fontFamily: "var(--font-space-grotesk)",
+            fontWeight: 500,
+            fontSize: 64,
+            letterSpacing: "-0.055em",
+            lineHeight: 0.88,
+            whiteSpace: "nowrap",
+            color,
+            transition: "color 0.15s",
+          }}
+        >
+          {name}
+        </span>
+      </motion.div>
+    </button>
+  );
+}
 
 function LogoButton({ onClick, color }: { onClick: () => void; color: string }) {
   const { playNav } = useAudio();
@@ -562,31 +622,59 @@ export default function PortfolioNav({
               zIndex: 90,
               display: "flex",
               flexDirection: "column",
-              justifyContent: "flex-start",
-              paddingTop: "35vh",
-              paddingLeft: 36,
+              justifyContent: "center",
+              paddingTop: 88,
+              paddingBottom: 128,
+              paddingLeft: 16,
               gap: 0,
             }}
           >
-            {[
-              { label: "Home", active: isHome, action: () => navigate("/home") },
-              {
-                label: "Projects",
-                active: isProject || (isHome && (projectsAnchored || projectsActive)),
-                action: () => navigate(projectsAction),
-              },
-              { label: "About", active: isAbout, action: () => navigate("/about") },
-              { label: "Exit", active: false, action: handleLogoClick },
-            ].map(({ label, active, action }, i) => (
-              <motion.div
-                key={label}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.22, delay: 0.06 + i * 0.07 }}
-              >
-                <MenuLink onClick={action} active={active}>{label}</MenuLink>
-              </motion.div>
-            ))}
+            {/* Home */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, delay: 0.06 }}
+            >
+              <MenuLink onClick={() => navigate("/home")} active={isHome}>Home</MenuLink>
+            </motion.div>
+
+            {/* Levels — small "L{n}" index + project name (menu size). Replaces
+                the single "Projects" item; each links to its project page. */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              {[...LEVELS].reverse().map(({ n, name }, idx) => (
+                <motion.div
+                  key={n}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: 0.12 + idx * 0.04 }}
+                >
+                  <LevelLink
+                    label={`L${n}`}
+                    name={name}
+                    onClick={() => navigate(`/project/${n}`)}
+                    active={pathname === `/project/${n}`}
+                  />
+                </motion.div>
+              ))}
+            </div>
+
+            {/* About */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, delay: 0.4 }}
+            >
+              <MenuLink onClick={() => navigate("/about")} active={isAbout}>About</MenuLink>
+            </motion.div>
+
+            {/* Exit */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, delay: 0.46 }}
+            >
+              <MenuLink onClick={handleLogoClick} active={false}>Exit</MenuLink>
+            </motion.div>
 
             {/* Bottom row: email left, LinkedIn right */}
             <motion.div
