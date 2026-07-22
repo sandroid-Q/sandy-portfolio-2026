@@ -430,7 +430,7 @@ export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = f
           display: "flex",
         }}
       >
-        {"Which floor?".split("").map((char, i) => (
+        {"Which level?".split("").map((char, i) => (
           <motion.span key={i} variants={headerLetterVariants} style={{ display: "inline-block" }}>
             {char === " " ? " " : char}
           </motion.span>
