@@ -11,6 +11,7 @@ import ContactModal from "@/components/ContactModal";
 import ParallaxLayer from "@/components/ParallaxLayer";
 import { useMouseParallax } from "@/components/useMouseParallax";
 import { useAudio } from "@/contexts/AudioContext";
+import IconButton from "@/components/ui/IconButton";
 
 const BG = "var(--color-surface-primary)";
 const HERO_BG = "var(--color-surface-primary)";
@@ -668,57 +669,6 @@ function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
   );
 }
 
-function IconButton({ onClick, icon }: { onClick: () => void; icon: (c: string, h: boolean) => React.ReactNode }) {
-  const { playButton } = useAudio();
-  const [hovered, setHovered] = useState(false);
-  const [pressed, setPressed] = useState(false);
-  const [isLight, setIsLight] = useState(false);
-
-  useEffect(() => {
-    const update = () => setIsLight(document.documentElement.getAttribute("data-theme") === "light");
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => observer.disconnect();
-  }, []);
-
-  const containerBg = pressed
-    ? (isLight ? "#161719" : "#0034FF")
-    : hovered
-    ? (isLight ? "#0034FF" : "#F8F8F8")
-    : (isLight ? "#E7EAF1" : "transparent");
-
-  const borderColor = !isLight ? "#F8F8F8" : pressed ? "#F8F8F8" : "transparent";
-
-  const arrowColor = isLight
-    ? (hovered || pressed ? "#F8F8F8" : "#161719")
-    : (hovered && !pressed ? "#161719" : "#F8F8F8");
-
-  return (
-    <button
-      onClick={() => { playButton(); onClick(); }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { setHovered(false); setPressed(false); }}
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => setPressed(false)}
-      style={{
-        backgroundColor: containerBg,
-        borderRadius: 12,
-        width: 48,
-        height: 48,
-        border: `1px solid ${borderColor}`,
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        transition: "background-color 0.15s",
-        overflow: "hidden",
-      }}
-    >
-      {icon(arrowColor, hovered)}
-    </button>
-  );
-}
 
 export default function AboutPage() {
   const topRef = useRef<HTMLDivElement>(null);
