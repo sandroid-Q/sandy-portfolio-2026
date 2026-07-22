@@ -6,6 +6,7 @@ import PayeePayerCarousels from "@/components/beem-beeps/PayeePayerCarousels";
 import PendingBanner from "@/components/beem-beeps/PendingBanner";
 import ActivityFilters from "@/components/beem-beeps/ActivityFilters";
 import UserResearch from "@/components/beem-beeps/UserResearch";
+import { scaleRadius } from "@/lib/radius";
 
 export default function Level6Page() {
   return (
@@ -54,7 +55,7 @@ export default function Level6Page() {
           content: (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "clamp(32px, 14vw, 144px)", width: "100%" }}>
               {["/beem beeps/iterations-1.png", "/beem beeps/iterations-2.png", "/beem beeps/iterations-3.png"].map((src, i) => (
-                <GalleryMedia key={src} src={src} alt={`Iterations & discovery ${i + 1}`} style={{ borderRadius: 28 }} />
+                <GalleryMedia key={src} src={src} alt={`Iterations & discovery ${i + 1}`} style={{ borderRadius: scaleRadius(28) }} />
               ))}
             </div>
           ),

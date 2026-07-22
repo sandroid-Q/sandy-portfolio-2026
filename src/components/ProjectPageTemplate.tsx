@@ -9,6 +9,7 @@ import FloorBreadcrumb from "./FloorBreadcrumb";
 import PortfolioNav from "./PortfolioNav";
 import ContactModal from "./ContactModal";
 import { useAudio } from "@/contexts/AudioContext";
+import { scaleRadius } from "@/lib/radius";
 
 const BG = "#F3F2F0";
 const BG_SECONDARY = "#E5E0D7";
@@ -303,23 +304,28 @@ function ProjectInfo({ project, isMobile }: { project: ProjectData; isMobile: bo
 
 const VIDEO_EXT = /\.(mov|mp4|webm)$/i;
 
+// Default desktop corner radius for full-width content media.
+const MEDIA_RADIUS = 28;
+
 // Media fills the width of its (1000px-capped) content column and keeps its
 // natural aspect ratio via height:auto — so no cropping and no letterbox bars.
-const MEDIA_STYLE = { width: "100%", height: "auto", display: "block" as const, borderRadius: 28 };
+const MEDIA_BASE = { width: "100%", height: "auto", display: "block" as const };
 
 // These clips have a faint edge; crop it off then round — done in one clip-path
 // inset (top/bottom, then left/right) so the rounding is applied to the cropped
-// rectangle, not clipped away. Per-source since the crop amounts differ.
-const CROP_CLIP: Record<string, string> = {
-  "/TST-1.mp4": "inset(2px 4px round 28px)",
-  "/TST-2.mp4": "inset(2px 4px round 28px)",
-  "/UC-1.mp4": "inset(1px 2px round 28px)",
+// rectangle, not clipped away. Per-source since the crop amounts differ. The
+// `round` radius is filled in at render so it can scale with the viewport.
+const CROP_INSET: Record<string, string> = {
+  "/TST-1.mp4": "2px 4px",
+  "/TST-2.mp4": "2px 4px",
+  "/UC-1.mp4": "1px 2px",
 };
 
 // Looping section video — lazy: preload="none" means it isn't downloaded until
 // it nears the viewport, then it plays only while in view and pauses when
 // scrolled away. Keeps several videos on one page from all loading at once.
-function SectionVideo({ src }: { src: string }) {
+// `radius` is a resolved CSS length (scales with the viewport on content media).
+function SectionVideo({ src, radius }: { src: string; radius: string | number }) {
   const ref = useRef<HTMLVideoElement>(null);
   const inView = useInView(ref, { margin: "200px 0px" });
 
@@ -330,8 +336,9 @@ function SectionVideo({ src }: { src: string }) {
     else v.pause();
   }, [inView]);
 
-  const clip = CROP_CLIP[src];
-  if (clip) {
+  const inset = CROP_INSET[src];
+  if (inset) {
+    const clip = `inset(${inset} round ${typeof radius === "number" ? `${radius}px` : radius})`;
     return (
       <video
         ref={ref}
@@ -345,18 +352,23 @@ function SectionVideo({ src }: { src: string }) {
     );
   }
 
-  return <video ref={ref} src={src} muted loop playsInline preload="none" style={MEDIA_STYLE} />;
+  return <video ref={ref} src={src} muted loop playsInline preload="none" style={{ ...MEDIA_BASE, borderRadius: radius }} />;
 }
 
 // A single content-section media item — looping video for video files
 // (.mov/.mp4/.webm), an image otherwise. `width` (px) renders it at a fixed
 // width (centered, not full-width); `radius` overrides the corner rounding.
-function SectionMedia({ src, title, index, width, radius }: { src: string; title: string; index: number; width?: number; radius?: number }) {
-  if (VIDEO_EXT.test(src)) return <SectionVideo src={src} />;
+// By default the radius scales down with the viewport so full-width content
+// isn't over-rounded on mobile; pass `scale={false}` for phone-screen grids
+// whose fixed rounding should be preserved.
+function SectionMedia({ src, title, index, width, radius, scale = true }: { src: string; title: string; index: number; width?: number; radius?: number; scale?: boolean }) {
+  const base = radius ?? MEDIA_RADIUS;
+  const rad: string | number = scale ? scaleRadius(base) : base;
+  if (VIDEO_EXT.test(src)) return <SectionVideo src={src} radius={rad} />;
   const style = {
-    ...MEDIA_STYLE,
+    ...MEDIA_BASE,
+    borderRadius: rad,
     ...(width != null ? { width, maxWidth: "100%" } : {}),
-    ...(radius != null ? { borderRadius: radius } : {}),
   };
   // loading="lazy" keeps these below-the-fold images from being eagerly
   // preloaded (which triggers "preloaded but not used" warnings).
@@ -516,7 +528,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
               ? { minHeight: "calc(100svh - 72px)" }
               : { height: "calc(100svh - 72px)", minHeight: 600 }
             ),
-            borderRadius: "0 0 32px 32px",
+            borderRadius: `0 0 ${scaleRadius(32)} ${scaleRadius(32)}`,
             overflow: "hidden",
           }}
         >
@@ -730,7 +742,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 style={{
                   width: "100%", height: 400,
                   backgroundColor: "var(--color-surface-transparent)",
-                  borderRadius: 26,
+                  borderRadius: scaleRadius(26),
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}
               >
@@ -762,7 +774,8 @@ export default function ProjectPageTemplate(project: ProjectData) {
                   >
                     {section.grid.map((src, i) => (
                       <motion.div variants={fadeUpItem} key={`g${i}`}>
-                        <SectionMedia src={src} title={section.title} index={i} />
+                        {/* Grid = phone screens — keep their fixed rounding */}
+                        <SectionMedia src={src} title={section.title} index={i} scale={false} />
                       </motion.div>
                     ))}
                   </motion.div>

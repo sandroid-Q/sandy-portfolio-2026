@@ -3,13 +3,15 @@
  * ring over the focal area, as in the Figma source) above two supporting
  * screenshots that sit side-by-side and stack on narrow screens.
  */
+import { scaleRadius } from "@/lib/radius";
+
 export default function UserResearch() {
   return (
     <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 32 }}>
       {/* Primary screenshot with focal highlight ring */}
       <div style={{ position: "relative", width: 790, maxWidth: "100%" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/beem beeps/research-1.png" alt="User research findings" loading="lazy" style={{ display: "block", width: "100%", borderRadius: 20 }} />
+        <img src="/beem beeps/research-1.png" alt="User research findings" loading="lazy" style={{ display: "block", width: "100%", borderRadius: scaleRadius(20) }} />
         <span
           aria-hidden
           style={{
@@ -23,7 +25,7 @@ export default function UserResearch() {
       <div style={{ width: "100%", display: "flex", flexWrap: "wrap", gap: 32 }}>
         {["/beem beeps/research-2.png", "/beem beeps/research-3.png"].map((src, i) => (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={src} src={src} alt={`User research ${i + 2}`} loading="lazy" style={{ display: "block", flex: "1 1 300px", minWidth: 0, width: "100%", borderRadius: 20 }} />
+          <img key={src} src={src} alt={`User research ${i + 2}`} loading="lazy" style={{ display: "block", flex: "1 1 300px", minWidth: 0, width: "100%", borderRadius: scaleRadius(20) }} />
         ))}
       </div>
     </div>
