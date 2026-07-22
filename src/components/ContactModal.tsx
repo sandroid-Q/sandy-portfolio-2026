@@ -279,9 +279,9 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               style={{
                 position: "fixed",
                 inset: 0,
-                // Solid scrim instead of backdrop-filter blur — a backdrop-filter
-                // blanks out the mix-blend-mode cursor (see CustomCursor.tsx).
-                backgroundColor: "rgba(22, 23, 25, 0.55)",
+                backgroundColor: "var(--color-surface-transparent)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
                 zIndex: 200,
               }}
             />

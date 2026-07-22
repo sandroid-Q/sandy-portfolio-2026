@@ -16,6 +16,14 @@ const NAV_LIGHT = "#F3F2F0";
 const DARK_RED = "#AE1819";
 const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+// Smooth eased fade for the frosted nav's edge — many alpha stops approximating
+// an ease curve, so the blur tapers off gently with no kink/banding (unlike a
+// plain `black 50%, transparent 100%` linear ramp).
+const FADE_STOPS =
+  "rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0.96) 49%, rgba(0,0,0,0.88) 57%, rgba(0,0,0,0.75) 65%, rgba(0,0,0,0.58) 72%, rgba(0,0,0,0.4) 79%, rgba(0,0,0,0.24) 86%, rgba(0,0,0,0.11) 93%, rgba(0,0,0,0.03) 97%, rgba(0,0,0,0) 100%";
+const FADE_MASK_TOP = `linear-gradient(to bottom, ${FADE_STOPS})`;
+const FADE_MASK_BOTTOM = `linear-gradient(to top, ${FADE_STOPS})`;
+
 export interface PortfolioNavProps {
   /** "Projects" link: pass a href string, or a scroll-to handler */
   projectsAction: string | (() => void);
@@ -500,16 +508,14 @@ export default function PortfolioNav({
   const hamburgerColor = ink;
   const navLinkColor = ink;
 
-  // Flat translucent tint — NOT a backdrop-filter blur. A backdrop-filter here
-  // forces GPU compositing that blanks out the mix-blend-mode cursor (see
-  // CustomCursor.tsx), so panels use an opaque-ish tint instead of frosted blur.
   const frostBg = mobileBgColor.startsWith("#")
-    ? hexToRgba(mobileBgColor, 0.9)
-    : `color-mix(in srgb, ${mobileBgColor} 90%, transparent)`;
+    ? hexToRgba(mobileBgColor, 0.45)
+    : `color-mix(in srgb, ${mobileBgColor} 50%, transparent)`;
   const subtleBg = "transparent";
 
   const showFrost = isProject ? !isLightNav : (blurTop || (isMobile && scrolled));
   const navBg = showFrost ? frostBg : (isProject ? subtleBg : "transparent");
+  const navBlur = (showFrost || isProject) ? "blur(6px)" : "none";
 
   const projectsNavLink =
     typeof projectsAction === "string" ? (
@@ -550,7 +556,9 @@ export default function PortfolioNav({
             style={{
               position: "fixed",
               inset: 0,
-              backgroundColor: mobileBgColor.startsWith("#") ? hexToRgba(mobileBgColor, 0.96) : `color-mix(in srgb, ${mobileBgColor} 96%, transparent)`,
+              backgroundColor: mobileBgColor.startsWith("#") ? hexToRgba(mobileBgColor, 0.88) : `color-mix(in srgb, ${mobileBgColor} 88%, transparent)`,
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
               zIndex: 90,
               display: "flex",
               flexDirection: "column",
@@ -604,15 +612,17 @@ export default function PortfolioNav({
 
       {/* Top nav */}
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 72, zIndex: 100 }}>
-        {/* Blur layer — mask fades out toward the bottom edge */}
+        {/* Blur layer — smoothly fades out toward the bottom edge */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             background: navBg,
-            maskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
-            WebkitMaskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
-            transition: "background 0.3s ease",
+            backdropFilter: navBlur,
+            WebkitBackdropFilter: navBlur,
+            maskImage: FADE_MASK_TOP,
+            WebkitMaskImage: FADE_MASK_TOP,
+            transition: "background 0.3s ease, backdrop-filter 0.3s ease",
           }}
         />
         <div
@@ -689,15 +699,17 @@ export default function PortfolioNav({
       {/* Bottom nav — desktop only */}
       {!isMobile && (
         <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 72, zIndex: 100, pointerEvents: "none" }}>
-          {/* Blur layer — mask fades out toward the top edge */}
+          {/* Blur layer — smoothly fades out toward the top edge */}
           <div
             style={{
               position: "absolute",
               inset: 0,
               background: blurBottom ? frostBg : "transparent",
-              maskImage: "linear-gradient(to top, black 50%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to top, black 50%, transparent 100%)",
-              transition: "background 0.3s ease",
+              backdropFilter: blurBottom ? "blur(6px)" : "none",
+              WebkitBackdropFilter: blurBottom ? "blur(6px)" : "none",
+              maskImage: FADE_MASK_BOTTOM,
+              WebkitMaskImage: FADE_MASK_BOTTOM,
+              transition: "background 0.3s ease, backdrop-filter 0.3s ease",
             }}
           />
           <div
