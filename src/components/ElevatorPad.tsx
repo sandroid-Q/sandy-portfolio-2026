@@ -113,11 +113,11 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
   const drawing = !!reveal;
   const play = reveal?.play ?? false;
   const base = reveal?.delay ?? 0;
-  const OUTER_DUR = 0.45;
-  const INNER_DUR = 0.45;
-  const CONTENT_DUR = 0.3;
-  const innerDelay = base + 0.28;
-  const contentDelay = base + 0.62;
+  const OUTER_DUR = 0.34;
+  const INNER_DUR = 0.34;
+  const CONTENT_DUR = 0.22;
+  const innerDelay = base + 0.21;
+  const contentDelay = base + 0.47;
   const drawTarget = drawing ? (play ? 1 : 0) : 1; // pathLength
   const contentTarget = drawing ? (play ? 1 : 0) : 1; // opacity
 
@@ -342,7 +342,7 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
 
 // Per-button stagger (seconds) for the one-time draw, applied in document
 // order so buttons draw on top-row-first.
-const DRAW_STAGGER = 0.07;
+const DRAW_STAGGER = 0.05;
 
 export default function ElevatorPad({ activeFloor = "G", onHeaderClick, dark = false, bg = "var(--color-surface-primary)", onFloorHover, onContact, scrollReveal = false, forceTheme }: { activeFloor?: string; onHeaderClick?: () => void; dark?: boolean; bg?: string; onFloorHover?: (floor: string | null) => void; onContact?: () => void; scrollReveal?: boolean; forceTheme?: "light" | "dark" }) {
   const { muted } = useAudio();

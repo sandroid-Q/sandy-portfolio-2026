@@ -15,6 +15,19 @@ import { useAudio } from "@/contexts/AudioContext";
 
 const SCALE_MIN = 0.8;
 
+// Scroll-in reveal for the condensed projects list (matches the Project/About
+// pages): each row's thumbnail + title fade up, lightly staggered, once as it
+// scrolls into view.
+const staggerContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
+};
+const fadeUpItem = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const } },
+};
+const REVEAL_VIEWPORT = { once: true, margin: "0px 0px -12% 0px" } as const;
+
 interface FloorPreview {
   year: string;
   name: string;
@@ -524,8 +537,12 @@ export default function HomePage() {
             {(["6", "5", "4", "3", "2", "1"] as const).map((floor) => {
               const data = FLOOR_DATA[floor];
               return (
-                <div
+                <motion.div
                   key={floor}
+                  variants={staggerContainer}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={REVEAL_VIEWPORT}
                   style={
                     isStackedProject
                       ? { display: "flex", flexDirection: "column", gap: 24, width: "100%" }
@@ -534,27 +551,31 @@ export default function HomePage() {
                 >
                   {/* Video — on top when stacked */}
                   {isStackedProject && (
-                    <Link href={`/project/${floor}`} style={{ display: "block", width: "100%" }}>
-                      <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}>
-                        <CoverMedia data={data} />
-                      </div>
-                    </Link>
+                    <motion.div variants={fadeUpItem} style={{ width: "100%" }}>
+                      <Link href={`/project/${floor}`} style={{ display: "block", width: "100%" }}>
+                        <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}>
+                          <CoverMedia data={data} />
+                        </div>
+                      </Link>
+                    </motion.div>
                   )}
 
                   {/* Blurb */}
-                  <div style={isStackedProject ? {} : { width: 336, flexShrink: 0 }}>
+                  <motion.div variants={fadeUpItem} style={isStackedProject ? {} : { width: 336, flexShrink: 0 }}>
                     <ProjectBlurb data={data} />
-                  </div>
+                  </motion.div>
 
                   {/* Video — on right when side-by-side, fills remaining width */}
                   {!isStackedProject && (
-                    <Link href={`/project/${floor}`} style={{ display: "block", flex: 1, minWidth: 280, maxWidth: 400 }}>
-                      <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}>
-                        <CoverMedia data={data} />
-                      </div>
-                    </Link>
+                    <motion.div variants={fadeUpItem} style={{ flex: 1, minWidth: 280, maxWidth: 400 }}>
+                      <Link href={`/project/${floor}`} style={{ display: "block", width: "100%" }}>
+                        <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 22, overflow: "hidden", backgroundColor: "var(--color-on-surface-primary)" }}>
+                          <CoverMedia data={data} />
+                        </div>
+                      </Link>
+                    </motion.div>
                   )}
-                </div>
+                </motion.div>
               );
             })}
           </div>
