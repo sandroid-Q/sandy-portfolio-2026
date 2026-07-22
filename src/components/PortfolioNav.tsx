@@ -500,14 +500,16 @@ export default function PortfolioNav({
   const hamburgerColor = ink;
   const navLinkColor = ink;
 
+  // Flat translucent tint — NOT a backdrop-filter blur. A backdrop-filter here
+  // forces GPU compositing that blanks out the mix-blend-mode cursor (see
+  // CustomCursor.tsx), so panels use an opaque-ish tint instead of frosted blur.
   const frostBg = mobileBgColor.startsWith("#")
-    ? hexToRgba(mobileBgColor, 0.75)
-    : `color-mix(in srgb, ${mobileBgColor} 80%, transparent)`;
+    ? hexToRgba(mobileBgColor, 0.9)
+    : `color-mix(in srgb, ${mobileBgColor} 90%, transparent)`;
   const subtleBg = "transparent";
 
   const showFrost = isProject ? !isLightNav : (blurTop || (isMobile && scrolled));
   const navBg = showFrost ? frostBg : (isProject ? subtleBg : "transparent");
-  const navBlur = (showFrost || isProject) ? "blur(8px)" : "none";
 
   const projectsNavLink =
     typeof projectsAction === "string" ? (
@@ -548,9 +550,7 @@ export default function PortfolioNav({
             style={{
               position: "fixed",
               inset: 0,
-              backgroundColor: mobileBgColor.startsWith("#") ? hexToRgba(mobileBgColor, 0.88) : `color-mix(in srgb, ${mobileBgColor} 88%, transparent)`,
-              backdropFilter: "blur(6px)",
-              WebkitBackdropFilter: "blur(6px)",
+              backgroundColor: mobileBgColor.startsWith("#") ? hexToRgba(mobileBgColor, 0.96) : `color-mix(in srgb, ${mobileBgColor} 96%, transparent)`,
               zIndex: 90,
               display: "flex",
               flexDirection: "column",
@@ -610,11 +610,9 @@ export default function PortfolioNav({
             position: "absolute",
             inset: 0,
             background: navBg,
-            backdropFilter: navBlur,
-            WebkitBackdropFilter: navBlur,
             maskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
             WebkitMaskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
-            transition: "background 0.3s ease, backdrop-filter 0.3s ease",
+            transition: "background 0.3s ease",
           }}
         />
         <div
@@ -697,11 +695,9 @@ export default function PortfolioNav({
               position: "absolute",
               inset: 0,
               background: blurBottom ? frostBg : "transparent",
-              backdropFilter: blurBottom ? "blur(8px)" : "none",
-              WebkitBackdropFilter: blurBottom ? "blur(8px)" : "none",
               maskImage: "linear-gradient(to top, black 50%, transparent 100%)",
               WebkitMaskImage: "linear-gradient(to top, black 50%, transparent 100%)",
-              transition: "background 0.3s ease, backdrop-filter 0.3s ease",
+              transition: "background 0.3s ease",
             }}
           />
           <div

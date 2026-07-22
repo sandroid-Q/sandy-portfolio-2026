@@ -107,9 +107,12 @@ export default function CustomCursor() {
         mixBlendMode: "difference",
         opacity: visible ? 1 : 0,
         transition: "opacity 0.2s ease",
-        // NOTE: do not add transform/will-change/translateZ here. Promoting a
-        // mix-blend-mode element to its own GPU layer makes it blend against an
-        // empty buffer instead of the page, so the cursor renders invisibly.
+        // Inverted (difference-blend) cursor. This is reliable ONLY because the
+        // site avoids backdrop-filter — a backdrop-filter layer beneath this one
+        // forces GPU compositing that blanks the blend out (recoverable only by a
+        // full page refresh). If you reintroduce backdrop-filter anywhere, the
+        // cursor will start disappearing again. Use a flat translucent tint
+        // instead of blur() for frosted panels.
       }}
     >
       {/* Ring — spring lag when idle, snaps to dot when clickable */}
