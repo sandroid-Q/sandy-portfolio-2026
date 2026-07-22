@@ -122,6 +122,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const audio = new Audio(TRACKS[0]);
+    audio.preload = "auto"; // buffer the first track so it's ready on first tap
     bgRef.current = audio;
 
     const advanceTrack = () => {
@@ -133,19 +134,29 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     };
     audio.addEventListener("ended", advanceTrack);
 
-    const onFirstGesture = () => {
-      if (MUSIC_ROUTES.has(window.location.pathname) && bgRef.current) {
-        bgRef.current.play().catch(() => {});
-      }
-      window.removeEventListener("pointerdown", onFirstGesture);
+    // Start the music on the first user gesture. A single early `pointerdown`
+    // often fails on mobile (track not buffered yet, or iOS hasn't unlocked
+    // audio until the tap completes), so retry across gesture types and taps
+    // and only stop once it's actually playing — otherwise the jazz wouldn't
+    // start until a later route change (it appeared to "only work on Home").
+    const GESTURES = ["pointerdown", "touchend", "click", "keydown"] as const;
+    let attempting = false;
+    const stopUnlock = () => GESTURES.forEach((e) => window.removeEventListener(e, tryStart));
+    const tryStart = () => {
+      const a = bgRef.current;
+      if (!a || attempting) return;
+      if (mutedRef.current || !MUSIC_ROUTES.has(window.location.pathname)) return;
+      if (!a.paused) { stopUnlock(); return; }
+      attempting = true;
+      a.play().then(stopUnlock).catch(() => {}).finally(() => { attempting = false; });
     };
-    window.addEventListener("pointerdown", onFirstGesture);
+    GESTURES.forEach((e) => window.addEventListener(e, tryStart));
 
     return () => {
       audio.removeEventListener("ended", advanceTrack);
       audio.pause();
       audio.src = "";
-      window.removeEventListener("pointerdown", onFirstGesture);
+      stopUnlock();
     };
   }, []);
 
