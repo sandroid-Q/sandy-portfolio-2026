@@ -88,12 +88,17 @@
 
 html {
   background-color: var(--color-surface-secondary);
+  /* Contain any horizontal overflow so mobile browsers don't inflate the
+     layout viewport (which would break the isMobile breakpoint and balloon
+     the ID-card lanyard). `clip` avoids creating a scroll container. */
+  overflow-x: clip;
 }
 
 body {
   background-color: var(--color-surface-primary);
   color: var(--color-on-surface-primary);
   font-family: var(--font-space-grotesk), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  overflow-x: clip;
 }
 
 ::selection {

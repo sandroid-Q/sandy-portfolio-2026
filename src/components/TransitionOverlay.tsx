@@ -80,6 +80,11 @@ export default function TransitionOverlay({
         backgroundColor: bgColor,
         zIndex,
         pointerEvents: "none",
+        // The sparkle SVG uses `slice` scaling and bleeds past the viewport on
+        // tall screens. iOS Safari counts that bleed as layout width and inflates
+        // the layout viewport — breaking the mobile breakpoint and pinning the
+        // right-hand nav controls off-screen. Clip it to the viewport here.
+        overflow: "hidden",
       }}
     >
       {/* Unmount sparkles immediately on staged exit — the background is still

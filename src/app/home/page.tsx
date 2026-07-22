@@ -292,7 +292,15 @@ export default function HomePage() {
   const isStackedProject = vw < 768; // stack video above blurb within each project row
 
   useLayoutEffect(() => {
-    const update = () => { setVh(window.innerHeight); setVw(window.innerWidth); };
+    // clientWidth/clientHeight (not innerWidth/innerHeight): iOS Safari inflates
+    // the window.inner* values when content overflows horizontally, which would
+    // both flip us out of the mobile layout and balloon the ID-card lanyard
+    // (strapExtension = vh/2 - 442). The client* values track the true viewport.
+    const update = () => {
+      const el = document.documentElement;
+      setVh(el.clientHeight || window.innerHeight);
+      setVw(el.clientWidth || window.innerWidth);
+    };
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);

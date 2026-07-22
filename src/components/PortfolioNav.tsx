@@ -429,7 +429,11 @@ export default function PortfolioNav({
   const isMobile = vw < 768;
 
   useEffect(() => {
-    const update = () => setVw(window.innerWidth);
+    // Use clientWidth, not innerWidth: iOS Safari inflates window.innerWidth when
+    // any content overflows horizontally, which would wrongly flip us to the
+    // desktop nav (and push the right-hand controls off-screen). clientWidth
+    // always reports the true layout width.
+    const update = () => setVw(document.documentElement.clientWidth || window.innerWidth);
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
