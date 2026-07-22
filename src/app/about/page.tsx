@@ -735,9 +735,9 @@ export default function AboutPage() {
 
   useEffect(() => {
     const onScroll = () => {
-      if (introRef.current) {
-        setBlurTop(introRef.current.getBoundingClientRect().top <= 72);
-      }
+      // Frost the top nav from the first scroll — while still over the cover
+      // photo — rather than waiting until the intro section reaches the top.
+      setBlurTop(window.scrollY > 4);
       const remaining =
         document.documentElement.scrollHeight - window.scrollY - window.innerHeight;
       setBlurBottom(remaining > 72 && window.scrollY > 100);
