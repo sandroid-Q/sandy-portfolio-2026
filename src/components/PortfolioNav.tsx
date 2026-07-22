@@ -8,6 +8,7 @@ import SoundToggle from "./SoundToggle";
 import ThemeToggle from "./ThemeToggle";
 import TransitionOverlay from "./TransitionOverlay";
 import { useAudio } from "@/contexts/AudioContext";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 const BROWN = "#4E3A34";
 const TEXT_NAV = "#232122";
@@ -514,10 +515,7 @@ export default function PortfolioNav({
     if (!isMobile) setMenuOpen(false);
   }, [isMobile]);
 
-  useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [menuOpen]);
+  useScrollLock(menuOpen);
 
   useEffect(() => {
     const onScroll = () => {
@@ -620,6 +618,10 @@ export default function PortfolioNav({
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
               zIndex: 90,
+              // Kill any touch panning / chaining inside the overlay itself.
+              touchAction: "none",
+              overscrollBehavior: "none",
+              overflow: "hidden",
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
