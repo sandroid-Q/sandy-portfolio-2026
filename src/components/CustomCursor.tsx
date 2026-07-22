@@ -28,8 +28,16 @@ export default function CustomCursor() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsTouch(window.matchMedia("(pointer: coarse)").matches);
+    // Re-evaluate on pointer-type changes (e.g. toggling the DevTools device
+    // toolbar, or a 2-in-1 switching between touch and mouse). Evaluating once
+    // on mount left `isTouch` stale: after mobile→desktop it stayed true, so the
+    // custom cursor rendered nothing while CSS still hid the native one — no
+    // cursor until a refresh.
+    const mq = window.matchMedia("(pointer: coarse)");
+    const update = () => setIsTouch(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
   }, []);
 
   const mouseX = useMotionValue(-100);
@@ -107,12 +115,11 @@ export default function CustomCursor() {
         mixBlendMode: "difference",
         opacity: visible ? 1 : 0,
         transition: "opacity 0.2s ease",
-        // Inverted (difference-blend) cursor. This is reliable ONLY because the
-        // site avoids backdrop-filter — a backdrop-filter layer beneath this one
-        // forces GPU compositing that blanks the blend out (recoverable only by a
-        // full page refresh). If you reintroduce backdrop-filter anywhere, the
-        // cursor will start disappearing again. Use a flat translucent tint
-        // instead of blur() for frosted panels.
+        // Inverted (difference-blend) cursor. Note: mix-blend-mode over a
+        // backdrop-filter layer can, in some browsers/GPUs, blank the blend out
+        // (recoverable only by a repaint). If the cursor ever disappears over the
+        // frosted nav/modals, that's the likely cause — but the common
+        // "gone until refresh" case was the stale isTouch check above, now fixed.
       }}
     >
       {/* Ring — spring lag when idle, snaps to dot when clickable */}
