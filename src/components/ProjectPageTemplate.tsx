@@ -376,6 +376,50 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const [coverAspect, setCoverAspect] = useState<number | null>(null);
   const [coverX, setCoverX] = useState(0);
 
+  // Delay before the cover slides down. On a first-visit deep-link the intro
+  // LoadingScreen covers the page for ~4s (it sets `loadingShown` on mount, and
+  // begins fading at ~3.9s — see LoadingScreen.tsx), so hold the reveal until
+  // then; otherwise (in-app navigation, later loads) reveal immediately.
+  const [coverDelay] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    return sessionStorage.getItem("loadingShown") ? 0 : 3.9;
+  });
+
+  // Cover slide-in. Two guards keep it from ever looking glitchy on a janky
+  // load: (1) it only starts once the image has actually painted, so a slow
+  // decode can't compact the animation; (2) the slide is a CSS transform
+  // transition (below), which runs on the compositor thread and stays smooth
+  // even while the main thread is busy — unlike a JS/framer-motion animation.
+  const [imgReady, setImgReady] = useState(!project.coverImage);
+  const [delayDone, setDelayDone] = useState(coverDelay === 0);
+  const [coverRevealed, setCoverRevealed] = useState(false);
+
+  useEffect(() => {
+    if (coverDelay === 0) return;
+    const t = setTimeout(() => setDelayDone(true), coverDelay * 1000);
+    return () => clearTimeout(t);
+  }, [coverDelay]);
+
+  useEffect(() => {
+    if (coverRevealed || !delayDone || vw === 0) return;
+    // Desktop waits for the image to paint first, so a slow decode can't compact
+    // the slide. Mobile reveals immediately (bandwidth makes the image-load wait
+    // feel like a lag) — the CSS transition stays smooth either way.
+    const mobile = vw < 640;
+    if (!mobile && !imgReady) return;
+    // rAF so the initial (translateY(-100%)) state paints first — otherwise the
+    // browser has nothing to transition from and the cover would just appear.
+    const raf = requestAnimationFrame(() => setCoverRevealed(true));
+    return () => cancelAnimationFrame(raf);
+  }, [imgReady, delayDone, coverRevealed, vw]);
+
+  useEffect(() => {
+    // Safety net: reveal even if onLoad never fires (e.g. a cached image), so
+    // the cover can never get stuck hidden.
+    const cap = setTimeout(() => setCoverRevealed(true), coverDelay * 1000 + 2500);
+    return () => clearTimeout(cap);
+  }, [coverDelay]);
+
   useEffect(() => {
     const update = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
     update();
@@ -478,17 +522,38 @@ export default function ProjectPageTemplate(project: ProjectData) {
         >
           {/* Cover image or placeholder */}
           {project.coverImage ? (
-            <Image
-              src={project.coverImage}
-              fill
-              alt={project.name}
-              priority
-              onLoad={(project.coverShiftLeft || project.coverPinRightFreezeW) ? (e) => {
-                const img = e.currentTarget;
-                if (img.naturalWidth && img.naturalHeight) setCoverAspect(img.naturalWidth / img.naturalHeight);
-              } : undefined}
-              style={{ objectFit: "cover", objectPosition: project.coverShiftLeft ? `${coverX}px bottom` : project.coverPinRightFreezeW ? `${coverX}px center` : project.coverPosition }}
-            />
+            <>
+              {/* Backdrop matches the page surface (theme-aware) so the slide-down
+                  reveal blends seamlessly with the rest of the site */}
+              <div style={{ position: "absolute", inset: 0, backgroundColor: "var(--color-project-surface)" }} />
+              {/* Cover descends into the hero frame — a nod to the elevator arriving.
+                  CSS transform transition (compositor-driven) so it stays smooth
+                  even if the main thread is busy while the page loads. */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  transform: coverRevealed ? "translateY(0)" : "translateY(-100%)",
+                  transition: `transform ${isMobile ? 0.95 : 1.35}s cubic-bezier(0.5, 0, 0.2, 1)`,
+                }}
+              >
+                <Image
+                  src={project.coverImage}
+                  fill
+                  alt={project.name}
+                  priority
+                  sizes="100vw"
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    if ((project.coverShiftLeft || project.coverPinRightFreezeW) && img.naturalWidth && img.naturalHeight) {
+                      setCoverAspect(img.naturalWidth / img.naturalHeight);
+                    }
+                    setImgReady(true);
+                  }}
+                  style={{ objectFit: "cover", objectPosition: project.coverShiftLeft ? `${coverX}px bottom` : project.coverPinRightFreezeW ? `${coverX}px center` : project.coverPosition }}
+                />
+              </div>
+            </>
           ) : (
             <div style={{ position: "absolute", inset: 0, backgroundColor: project.coverBg ?? BG_SECONDARY }} />
           )}
