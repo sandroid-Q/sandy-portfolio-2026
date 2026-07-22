@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -422,6 +422,8 @@ export default function PortfolioNav({
   const isAbout = pathname === "/about";
   const [exiting, setExiting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [navLoading, setNavLoading] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [projectsAnchored, setProjectsAnchored] = useState(false);
   const [vw, setVw] = useState(1200);
@@ -466,6 +468,28 @@ export default function PortfolioNav({
     setTimeout(() => router.push("/"), 430);
   };
 
+  // Mobile-menu navigation: wrap the route change in a transition so we can
+  // detect when it's still pending. Only reveal the full-screen sparkle overlay
+  // once the navigation has stayed pending past a short threshold — instant
+  // navigations don't flash it. (Same overlay as the cover → home transition.)
+  const navigate = (target: string | (() => void)) => {
+    setMenuOpen(false);
+    startTransition(() => {
+      if (typeof target === "string") router.push(target);
+      else target();
+    });
+  };
+
+  useEffect(() => {
+    if (!isPending) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNavLoading(false);
+      return;
+    }
+    const t = setTimeout(() => setNavLoading(true), 150);
+    return () => clearTimeout(t);
+  }, [isPending]);
+
   // While floating over the cover image (isLightNav) the nav ink is pinned to
   // whatever is legible on that cover — dark ink for a bright cover (forceLight),
   // light ink for a dark cover — regardless of theme, since the cover never
@@ -505,10 +529,10 @@ export default function PortfolioNav({
 
   return (
     <>
-      {/* Exit overlay — fades to brown when logo is clicked */}
+      {/* Full-screen sparkle overlay — logo/Exit exit, or a slow menu navigation */}
       <TransitionOverlay
         initial={{ opacity: 0 }}
-        animate={{ opacity: exiting ? 1 : 0 }}
+        animate={{ opacity: exiting || navLoading ? 1 : 0 }}
         transition={{ duration: 0.25 }}
         zIndex={150}
       />
@@ -537,15 +561,13 @@ export default function PortfolioNav({
             }}
           >
             {[
-              { label: "Home", active: isHome, action: () => { router.push("/home"); setMenuOpen(false); } },
+              { label: "Home", active: isHome, action: () => navigate("/home") },
               {
-                label: "Projects", active: isProject || (isHome && (projectsAnchored || projectsActive)), action: () => {
-                  if (typeof projectsAction === "string") router.push(projectsAction);
-                  else (projectsAction as () => void)();
-                  setMenuOpen(false);
-                },
+                label: "Projects",
+                active: isProject || (isHome && (projectsAnchored || projectsActive)),
+                action: () => navigate(projectsAction),
               },
-              { label: "About", active: isAbout, action: () => { router.push("/about"); setMenuOpen(false); } },
+              { label: "About", active: isAbout, action: () => navigate("/about") },
               { label: "Exit", active: false, action: handleLogoClick },
             ].map(({ label, active, action }, i) => (
               <motion.div
