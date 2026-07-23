@@ -346,9 +346,10 @@ export default function ProjectPageTemplate(project: ProjectData) {
     return sessionStorage.getItem("loadingShown") ? 0 : 3.9;
   });
 
-  // Cover slide-in. Two guards keep it from ever looking glitchy on a janky
-  // load: (1) it only starts once the image has actually painted, so a slow
-  // decode can't compact the animation; (2) the slide is a CSS transform
+  // Cover slide-in. Guards keep it from ever looking glitchy on a janky load:
+  // (1) it only starts once the image has actually decoded, so a slow load can't
+  // reveal an empty frame; (2) it only starts while the tab is visible, so it's
+  // never missed to a paused-while-hidden rAF; (3) the slide is a CSS transform
   // transition (below), which runs on the compositor thread and stays smooth
   // even while the main thread is busy — unlike a JS/framer-motion animation.
   const [imgReady, setImgReady] = useState(!project.coverImage);
@@ -362,16 +363,43 @@ export default function ProjectPageTemplate(project: ProjectData) {
   }, [coverDelay]);
 
   useEffect(() => {
-    if (coverRevealed || !delayDone || vw === 0) return;
-    // Desktop waits for the image to paint first, so a slow decode can't compact
-    // the slide. Mobile reveals immediately (bandwidth makes the image-load wait
-    // feel like a lag) — the CSS transition stays smooth either way.
-    const mobile = vw < 640;
-    if (!mobile && !imgReady) return;
-    // rAF so the initial (translateY(-100%)) state paints first — otherwise the
-    // browser has nothing to transition from and the cover would just appear.
-    const raf = requestAnimationFrame(() => setCoverRevealed(true));
-    return () => cancelAnimationFrame(raf);
+    // Wait for the image to actually decode on every viewport (not just desktop):
+    // revealing before it's painted makes the cover slide down into an empty
+    // frame and pop in late — which reads as "the cover didn't load", especially
+    // on a first, uncached mobile load. The 2.5s cap below bounds the wait.
+    if (coverRevealed || !delayDone || vw === 0 || !imgReady) return;
+
+    let raf1 = 0;
+    let raf2 = 0;
+    const reveal = () => {
+      // Double rAF so the initial translateY(-100%) is guaranteed to have painted
+      // before we flip to translateY(0) — the browser then has a baseline to
+      // transition from. A single rAF can flip in the same frame as the first
+      // paint, and the cover snaps in with no slide.
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setCoverRevealed(true));
+      });
+    };
+
+    // requestAnimationFrame never fires while the page is hidden (a background
+    // tab, or iOS Safari mid-navigation), which would leave the cover stuck at
+    // translateY(-100%). Only start once the tab is visible so the slide plays
+    // on screen; if it's hidden now, wait for it to be shown.
+    if (document.visibilityState === "visible") {
+      reveal();
+      return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
+    }
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      document.removeEventListener("visibilitychange", onVisible);
+      reveal();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
   }, [imgReady, delayDone, coverRevealed, vw]);
 
   useEffect(() => {
