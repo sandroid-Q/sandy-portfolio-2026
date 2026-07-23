@@ -787,7 +787,10 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 marginBottom: `${340 * (1 - Math.min(1, (vw - 48) / 340)) * -0.5}px`,
               }}
             >
-              <ElevatorPad activeFloor={project.floor} onContact={() => setContactOpen(true)} />
+              {/* Sits on the page, so its hover center fill must match the page
+                  surface (charcoal in dark mode) — not the default surface-primary
+                  which is blue in dark mode. */}
+              <ElevatorPad activeFloor={project.floor} bg="var(--color-project-surface)" onContact={() => setContactOpen(true)} />
             </div>
           </div>
         ) : (
