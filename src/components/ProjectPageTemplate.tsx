@@ -531,7 +531,13 @@ export default function ProjectPageTemplate(project: ProjectData) {
                   fill
                   alt={project.name}
                   priority
-                  sizes="100vw"
+                  // The hero is full-viewport-height with objectFit:cover. On a
+                  // portrait phone a landscape cover is scaled far wider than the
+                  // viewport (cropped horizontally) to fill that height, so its
+                  // true displayed width is ~2-3x 100vw — request a proportionally
+                  // larger source there so it stays sharp instead of upscaling a
+                  // viewport-width variant. Landscape viewports stay at 100vw.
+                  sizes="(max-aspect-ratio: 1/1) 200vw, 100vw"
                   onLoad={(e) => {
                     const img = e.currentTarget;
                     if ((project.coverShiftLeft || project.coverPinRightFreezeW) && img.naturalWidth && img.naturalHeight) {

@@ -40,7 +40,7 @@ export default function Level3Page() {
       name="Beemlantis"
       blurb="Beem’s 2023 gamified Year in Review experience with an underwater theme"
       tags={["Mobile", "Web", "Project Management", "Animation"]}
-      coverImage="/level-3-smaller.jpg"
+      coverImage="/new covers/cover_L3.jpg"
       coverPosition="right center"
       coverBg="#0A1F2E"
       lightCover
