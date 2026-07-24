@@ -39,7 +39,7 @@ interface FloorPreview {
 
 const FLOOR_DATA: Record<string, FloorPreview> = {
   "1": { year: "2023", name: "MOOMOO: POWER LAUNCH", blurb: "Landing pages, marketing assets & brand strategy for the trading platforms’ power launch in Sydney", tags: ["Web", "Digital Design", "OOH Design", "Brand Direction"], cover: "/cover-moomoo.webp" },
-  "2": { year: "2023", name: "BEEM APP", blurb: "Animated stickers, brand alignment & more", tags: ["Mobile", "Animation"], cover: "/cover-beem-app.gif" },
+  "2": { year: "2023", name: "BEEM APP", blurb: "Animated stickers, brand alignment & more", tags: ["Mobile", "Animation"], cover: "/cover-beem-app.mp4" },
   "3": { year: "2023", name: "BEEMLANTIS", blurb: "Beem’s 2023 gamified Year in Review experience with an underwater theme", tags: ["Mobile", "Web", "Project Management", "Animation"], cover: "/cover-beemlantis2.mp4" },
   "4": { year: "2024", name: "TOTALLY BEEM", blurb: "Beem’s 2024 Year in Review experience with a nostalgic twist", tags: ["Mobile", "Web", "Project Management", "Product Strategy", "Animation"], cover: "/cover-totallybeem2.mp4" },
   "5": { year: "2025", name: "AP+ PORTALS", blurb: "Harmonising AP+'s developer, testing automation and role management experiences", tags: ["Web", "Design system"], cover: "/cover-portals.mp4" },
@@ -221,14 +221,19 @@ function CoverMedia({ data }: { data: FloorPreview }) {
   if (!src) return null;
   const style = { width: "100%", height: "100%", objectFit: "cover" as const, display: "block" };
   if (src.endsWith(".mp4")) {
+    // Optimised covers ship as WebM (VP9, smallest) with an H.264 MP4 fallback
+    // and a JPEG poster (same basename) that shows instantly while the video
+    // streams in — so slow connections see a crisp still, not a blank box.
+    const base = src.replace(/\.mp4$/, "");
     return (
       <video
         ref={videoRef}
-        src={src}
         autoPlay
         muted
         loop
         playsInline
+        poster={`${base}.jpg`}
+        preload="metadata"
         onLoadedMetadata={() => {
           const t = coverPlaybackTimes.get(src);
           if (t && videoRef.current) videoRef.current.currentTime = t;
@@ -237,10 +242,13 @@ function CoverMedia({ data }: { data: FloorPreview }) {
           if (videoRef.current) coverPlaybackTimes.set(src, videoRef.current.currentTime);
         }}
         style={style}
-      />
+      >
+        <source src={`${base}.webm`} type="video/webm" />
+        <source src={src} type="video/mp4" />
+      </video>
     );
   }
-  // .gif / .webp — a plain <img> keeps animated gifs playing.
+  // .webp / other still images — plain <img>.
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt={data.name} style={style} />;
 }
