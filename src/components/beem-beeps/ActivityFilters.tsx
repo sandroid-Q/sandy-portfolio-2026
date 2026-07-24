@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Caption from "./Caption";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import SwipeCarousel from "../gallery/SwipeCarousel";
@@ -51,6 +51,10 @@ export default function ActivityFilters() {
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [stack, setStack] = useState(false);
   const [carousel, setCarousel] = useState(false);
+  // Lazy-load at the whole-section level (not per image): once the section
+  // nears the viewport, all four result images load together instead of each
+  // popping in on its own.
+  const [imagesReady, setImagesReady] = useState(false);
 
   const measure = useCallback(() => {
     const c = containerRef.current;
@@ -94,6 +98,24 @@ export default function ActivityFilters() {
     return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
   }, [measure]);
 
+  // Start loading the result images once the section is within ~400px of the
+  // viewport, then load them all at once.
+  useEffect(() => {
+    const c = containerRef.current;
+    if (!c) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setImagesReady(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "400px 0px" }
+    );
+    io.observe(c);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <div ref={containerRef} style={{ width: "100%", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 72 }}>
       {/* Connector overlay — rounded right-angle lines routed through the gutters. */}
@@ -130,7 +152,7 @@ export default function ActivityFilters() {
           screens, else a centred grid/row. */}
       {carousel ? (
         <div style={{ width: "100%", position: "relative", zIndex: 1 }}>
-          <SwipeCarousel label="Filter" cards={RESULTS.map((r) => <ResultCard key={r.src} r={r} />)} />
+          <SwipeCarousel label="Filter" cards={RESULTS.map((r) => <ResultCard key={r.src} r={r} ready={imagesReady} />)} />
         </div>
       ) : (
         <div
@@ -149,7 +171,7 @@ export default function ActivityFilters() {
               ref={(el) => { resultRefs.current[i] = el; }}
               style={{ width: "100%", maxWidth: stack ? "100%" : 186, justifySelf: "center" }}
             >
-              <ResultCard r={r} />
+              <ResultCard r={r} ready={imagesReady} />
             </div>
           ))}
         </div>
@@ -158,17 +180,33 @@ export default function ActivityFilters() {
   );
 }
 
-function ResultCard({ r }: { r: (typeof RESULTS)[number] }) {
+function ResultCard({ r, ready }: { r: (typeof RESULTS)[number]; ready: boolean }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
       <Caption>{r.caption}</Caption>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={r.src}
-        alt={r.alt}
-        loading="lazy"
-        style={{ display: "block", width: "100%", borderRadius: 16, border: "1px solid var(--color-surface-secondary)", boxShadow: "var(--phone-shadow)" }}
-      />
+      {/* Fixed-ratio box reserves the space up front so the image fills in with
+          no layout shift ("pop"). The src is only set once the whole section is
+          near the viewport, so the four load together rather than one by one. */}
+      <div
+        style={{
+          width: "100%",
+          aspectRatio: "1125 / 2436",
+          borderRadius: 16,
+          border: "1px solid var(--color-surface-secondary)",
+          boxShadow: "var(--phone-shadow)",
+          overflow: "hidden",
+          boxSizing: "border-box",
+        }}
+      >
+        {ready && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={r.src}
+            alt={r.alt}
+            style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        )}
+      </div>
     </div>
   );
 }
