@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, animate, useMotionValue, useSpring, useVelocity, useTransform, type MotionValue } from "framer-motion";
 import { useAudio } from "@/contexts/AudioContext";
 
@@ -13,6 +13,21 @@ const SLEEVE_FILL = "#F8F8F8";
 const STRAP_SPRING = { type: "spring" as const, stiffness: 55, damping: 18 };
 const CARD_SPRING  = { type: "spring" as const, stiffness: 28, damping: 13, mass: 1.5 };
 const TILT_SPRING  = { type: "spring" as const, stiffness: 55, damping: 18 };
+
+// Mobile tap-to-swing: stiff, light, lightly-damped springs → a quick natural
+// pendulum swing that eases out and settles back to vertical in ~1s. (Soft/heavy
+// springs oscillate in slow motion and look laggy / stuck mid-swing.)
+const TAP_STRAP_SPRING = { type: "spring" as const, stiffness: 130, damping: 12, mass: 1 };
+const TAP_CARD_SPRING  = { type: "spring" as const, stiffness: 95,  damping: 8,  mass: 1 };
+// Impulse strength: a full-strength tap (screen edge) injects this much angular
+// velocity (deg/s) into each hinge. Card swings more than the strap. Kept low on
+// the strap so its velocity-driven chain reaction settles quickly too.
+const TAP_STRAP_VELOCITY = 90;
+const TAP_CARD_VELOCITY  = 460;
+// Gravity lean from device orientation: gamma (left-right tilt, deg) → hang
+// angle, scaled and clamped so extreme tilts don't over-rotate the lanyard.
+const GRAVITY_SCALE = 0.8;
+const GRAVITY_MAX   = 32;
 
 interface LanyardColors {
   strapTop: string;
@@ -72,11 +87,18 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
   const containerRef = useRef<HTMLDivElement>(null);
   const mouseVel     = useRef({ x: 0, t: 0, vx: 0 });
   const hadSwingRef  = useRef(false);
+  const orientOnRef  = useRef(false);
   const little1Ref   = useRef<HTMLAudioElement | null>(null);
   const little2Ref   = useRef<HTMLAudioElement | null>(null);
   const bigSndRef    = useRef<HTMLAudioElement | null>(null);
 
   const [isLight, setIsLight] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    const detect = () => setIsTouch(window.matchMedia?.("(pointer: coarse)").matches ?? false);
+    detect();
+  }, []);
 
   useEffect(() => {
     const update = () => setIsLight(document.documentElement.getAttribute("data-theme") === "light");
@@ -138,6 +160,13 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
   // ── Hinge 2 — clip connection: card swings relative to the strap ─────────
   const cardRelMouse = useMotionValue(0);
 
+  // ── Real-world gravity lean (mobile) — from device orientation ───────────
+  // The whole assembly hangs from the top attachment, so tilting the strap by
+  // the phone's roll makes both strap and card (its child) lean toward gravity.
+  // Smoothed via a spring so sensor jitter doesn't make the card twitch.
+  const gravityTarget = useMotionValue(0);
+  const gravityZ = useSpring(gravityTarget, { stiffness: 40, damping: 12, mass: 1 });
+
   // ── 3-D tilt from vertical mouse movement ────────────────────────────────
   const mouseX = useMotionValue(0);
 
@@ -148,13 +177,29 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
   const cardChain     = useSpring(chainInput, { stiffness: 22, damping: 8, mass: 2.5 });
 
   const lanyardRotate = useTransform(
-    [lanyardEntry, lanyardZ] as MotionValue<number>[],
-    ([e, z]: number[]) => e + z
+    [lanyardEntry, gravityZ, lanyardZ] as MotionValue<number>[],
+    ([e, g, z]: number[]) => e + g + z
   );
   const cardRelativeRotate = useTransform(
     [cardEntry, cardRelMouse, cardChain] as MotionValue<number>[],
     ([e, m, c]: number[]) => e + m + c
   );
+
+  const playSwipe = useCallback((big: boolean) => {
+    if (muted) return;
+    if (big) {
+      const snd = bigSndRef.current;
+      if (!snd) return;
+      snd.currentTime = 0;
+      snd.play().catch(() => {});
+    } else {
+      for (const snd of [little1Ref.current, little2Ref.current]) {
+        if (!snd) continue;
+        snd.currentTime = 0;
+        snd.play().catch(() => {});
+      }
+    }
+  }, [muted]);
 
   // ── Mouse handlers ────────────────────────────────────────────────────────
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -192,21 +237,6 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
     const vx    = mouseVel.current.vx;
     const absVx = Math.abs(vx);
 
-    const playSwipe = (big: boolean) => {
-      if (muted) return;
-      if (big) {
-        const snd = bigSndRef.current;
-        if (!snd) return;
-        snd.currentTime = 0;
-        snd.play().catch(() => {});
-      } else {
-        for (const snd of [little1Ref.current, little2Ref.current]) {
-          if (!snd) continue;
-          snd.currentTime = 0;
-          snd.play().catch(() => {});
-        }
-      }
-    };
     if (absVx > 300) {
       playSwipe(true);
     } else if (hadSwingRef.current || absVx > 50) {
@@ -220,13 +250,81 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
     hadSwingRef.current = false;
   };
 
+  // ── Device orientation → gravity lean (mobile) ───────────────────────────
+  const handleOrient = useCallback((e: DeviceOrientationEvent) => {
+    // gamma = left-right tilt in degrees. Tilt the phone right → the hanging
+    // lanyard leans right; tilt left → leans left. Scaled + clamped so a big
+    // tilt doesn't swing it past a natural hang.
+    const gamma = e.gamma ?? 0;
+    const angle = Math.max(-GRAVITY_MAX, Math.min(GRAVITY_MAX, gamma * GRAVITY_SCALE));
+    gravityTarget.set(angle);
+  }, [gravityTarget]);
+
+  // Attach the orientation listener once. iOS 13+ only grants access after an
+  // explicit permission request tied to a user gesture, so there it waits for
+  // the first tap (see handlePointerDown). Everywhere else it can start on mount.
+  const enableOrientation = useCallback(async () => {
+    if (orientOnRef.current) return;
+    const DOE = window.DeviceOrientationEvent as unknown as
+      { requestPermission?: () => Promise<"granted" | "denied"> } | undefined;
+    if (!DOE || typeof DOE.requestPermission !== "function") return;
+    orientOnRef.current = true;
+    try {
+      if ((await DOE.requestPermission()) !== "granted") return;
+    } catch {
+      return;
+    }
+    window.addEventListener("deviceorientation", handleOrient);
+  }, [handleOrient]);
+
+  useEffect(() => {
+    if (!isTouch) return;
+    const DOE = window.DeviceOrientationEvent as unknown as
+      { requestPermission?: () => Promise<"granted" | "denied"> } | undefined;
+    // No permission gate (Android, older iOS): follow gravity immediately.
+    if (DOE && typeof DOE.requestPermission !== "function") {
+      orientOnRef.current = true;
+      window.addEventListener("deviceorientation", handleOrient);
+    }
+    return () => window.removeEventListener("deviceorientation", handleOrient);
+  }, [isTouch, handleOrient]);
+
+  // ── Tap-to-swing (mobile) ────────────────────────────────────────────────
+  // No cursor to swipe with, so a tap gives the pendulum a push. Tapping left of
+  // centre swings the card right (and vice-versa); the further from centre, the
+  // harder the push. The springs settle back to 0, i.e. to the gravity rest.
+  // Down+up are tracked so a vertical scroll that starts on the card is NOT read
+  // as a tap — only a real tap (little movement, short hold) swings it.
+  const tapStart = useRef({ x: 0, y: 0, t: 0 });
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    enableOrientation();
+    tapStart.current = { x: e.clientX, y: e.clientY, t: performance.now() };
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const { x, y, t } = tapStart.current;
+    const moved = Math.hypot(e.clientX - x, e.clientY - y);
+    if (moved > 10 || performance.now() - t > 500) return; // a drag/scroll, not a tap
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // [-1,1], left negative
+    const strength = Math.max(-1, Math.min(1, -nx)); // tap left → positive (swing right)
+    if (Math.abs(strength) < 0.02) return;
+    animate(lanyardZ,     0, { ...TAP_STRAP_SPRING, velocity: strength * TAP_STRAP_VELOCITY });
+    animate(cardRelMouse, 0, { ...TAP_CARD_SPRING,  velocity: strength * TAP_CARD_VELOCITY });
+    playSwipe(Math.abs(strength) > 0.6);
+  };
+
   return (
     <div
       ref={containerRef}
-      onMouseEnter={handleMouseEnter}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ position: "relative", width: 276, perspective: "800px" }}
+      onMouseEnter={isTouch ? undefined : handleMouseEnter}
+      onMouseMove={isTouch ? undefined : handleMouseMove}
+      onMouseLeave={isTouch ? undefined : handleMouseLeave}
+      onPointerDown={isTouch ? handlePointerDown : undefined}
+      onPointerUp={isTouch ? handlePointerUp : undefined}
+      style={{ position: "relative", width: 276, perspective: "800px", touchAction: "pan-y" }}
     >
       {/* Outer wrapper: fall + 3-D tilt only (no lateral swing here) */}
       <motion.div style={{ y, rotateX: mouseX, transformOrigin: "top center", width: 276 }}>
