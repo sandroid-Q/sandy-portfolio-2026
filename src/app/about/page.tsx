@@ -120,15 +120,18 @@ function ScrambleSpan({
   defaultText,
   hoverText,
   baseColor,
+  isTouch = false,
 }: {
   defaultText: string;
   hoverText: string;
   baseColor: string;
+  isTouch?: boolean;
 }) {
   const displayRef = useRef(defaultText);
   const [displayState, setDisplayState] = useState(defaultText);
   const [hovered, setHovered] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const revertRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const spanRef = useRef<HTMLSpanElement>(null);
   const [fixedWidth, setFixedWidth] = useState<number | undefined>(undefined);
 
@@ -174,18 +177,49 @@ function ScrambleSpan({
     }, 40);
   };
 
-  useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current!); }, []);
+  useEffect(() => () => {
+    if (intervalRef.current) clearInterval(intervalRef.current!);
+    if (revertRef.current) clearTimeout(revertRef.current);
+  }, []);
+
+  // Touch: no hover, so a tap scrambles to the hover text, holds it for 2s, then
+  // scrambles back to the original automatically.
+  const handleTap = () => {
+    setHovered(true);
+    runScramble(hoverText);
+    if (revertRef.current) clearTimeout(revertRef.current);
+    revertRef.current = setTimeout(() => {
+      setHovered(false);
+      runScramble(defaultText);
+    }, 2000);
+  };
 
   return (
     <span
       ref={spanRef}
-      onMouseEnter={() => { setHovered(true); runScramble(hoverText); }}
-      onMouseLeave={() => {
+      onMouseEnter={isTouch ? undefined : () => { setHovered(true); runScramble(hoverText); }}
+      onMouseLeave={isTouch ? undefined : () => {
         setHovered(false);
         if (intervalRef.current) clearInterval(intervalRef.current);
         updateDisplay(defaultText);
       }}
-      style={{ display: "inline-block", width: fixedWidth, color: hovered ? FEATURE : baseColor, transition: "color 0.2s", cursor: "default" }}
+      onClick={isTouch ? handleTap : undefined}
+      style={{
+        // Clamp to 2 lines: mid-scramble the random characters are wider than the
+        // settled text and would spill onto a 3rd line, pushing the paragraph —
+        // and the profile photo below it — down and back up. Line-clamp reserves
+        // the 2-line box (resize-adaptive, no measurement); the settled text is
+        // unchanged and only a transient overflow frame is clipped.
+        display: "-webkit-inline-box",
+        WebkitBoxOrient: "vertical",
+        WebkitLineClamp: 2,
+        overflow: "hidden",
+        verticalAlign: "top",
+        width: fixedWidth,
+        color: hovered ? FEATURE : baseColor,
+        transition: "color 0.2s",
+        cursor: "default",
+      }}
     >
       {displayState}
     </span>
@@ -272,10 +306,12 @@ function IntroParagraph({
   pStyle,
   soupHovered,
   setSoupHovered,
+  isTouch = false,
 }: {
   pStyle: React.CSSProperties;
   soupHovered: boolean;
   setSoupHovered: (v: boolean) => void;
+  isTouch?: boolean;
 }) {
   const segs = useMemo(() => {
     const perSeg = INTRO_SEGMENTS.map((s) => (s.text ? toGraphemes(s.text) : []));
@@ -332,6 +368,7 @@ function IntroParagraph({
               defaultText="senior product designer"
               hoverText="hobby & meme collector"
               baseColor={BODY}
+              isTouch={isTouch}
             />
           ) : (
             <span key={idx} style={{ display: "inline-block" }}>
@@ -343,8 +380,9 @@ function IntroParagraph({
           return done ? (
             <span
               key={idx}
-              onMouseEnter={() => setSoupHovered(true)}
-              onMouseLeave={() => setSoupHovered(false)}
+              onMouseEnter={isTouch ? undefined : () => setSoupHovered(true)}
+              onMouseLeave={isTouch ? undefined : () => setSoupHovered(false)}
+              onClick={isTouch ? () => setSoupHovered(!soupHovered) : undefined}
               style={{ color: soupHovered ? FEATURE : BODY, transition: "color 0.2s", cursor: "default" }}
             >
               Soup 🐈‍⬛
@@ -680,6 +718,13 @@ export default function AboutPage() {
   const [contactOpen, setContactOpen] = useState(false);
   const [soupHovered, setSoupHovered] = useState(false);
   const [profileHovered, setProfileHovered] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+  const soupVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const detect = () => setIsTouch(window.matchMedia?.("(pointer: coarse)").matches ?? false);
+    detect();
+  }, []);
 
   useEffect(() => {
     const update = () => {
@@ -690,6 +735,23 @@ export default function AboutPage() {
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
+
+  // Touch: dismiss the cat video when the user taps anywhere outside it. (The
+  // listener is attached only while open — and after the opening tap — so it
+  // can't self-close.)
+  useEffect(() => {
+    if (!isTouch || !soupHovered) return;
+    const onDown = (e: PointerEvent) => {
+      const v = soupVideoRef.current;
+      if (v) {
+        const r = v.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) return;
+      }
+      setSoupHovered(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [isTouch, soupHovered]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -815,6 +877,7 @@ export default function AboutPage() {
                   }}
                   soupHovered={soupHovered}
                   setSoupHovered={setSoupHovered}
+                  isTouch={isTouch}
                 />
                 <div
                   onMouseEnter={() => setProfileHovered(true)}
@@ -835,7 +898,8 @@ export default function AboutPage() {
                 </div>
               </motion.div>
               {soupHovered && (
-                <video src="/soup-boing-smaller.mp4" autoPlay muted loop playsInline
+                <video ref={soupVideoRef} src="/soup-boing-smaller.mp4" autoPlay muted loop={!isTouch} playsInline
+                  onEnded={isTouch ? () => setSoupHovered(false) : undefined}
                   style={{ position: "absolute", bottom: 292, right: sidePad, width: 180, pointerEvents: "none" }} />
               )}
             </div>
@@ -879,6 +943,7 @@ export default function AboutPage() {
                     }}
                     soupHovered={soupHovered}
                     setSoupHovered={setSoupHovered}
+                    isTouch={isTouch}
                   />
 
                   {/* Medium only: photo under the text in the left column */}
@@ -903,7 +968,8 @@ export default function AboutPage() {
                   )}
                 </ParallaxLayer>
                 {soupHovered && (
-                  <video src="/soup-boing-smaller.mp4" autoPlay muted loop playsInline
+                  <video ref={soupVideoRef} src="/soup-boing-smaller.mp4" autoPlay muted loop={!isTouch} playsInline
+                    onEnded={isTouch ? () => setSoupHovered(false) : undefined}
                     style={{ position: "absolute", bottom: 292, right: 72, width: 220, pointerEvents: "none" }} />
                 )}
               </motion.div>
