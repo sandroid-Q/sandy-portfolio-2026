@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, animate, useMotionValue, useSpring, useVelocity, useTransform, type MotionValue } from "framer-motion";
 import { useAudio } from "@/contexts/AudioContext";
@@ -387,7 +386,11 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
             <div style={{ position: "absolute", left: 8.43, right: 8.43, top: 62.8, height: 1, backgroundColor: mainStroke }} />
 
             <div style={{ position: "absolute", left: 70.43, top: 84.8, width: 135.59, height: 165, backgroundColor: PHOTO_BG, overflow: "hidden", border: `2px solid ${mainStroke}` }}>
-              <Image src="/new-sandy-ID.png" alt="Sandy Qi" fill priority sizes="136px" style={{ objectFit: "cover", objectPosition: "center top" }} />
+              {/* Served directly (not via next/image): the source is already a
+                  tiny 8.5KB WebP sized for this slot, so the optimizer round-trip
+                  only added latency (grey placeholder → pop-in) on mobile. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/new-sandy-ID.webp" alt="Sandy Qi" fetchPriority="high" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
             </div>
 
             <div style={{ position: "absolute", left: 70.43, top: 255.8, width: 141, fontSize: 28, fontWeight: 700, letterSpacing: "0.08em", color: mainStroke, textTransform: "uppercase", lineHeight: 1 }}>
