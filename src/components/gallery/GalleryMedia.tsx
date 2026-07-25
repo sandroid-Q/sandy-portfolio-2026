@@ -2,15 +2,17 @@
 
 import { useEffect, useRef } from "react";
 import { useInView } from "framer-motion";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const VIDEO_EXT = /\.(mp4|mov|webm)$/i;
 
 /**
  * A single media element: a looping, in-view-only video for video files, an
  * image (incl. animated GIFs) otherwise. `style` is merged over the base sizing
- * (full width, auto height) — pass `aspectRatio`/`borderRadius` there.
+ * (full width, auto height) — pass `aspectRatio`/`borderRadius` there. `sizes`
+ * is the responsive width hint for next/image (default assumes ~full width).
  */
-export default function GalleryMedia({ src, alt, style }: { src: string; alt: string; style?: React.CSSProperties }) {
+export default function GalleryMedia({ src, alt, style, sizes }: { src: string; alt: string; style?: React.CSSProperties; sizes?: string }) {
   const isVideo = VIDEO_EXT.test(src);
   const ref = useRef<HTMLVideoElement>(null);
   const inView = useInView(ref, { margin: "200px 0px" });
@@ -28,6 +30,5 @@ export default function GalleryMedia({ src, alt, style }: { src: string; alt: st
   if (isVideo) {
     return <video ref={ref} src={src} muted loop playsInline preload="none" style={base} />;
   }
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} loading="lazy" style={{ ...base, objectFit: "cover" }} />;
+  return <OptimizedImage src={src} alt={alt} sizes={sizes ?? "(max-width: 800px) 100vw, 700px"} style={{ ...base, objectFit: "cover" }} />;
 }

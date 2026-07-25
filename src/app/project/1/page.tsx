@@ -1,12 +1,12 @@
 import ProjectPageTemplate from "@/components/ProjectPageTemplate";
 import MediaGallery from "@/components/MediaGallery";
 import WatchButton from "@/components/WatchButton";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
-// Plain img (server component, no interactivity); lazy so below-the-fold
-// section images aren't eagerly preloaded.
+// Optimized (next/image) full-width section image — serves resized AVIF/WebP
+// with a fallback for older browsers.
 function Img({ src, radius = 26 }: { src: string; radius?: number }) {
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="" loading="lazy" style={{ width: "100%", height: "auto", display: "block", borderRadius: radius }} />;
+  return <OptimizedImage src={src} alt="" sizes="(max-width: 1000px) 100vw, 1000px" style={{ width: "100%", height: "auto", display: "block", borderRadius: radius }} />;
 }
 
 // Two side-by-side that collapse to one column on narrow screens.
@@ -42,7 +42,7 @@ export default function Level1Page() {
           title: "Landing pages",
           content: (
             <MediaGallery
-              items={["/l1-lp-1.png", "/l1-lp-2.png", "/l1-lp-3.png", "/l1-lp-4.png", "/l1-lp-5.png"]}
+              items={["/l1-lp-1.webp", "/l1-lp-2.webp", "/l1-lp-3.webp", "/l1-lp-4.webp", "/l1-lp-5.webp"]}
               rows={[5]}
               columns={3}
               clip="inset(0 round 12px)"
@@ -58,21 +58,21 @@ export default function Level1Page() {
               label="Landing page"
             />
           ),
-          images: ["/l1-lp-big.png"],
+          images: ["/l1-lp-big.webp"],
         },
         {
           title: "ATL Designs",
           content: (
             <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={pairRow}>
-                <Img src="/l1-atl-1.png" />
-                <Img src="/l1-atl-2.png" />
+                <Img src="/l1-atl-1.webp" />
+                <Img src="/l1-atl-2.webp" />
               </div>
-              <Img src="/l1-atl-full-1.png" />
-              <Img src="/l1-atl-full-2.png" />
+              <Img src="/l1-atl-full-1.webp" />
+              <Img src="/l1-atl-full-2.webp" />
               <div style={pairRow}>
-                <Img src="/l1-atl-3.png" />
-                <Img src="/l1-atl-4.png" />
+                <Img src="/l1-atl-3.webp" />
+                <Img src="/l1-atl-4.webp" />
               </div>
             </div>
           ),
@@ -83,7 +83,7 @@ export default function Level1Page() {
         },
         {
           title: "Digital Designs",
-          images: ["/l1-dd-1.png", "/l1-dd-2.png"],
+          images: ["/l1-dd-1.webp", "/l1-dd-2.webp"],
         },
       ]}
     />

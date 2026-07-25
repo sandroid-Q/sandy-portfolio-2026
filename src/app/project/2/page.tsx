@@ -28,8 +28,8 @@ export default function Level2Page() {
           title: "Design System Uplift",
           content: (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 72, width: "100%" }}>
-              <GalleryMedia src="/beem-DS/beem-DS-1.png" alt="Design system uplift 1" style={{ width: 300, maxWidth: "100%", borderRadius: scaleRadius(20) }} />
-              <GalleryMedia src="/beem-DS/beem-DS-2.png" alt="Design system uplift 2" style={{ borderRadius: scaleRadius(20) }} />
+              <GalleryMedia src="/beem-DS/beem-DS-1.webp" alt="Design system uplift 1" style={{ width: 300, maxWidth: "100%", borderRadius: scaleRadius(20) }} />
+              <GalleryMedia src="/beem-DS/beem-DS-2.webp" alt="Design system uplift 2" style={{ borderRadius: scaleRadius(20) }} />
             </div>
           ),
         },

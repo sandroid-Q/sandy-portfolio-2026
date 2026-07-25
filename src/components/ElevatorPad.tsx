@@ -261,7 +261,7 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
               style={{ display: "flex" }}
             >
               <Image
-                src="/sandy-avatar.png"
+                src="/sandy-avatar.webp"
                 alt="About Sandy"
                 width={66}
                 height={66}

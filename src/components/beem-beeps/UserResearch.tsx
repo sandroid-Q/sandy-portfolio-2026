@@ -4,6 +4,7 @@
  * screenshots that sit side-by-side and stack on narrow screens.
  */
 import { scaleRadius } from "@/lib/radius";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 export default function UserResearch() {
   return (
@@ -11,7 +12,7 @@ export default function UserResearch() {
       {/* Primary screenshot with focal highlight ring */}
       <div style={{ position: "relative", width: 790, maxWidth: "100%" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/beem beeps/research-1.png" alt="User research findings" loading="lazy" style={{ display: "block", width: "100%", borderRadius: scaleRadius(20) }} />
+        <OptimizedImage src="/beem beeps/research-1.webp" alt="User research findings" sizes="(max-width: 800px) 100vw, 790px" style={{ display: "block", width: "100%", borderRadius: scaleRadius(20) }} />
         <span
           aria-hidden
           style={{
@@ -23,9 +24,9 @@ export default function UserResearch() {
       </div>
       {/* Supporting screenshots */}
       <div style={{ width: "100%", display: "flex", flexWrap: "wrap", gap: 32 }}>
-        {["/beem beeps/research-2.png", "/beem beeps/research-3.png"].map((src, i) => (
+        {["/beem beeps/research-2.webp", "/beem beeps/research-3.webp"].map((src, i) => (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={src} src={src} alt={`User research ${i + 2}`} loading="lazy" style={{ display: "block", flex: "1 1 300px", minWidth: 0, width: "100%", borderRadius: scaleRadius(20) }} />
+          <OptimizedImage key={src} src={src} alt={`User research ${i + 2}`} sizes="(max-width: 700px) 100vw, 400px" style={{ display: "block", flex: "1 1 300px", minWidth: 0, width: "100%", borderRadius: scaleRadius(20) }} />
         ))}
       </div>
     </div>

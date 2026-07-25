@@ -10,6 +10,7 @@ import PortfolioNav from "./PortfolioNav";
 import ContactModal from "./ContactModal";
 import { scaleRadius } from "@/lib/radius";
 import IconButton from "@/components/ui/IconButton";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const BG = "#F3F2F0";
 const BG_SECONDARY = "#E5E0D7";
@@ -319,10 +320,14 @@ function SectionMedia({ src, title, index, width, radius, scale = true }: { src:
     borderRadius: rad,
     ...(width != null ? { width, maxWidth: "100%" } : {}),
   };
-  // loading="lazy" keeps these below-the-fold images from being eagerly
-  // preloaded (which triggers "preloaded but not used" warnings).
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={`${title} ${index + 1}`} loading="lazy" style={style} />;
+  return (
+    <OptimizedImage
+      src={src}
+      alt={`${title} ${index + 1}`}
+      sizes={width != null ? `${width}px` : "(max-width: 1000px) 100vw, 1000px"}
+      style={style}
+    />
+  );
 }
 
 export default function ProjectPageTemplate(project: ProjectData) {

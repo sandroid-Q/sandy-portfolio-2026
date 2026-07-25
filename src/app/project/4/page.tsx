@@ -11,15 +11,15 @@ const TOTALLY_BEEM = [
 ];
 
 const MEEBSONAS = [
-  "/meebsonas/1-fetch.png",
-  "/meebsonas/2-delulu.png",
-  "/meebsonas/3-rizzler.png",
-  "/meebsonas/4-sus.png",
-  "/meebsonas/5-cutesy.png",
-  "/meebsonas/6-brat.png",
-  "/meebsonas/7-npc.png",
-  "/meebsonas/8-yapper.png",
-  "/meebsonas/9-clout.png",
+  "/meebsonas/1-fetch.webp",
+  "/meebsonas/2-delulu.webp",
+  "/meebsonas/3-rizzler.webp",
+  "/meebsonas/4-sus.webp",
+  "/meebsonas/5-cutesy.webp",
+  "/meebsonas/6-brat.webp",
+  "/meebsonas/7-npc.webp",
+  "/meebsonas/8-yapper.webp",
+  "/meebsonas/9-clout.webp",
 ];
 
 export default function Level4Page() {
@@ -49,12 +49,12 @@ export default function Level4Page() {
           title: "Beemsona",
           content: <MediaGallery items={MEEBSONAS} label="Beemsona" aspectRatio="750 / 1337" rows={[5, 4]} />,
           images: [
-            { src: "/meebsona-mapping-sandyqi.png", width: 373, radius: 18 },
+            { src: "/meebsona-mapping-sandyqi.webp", width: 373, radius: 18 },
           ],
         },
-        { title: "Project Timeline", images: ["/l4-timeline.png"] },
-        { title: "Bug Bash", images: [{ src: "/l4-bugbash.png", width: 635 }] },
-        { title: "Press", images: [{ src: "/l4-press.png", width: 490 }] },
+        { title: "Project Timeline", images: ["/l4-timeline.webp"] },
+        { title: "Bug Bash", images: [{ src: "/l4-bugbash.webp", width: 635 }] },
+        { title: "Press", images: [{ src: "/l4-press.webp", width: 490 }] },
       ]}
     />
   );

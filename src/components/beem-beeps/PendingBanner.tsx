@@ -1,4 +1,5 @@
 import Caption from "./Caption";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 /**
  * "Pending Banner" section: the two pending-transaction screens plus the banner
@@ -7,9 +8,9 @@ import Caption from "./Caption";
  */
 
 const ITEMS: { src: string; alt: string; caption: React.ReactNode; width: number; phone: boolean }[] = [
-  { src: "/beem beeps/pending-requests.png", alt: "Pending Requests", caption: "Pending Requests", width: 184, phone: true },
-  { src: "/beem beeps/beep-recipient.png", alt: "Beem Beep Recipient", caption: <><span style={{ fontWeight: 500 }}>Beem Beep</span> Recipient</>, width: 184, phone: true },
-  { src: "/beem beeps/banner-hierarchy.png", alt: "Banner Hierarchy", caption: "Banner Hierarchy", width: 320, phone: false },
+  { src: "/beem beeps/pending-requests.webp", alt: "Pending Requests", caption: "Pending Requests", width: 184, phone: true },
+  { src: "/beem beeps/beep-recipient.webp", alt: "Beem Beep Recipient", caption: <><span style={{ fontWeight: 500 }}>Beem Beep</span> Recipient</>, width: 184, phone: true },
+  { src: "/beem beeps/banner-hierarchy.webp", alt: "Banner Hierarchy", caption: "Banner Hierarchy", width: 320, phone: false },
 ];
 
 export default function PendingBanner() {
@@ -19,7 +20,7 @@ export default function PendingBanner() {
         <div key={item.src} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: item.width, maxWidth: "100%" }}>
           <Caption>{item.caption}</Caption>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={item.src} alt={item.alt} loading="lazy" style={{ display: "block", width: "100%", borderRadius: 16, border: item.phone ? "1px solid var(--color-surface-secondary)" : undefined, boxShadow: item.phone ? "var(--phone-shadow)" : undefined }} />
+          <OptimizedImage src={item.src} alt={item.alt} sizes="(max-width: 800px) 100vw, 700px" style={{ display: "block", width: "100%", borderRadius: 16, border: item.phone ? "1px solid var(--color-surface-secondary)" : undefined, boxShadow: item.phone ? "var(--phone-shadow)" : undefined }} />
         </div>
       ))}
     </div>

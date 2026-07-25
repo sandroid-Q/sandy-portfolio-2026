@@ -16,19 +16,19 @@ const BEEMLANTIS = [
 ];
 
 const STILLS = [
-  "/BL-stills/BL-still-1.png",
-  "/BL-stills/BL-still-2.png",
-  "/BL-stills/BL-still-3.png",
-  "/BL-stills/BL-still-4.png",
-  "/BL-stills/BL-still-5.png",
-  "/BL-stills/BL-still-6.png",
-  "/BL-stills/BL-still-7.png",
+  "/BL-stills/BL-still-1.webp",
+  "/BL-stills/BL-still-2.webp",
+  "/BL-stills/BL-still-3.webp",
+  "/BL-stills/BL-still-4.webp",
+  "/BL-stills/BL-still-5.webp",
+  "/BL-stills/BL-still-6.webp",
+  "/BL-stills/BL-still-7.webp",
 ];
 
 const SPLASH_BANNERS = [
-  "/BL-app-1.png",
-  "/BL-app-2.png",
-  "/BL-app-3.png",
+  "/BL-app-1.webp",
+  "/BL-app-2.webp",
+  "/BL-app-3.webp",
 ];
 
 export default function Level3Page() {
@@ -64,11 +64,11 @@ export default function Level3Page() {
           title: "Splash & Banners",
           content: <MediaGallery items={SPLASH_BANNERS} label="Splash & banner" columns={3} mobileLayout="stack" />,
         },
-        { title: "Project Plan", images: ["/BL-projectplan.png"] },
-        { title: "Team Brainstorm", images: ["/BL-teambrainstorm.png"] },
-        { title: "Storyboard & Wireframes", images: ["/BL-storyboard.png"] },
-        { title: "Bugbash", images: [{ src: "/BL-bugbash.png", width: 700 }] },
-        { title: "Retro", images: ["/BL-retro.png"] },
+        { title: "Project Plan", images: ["/BL-projectplan.webp"] },
+        { title: "Team Brainstorm", images: ["/BL-teambrainstorm.webp"] },
+        { title: "Storyboard & Wireframes", images: ["/BL-storyboard.webp"] },
+        { title: "Bugbash", images: [{ src: "/BL-bugbash.webp", width: 700 }] },
+        { title: "Retro", images: ["/BL-retro.webp"] },
       ]}
     />
   );

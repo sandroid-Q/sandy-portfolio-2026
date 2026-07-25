@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import SwipeCarousel from "../gallery/SwipeCarousel";
 import Caption from "./Caption";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 /**
  * The RECIPIENT (PAYEE) vs PAYER comparison from the Beem Beeps flow: two
@@ -12,8 +13,8 @@ import Caption from "./Caption";
  * carousels elsewhere on the site.
  */
 
-const PAYEE = ["/beem beeps/requestor-1.png", "/beem beeps/requestor-2.png", "/beem beeps/requestor-3.png"];
-const PAYER = ["/beem beeps/payer-1.png", "/beem beeps/payer-2.png", "/beem beeps/payer-3.png"];
+const PAYEE = ["/beem beeps/requestor-1.webp", "/beem beeps/requestor-2.webp", "/beem beeps/requestor-3.webp"];
+const PAYER = ["/beem beeps/payer-1.webp", "/beem beeps/payer-2.webp", "/beem beeps/payer-3.webp"];
 
 const DIVIDER = "color-mix(in srgb, var(--color-on-surface-tertiary) 55%, transparent)";
 
@@ -22,7 +23,7 @@ const STACK_W = 640;
 function shot(src: string, i: number, label: string) {
   // Constrained so the single card leaves side gutters for the arrows.
   // eslint-disable-next-line @next/next/no-img-element
-  return <img key={i} src={src} alt={`${label} ${i + 1}`} loading="lazy" style={{ display: "block", width: "100%", maxWidth: 280, borderRadius: 20, border: "1px solid var(--color-surface-secondary)", boxShadow: "var(--phone-shadow)" }} />;
+  return <OptimizedImage key={i} src={src} alt={`${label} ${i + 1}`} sizes="(max-width: 600px) 90vw, 280px" style={{ display: "block", width: "100%", maxWidth: 280, borderRadius: 20, border: "1px solid var(--color-surface-secondary)", boxShadow: "var(--phone-shadow)" }} />;
 }
 
 function Column({ label, items }: { label: string; items: string[] }) {

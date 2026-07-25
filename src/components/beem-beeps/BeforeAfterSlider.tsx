@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useRef, useState } from "react";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 /**
  * A draggable before/after image comparison. The `after` image is the base; the
@@ -36,7 +37,7 @@ const BeforeAfterSlider = forwardRef<HTMLDivElement, {
   const onMove = (e: React.PointerEvent) => { if (dragging.current) update(e.clientX); };
   const stop = () => { dragging.current = false; };
 
-  const imgStyle: React.CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" };
+  const imgStyle: React.CSSProperties = { objectFit: "cover", pointerEvents: "none" };
   const reveal = `inset(0 ${100 - pos}% 0 0)`;
 
   return (
@@ -64,11 +65,9 @@ const BeforeAfterSlider = forwardRef<HTMLDivElement, {
       }}
     >
       {/* Base: after */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={after} alt={afterAlt} draggable={false} style={imgStyle} />
+      <OptimizedImage src={after} alt={afterAlt} fill sizes="(max-width: 640px) 60vw, 220px" style={imgStyle} />
       {/* Overlay: before, revealed from the left up to the divider */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={before} alt={beforeAlt} draggable={false} style={{ ...imgStyle, clipPath: reveal, WebkitClipPath: reveal }} />
+      <OptimizedImage src={before} alt={beforeAlt} fill sizes="(max-width: 640px) 60vw, 220px" style={{ ...imgStyle, clipPath: reveal, WebkitClipPath: reveal }} />
 
       {/* Divider + handle */}
       <div style={{ position: "absolute", top: 0, bottom: 0, left: `${pos}%`, transform: "translateX(-50%)", width: 2, backgroundColor: "#FF82B8", pointerEvents: "none" }}>

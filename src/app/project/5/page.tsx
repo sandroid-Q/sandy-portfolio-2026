@@ -21,7 +21,7 @@ export default function Level5Page() {
         { title: "Testing Portal", images: ["/TST-1.mp4", "/TST-2.mp4"] },
         { title: "User Centre", images: ["/UC-1.mp4"] },
         { title: "Developer's Portal", images: ["/DEVX-1.mp4"] },
-        { title: "Design System", images: ["/design%20kit.png"] },
+        { title: "Design System", images: ["/design%20kit.webp"] },
       ]}
     />
   );

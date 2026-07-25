@@ -4,8 +4,9 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import Caption from "./Caption";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import SwipeCarousel from "../gallery/SwipeCarousel";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
-const BEFORE = "/beem beeps/before-new.png";
+const BEFORE = "/beem beeps/before-new.webp";
 
 /**
  * "New Activity Filters" — the before/after Pending screen on top fans out to
@@ -16,12 +17,12 @@ const BEFORE = "/beem beeps/before-new.png";
  * 2-up grid on narrow screens.
  */
 
-const TOP = "/beem beeps/filter-before-after.png";
+const TOP = "/beem beeps/filter-before-after.webp";
 const RESULTS = [
-  { src: "/beem beeps/filter-they-owe.png", alt: "They owe filter", caption: "Requests" },
-  { src: "/beem beeps/filter-you-owe.png", alt: "You owe filter", caption: "Pay" },
-  { src: "/beem beeps/filter-groups.png", alt: "Groups filter", caption: "Groups" },
-  { src: "/beem beeps/filter-scheduled.png", alt: "Scheduled filter", caption: "Scheduled" },
+  { src: "/beem beeps/filter-they-owe.webp", alt: "They owe filter", caption: "Requests" },
+  { src: "/beem beeps/filter-you-owe.webp", alt: "You owe filter", caption: "Pay" },
+  { src: "/beem beeps/filter-groups.webp", alt: "Groups filter", caption: "Groups" },
+  { src: "/beem beeps/filter-scheduled.webp", alt: "Scheduled filter", caption: "Scheduled" },
 ];
 
 // Where on the top screen's side edge the connectors start (fraction of its
@@ -182,13 +183,14 @@ export default function ActivityFilters() {
 
 function ResultCard({ r, ready }: { r: (typeof RESULTS)[number]; ready: boolean }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+    <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
       <Caption>{r.caption}</Caption>
       {/* Fixed-ratio box reserves the space up front so the image fills in with
           no layout shift ("pop"). The src is only set once the whole section is
           near the viewport, so the four load together rather than one by one. */}
       <div
         style={{
+          position: "relative",
           width: "100%",
           aspectRatio: "1125 / 2436",
           borderRadius: 16,
@@ -199,12 +201,7 @@ function ResultCard({ r, ready }: { r: (typeof RESULTS)[number]; ready: boolean 
         }}
       >
         {ready && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={r.src}
-            alt={r.alt}
-            style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
-          />
+          <OptimizedImage src={r.src} alt={r.alt} fill sizes="(max-width: 640px) 45vw, 186px" style={{ objectFit: "cover" }} />
         )}
       </div>
     </div>

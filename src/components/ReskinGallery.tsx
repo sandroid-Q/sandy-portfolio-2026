@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import GalleryMedia from "./gallery/GalleryMedia";
 import SwipeCarousel from "./gallery/SwipeCarousel";
 
-const ITEMS = Array.from({ length: 14 }, (_, i) => `/reskin/reskin-${i + 1}.png`);
+const ITEMS = Array.from({ length: 14 }, (_, i) => `/reskin/reskin-${i + 1}.webp`);
 const AR = "375 / 812"; // 750 × 1624 phone screens
 const RADIUS = 16;
 const GAP = 16;

@@ -54,7 +54,7 @@ export default function Level6Page() {
           title: "Iterations & Discovery",
           content: (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "clamp(32px, 14vw, 144px)", width: "100%" }}>
-              {["/beem beeps/iterations-1.png", "/beem beeps/iterations-2.png", "/beem beeps/iterations-3.png"].map((src, i) => (
+              {["/beem beeps/iterations-1.webp", "/beem beeps/iterations-2.webp", "/beem beeps/iterations-3.webp"].map((src, i) => (
                 <GalleryMedia key={src} src={src} alt={`Iterations & discovery ${i + 1}`} style={{ borderRadius: scaleRadius(28) }} />
               ))}
             </div>

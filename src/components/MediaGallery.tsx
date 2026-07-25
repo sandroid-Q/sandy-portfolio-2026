@@ -3,6 +3,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useInView } from "framer-motion";
 import { useAudio } from "@/contexts/AudioContext";
+import OptimizedImage from "@/components/ui/OptimizedImage";
+import { CarouselLoadContext, useCarouselReady } from "@/components/ui/carouselLoad";
 
 // Below this viewport (screen) width the grid becomes a swipe carousel.
 const CAROUSEL_VW = 600;
@@ -18,7 +20,7 @@ const VIDEO_EXT = /\.(mp4|mov|webm)$/i;
 // image otherwise. `clip` applies a clip-path (crop + rounding); `aspectRatio`
 // reserves height so nothing collapses before the media loads. `sound` marks the
 // one item that plays audio; `soundMuted` is its externally-controlled mute.
-function GalleryItem({ src, clip, aspectRatio, objectPosition, alt, sound, soundMuted }: { src: string; clip?: string; aspectRatio?: string; objectPosition?: string; alt: string; sound?: boolean; soundMuted?: boolean }) {
+function GalleryItem({ src, clip, aspectRatio, objectPosition, alt, sound, soundMuted, sizes }: { src: string; clip?: string; aspectRatio?: string; objectPosition?: string; alt: string; sound?: boolean; soundMuted?: boolean; sizes?: string }) {
   const isVideo = VIDEO_EXT.test(src);
   const ref = useRef<HTMLVideoElement>(null);
   const inView = useInView(ref, { margin: "200px 0px" });
@@ -72,8 +74,7 @@ function GalleryItem({ src, clip, aspectRatio, objectPosition, alt, sound, sound
   if (isVideo) {
     return <video ref={ref} src={src} muted={playMuted} loop playsInline preload="none" style={style} />;
   }
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} loading="lazy" style={{ ...style, objectFit: "cover", ...(objectPosition ? { objectPosition } : {}) }} />;
+  return <OptimizedImage src={src} alt={alt} sizes={sizes ?? "(max-width: 600px) 80vw, 33vw"} style={{ ...style, objectFit: "cover", ...(objectPosition ? { objectPosition } : {}) }} />;
 }
 
 interface MediaGalleryProps {
@@ -119,6 +120,9 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, ca
   const mobileAspect = (i: number) => carouselCrops?.[i]?.aspectRatio ?? aspectRatio;
   const mobilePos = (i: number) => carouselCrops?.[i]?.objectPosition;
   const wrapRef = useRef<HTMLDivElement>(null);
+  // In carousel mode, load every card's images together once the gallery nears
+  // the viewport (instead of lazily one-per-swipe).
+  const carouselImagesReady = useCarouselReady(wrapRef);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(1000);        // container width (for grid gap)
   const [vw, setVw] = useState(CAROUSEL_VW + 1);   // viewport width (for the breakpoint)
@@ -217,6 +221,7 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, ca
 
   return (
     <div ref={wrapRef} style={{ width: "100%" }}>
+      <CarouselLoadContext.Provider value={mode === "carousel" ? carouselImagesReady : null}>
       {ready && (
         mode === "stack" ? (
         // Centred vertical stack; each item matches the carousel card width (70vw)
@@ -316,6 +321,7 @@ export default function MediaGallery({ items, columns = 3, clip, aspectRatio, ca
         </div>
         )
       )}
+      </CarouselLoadContext.Provider>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { CarouselLoadContext, useCarouselReady } from "../ui/carouselLoad";
 
 /**
  * Swipe carousel with a 4-point-star counter. Renders arbitrary card nodes
@@ -28,7 +29,11 @@ export default function SwipeCarousel({
   arrows?: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+  // Load every card's images together once the carousel nears the viewport,
+  // rather than lazily one-per-swipe.
+  const imagesReady = useCarouselReady(rootRef);
 
   const onScroll = () => {
     const el = scrollRef.current;
@@ -55,7 +60,8 @@ export default function SwipeCarousel({
   return (
     // Full-bleed breaks out of the page's side padding to span the viewport;
     // constrained mode stays within its container.
-    <div style={fullBleed ? { width: "100vw", marginLeft: "calc(50% - 50vw)" } : { width: "100%" }}>
+    <div ref={rootRef} style={fullBleed ? { width: "100vw", marginLeft: "calc(50% - 50vw)" } : { width: "100%" }}>
+      <CarouselLoadContext.Provider value={imagesReady}>
       <style>{`.sc-scroll::-webkit-scrollbar{display:none}`}</style>
       <div style={{ position: "relative" }}>
         <div
@@ -114,6 +120,7 @@ export default function SwipeCarousel({
           </button>
         ))}
       </div>
+      </CarouselLoadContext.Provider>
     </div>
   );
 }
