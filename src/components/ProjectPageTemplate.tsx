@@ -627,7 +627,8 @@ export default function ProjectPageTemplate(project: ProjectData) {
       <div
         style={{
           display: "flex", flexDirection: "column",
-          gap: 144, paddingBottom: 168,
+          // Gap between sections shrinks on smaller screens (144 stays on desktop).
+          gap: "clamp(48px, 14vw, 144px)", paddingBottom: 168,
         }}
       >
         {/* Project intro */}
@@ -739,7 +740,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
                 </span>
               </Reveal>
             ) : (
-              <div style={{ width: "100%", maxWidth: 1000, display: "flex", flexDirection: "column", gap: 144, alignItems: "center" }}>
+              <div style={{ width: "100%", maxWidth: 1000, display: "flex", flexDirection: "column", gap: "clamp(48px, 14vw, 144px)", alignItems: "center" }}>
                 {section.content && (
                   <Reveal style={{ width: "100%", display: "flex", justifyContent: "center" }}>
                     {section.content}
