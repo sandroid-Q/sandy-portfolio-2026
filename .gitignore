@@ -28,6 +28,7 @@
 /.claude/
 
 # debug
+/screenshots/
 /public/screenshots/
 npm-debug.log*
 yarn-debug.log*
