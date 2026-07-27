@@ -34,7 +34,7 @@ export const IMAGE_DIMS: Record<string, [number, number]> = {
   "/beem beeps/requestor-1.webp": [509, 1104],
   "/beem beeps/requestor-2.webp": [510, 1104],
   "/beem beeps/requestor-3.webp": [510, 1107],
-  "/beem beeps/research-1.webp": [1766, 975],
+  "/beem beeps/research-1.webp": [2370, 1308],
   "/beem beeps/research-2.webp": [2058, 1225],
   "/beem beeps/research-3.webp": [2361, 1405],
   "/beem-DS/beem-DS-1.webp": [1912, 1216],
