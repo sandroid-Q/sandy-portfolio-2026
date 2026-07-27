@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudio } from "@/contexts/AudioContext";
+import { COFFEE_SRC, CAT_SRC } from "./dropSprites";
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 
@@ -156,6 +157,28 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
 // ─── Coffee rain easter egg ───────────────────────────────────────────────────
 
 const DROP_COUNT = 36;
+const DROP_SIZE = 80; // rendered sprite size in px
+
+// COFFEE_SRC / CAT_SRC are inlined data URIs (see ./dropSprites) — each drop is
+// one cached GPU texture instead of a live-rendered color-emoji text layer, and
+// there's no network fetch to stall the first press.
+
+// Decode the sprites once up-front so the very first coffee rain starts in sync.
+// Otherwise the first press fires the sound while the images are still decoding,
+// and the animation clock has already advanced by the time they paint — so the
+// emojis pop in halfway down the screen.
+let spritesReady: Promise<unknown> | null = null;
+function preloadSprites() {
+  if (spritesReady) return spritesReady;
+  spritesReady = Promise.all(
+    [COFFEE_SRC, CAT_SRC].map(src => {
+      const img = new Image();
+      img.src = src;
+      return img.decode().catch(() => undefined);
+    })
+  );
+  return spritesReady;
+}
 
 // Freshly randomised drops each call, so the fall pattern differs every press.
 // One random drop becomes a black cat hiding among the coffee cups.
@@ -167,9 +190,9 @@ function makeDrops() {
     rotationDelta: (Math.random() - 0.5) * 540,
     delay: Math.random() * 0.7,
     duration: 1.4 + Math.random() * 0.9,
-    emoji: "☕️",
+    src: COFFEE_SRC,
   }));
-  drops[Math.floor(Math.random() * drops.length)].emoji = "🐈‍⬛";
+  drops[Math.floor(Math.random() * drops.length)].src = CAT_SRC;
   return drops;
 }
 
@@ -187,15 +210,24 @@ function CoffeeRain({ onDone }: { onDone: () => void }) {
   return (
     <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 500, overflow: "hidden" }}>
       {drops.map(drop => (
-        <motion.div
+        <motion.img
           key={drop.id}
-          initial={{ y: -80, rotate: drop.rotation }}
-          animate={{ y: screenH + 80, rotate: drop.rotation + drop.rotationDelta }}
+          src={drop.src}
+          alt=""
+          draggable={false}
+          decoding="sync"
+          initial={{ y: -DROP_SIZE, rotate: drop.rotation }}
+          animate={{ y: screenH + DROP_SIZE, rotate: drop.rotation + drop.rotationDelta }}
           transition={{ duration: drop.duration, delay: drop.delay, ease: "easeIn" }}
-          style={{ position: "absolute", top: 0, left: `${drop.left}vw`, fontSize: 80, lineHeight: 1 }}
-        >
-          {drop.emoji}
-        </motion.div>
+          style={{
+            position: "absolute",
+            top: 0,
+            left: `${drop.left}vw`,
+            width: DROP_SIZE,
+            height: DROP_SIZE,
+            willChange: "transform",
+          }}
+        />
       ))}
     </div>
   );
@@ -233,7 +265,9 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
   };
 
   useEffect(() => {
-    if (open && bellRef.current && !muted) {
+    if (!open) return;
+    preloadSprites();
+    if (bellRef.current && !muted) {
       bellRef.current.currentTime = 0;
       bellRef.current.play().catch(() => {});
     }
@@ -252,6 +286,11 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
       document.body.removeChild(el);
     }
     setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+
+    // Wait until the sprites are decoded so the sound and the falling emojis
+    // start together — even if that means a small delay on the very first press.
+    await preloadSprites();
     setRainKey(k => k + 1);
     const beans = beansRef.current;
     if (beans && !muted) {
@@ -260,7 +299,6 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
       if (beansTimerRef.current) clearTimeout(beansTimerRef.current);
       beansTimerRef.current = setTimeout(() => { beans.pause(); beans.currentTime = 0; }, 2000);
     }
-    setTimeout(() => setCopied(false), 2500);
   };
 
   return (
@@ -279,9 +317,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               style={{
                 position: "fixed",
                 inset: 0,
-                backgroundColor: "var(--color-surface-transparent)",
-                backdropFilter: "blur(10px)",
-                WebkitBackdropFilter: "blur(10px)",
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
                 zIndex: 200,
               }}
             />
