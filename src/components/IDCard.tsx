@@ -255,7 +255,7 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
     // lanyard leans right; tilt left → leans left. Scaled + clamped so a big
     // tilt doesn't swing it past a natural hang.
     const gamma = e.gamma ?? 0;
-    const angle = Math.max(-GRAVITY_MAX, Math.min(GRAVITY_MAX, gamma * GRAVITY_SCALE));
+    const angle = Math.max(-GRAVITY_MAX, Math.min(GRAVITY_MAX, -gamma * GRAVITY_SCALE));
     gravityTarget.set(angle);
   }, [gravityTarget]);
 
