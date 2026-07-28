@@ -711,10 +711,8 @@ function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
 export default function AboutPage() {
   const topRef = useRef<HTMLDivElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
   const [vw, setVw] = useState(0);
   const [vh, setVh] = useState(0);
-  const [heroH, setHeroH] = useState(0);
   const [blurTop, setBlurTop] = useState(false);
   const [blurBottom, setBlurBottom] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
@@ -749,21 +747,6 @@ export default function AboutPage() {
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
-  }, []);
-
-  // Track the hero's true rendered height. It's `calc(100svh - 72px)`, which on
-  // mobile can differ from `window.innerHeight` (dynamic address bar) — so the
-  // intro sizing must fit this measured box, not innerHeight, or content spills
-  // past the hero's `overflow: hidden` edge and clips. A ResizeObserver also
-  // catches the address bar sliding in/out without a resize event.
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el) return;
-    const measure = () => setHeroH(el.offsetHeight);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
   }, []);
 
   // Touch: dismiss the cat video when the user taps anywhere outside it. (The
@@ -810,52 +793,32 @@ export default function AboutPage() {
   const clampedVh = Math.max(700, vh);
   const PAD_NATURAL_H = 774;
   const desktopPadScale = isNarrow ? 1 : Math.min(1, (clampedVh - 216) / PAD_NATURAL_H);
-  // Narrow: scale text+photo together once viewport gets too small to fit 340px content
+  // Narrow: used only to size the hover-swap alt image relative to the viewport.
   const narrowScale = isNarrow ? Math.min(1, Math.max(0.5, (vw - 2 * sidePadPx) / 340)) : 1;
   // Shared vertical offset: how far down the content block sits within the hero (grows with viewport height)
   const heroContentOffset = Math.max(24, Math.min(80, clampedVh - 774));
   // Medium: grid adds its own 72px top padding, so motion.div only needs heroContentOffset
   const mediumPaddingTop = isMedium ? heroContentOffset : 0;
   const mediumPhotoH = isMedium ? Math.max(140, Math.min(280, clampedVh - 594 - mediumPaddingTop)) : 280;
-  // Narrow hero: the intro text + profile photo (source 3024×4032 → portrait 3:4)
-  // fill the hero together. Rather than fixed paddings/gap, everything scales to
-  // the viewport height so the pair fills without clipping and keeps a steady
-  // text↔image ratio:
-  //   • text : photo height ≈ 1.4 (matches the taller phones that already looked
-  //     balanced), so the font never gets crushed to squeeze the photo in;
-  //   • the gap is proportional to the photo (≈16% of its height) — so it scales
-  //     with the screen instead of being a hardcoded value;
-  //   • top/bottom breathing room scales with the hero height too.
-  // On tall phones both cap at their natural size (full 46px text, 210px-wide
-  // photo) and any leftover height is slack. The photo width is always derived
-  // from its height at the true aspect, so it scales as a whole (never a crop).
-  const NARROW_IMG_ASPECT = 4032 / 3024; // height ÷ width
-  const NARROW_TEXT_PHOTO_RATIO = 1.4;
-  const NARROW_GAP_FRACTION = 0.16; // gap = fraction × photo height
-  const narrowFullTextH = 330 * narrowScale; // approx height of the intro paragraph at 46px
-  const narrowFullPhotoH = 210 * narrowScale * NARROW_IMG_ASPECT; // ≈ 280 * narrowScale (photo at 210 wide)
-  // Prefer the hero's measured height; fall back to vh−72 before it's measured
-  // (first paint / SSR). This is the real box the intro must fit inside.
-  const narrowHeroInner = heroH > 0 ? heroH : Math.max(0, vh - 72);
-  // The hero starts at the top of the viewport behind the fixed 72px nav, so
-  // the intro's top padding is measured from y=0. On mobile, pin it to nav
-  // height + a 32px gap so "Hello, it's" clears the header cleanly.
-  const narrowPadTop = isMobile
-    ? 72 + 32
-    : Math.max(28, Math.min(110, 0.1 * narrowHeroInner));
-  const narrowPadBottom = Math.max(24, Math.min(72, 0.07 * narrowHeroInner));
-  const narrowAvail = Math.max(0, narrowHeroInner - narrowPadTop - narrowPadBottom); // text + gap + photo
-  // Solve text + gap + photo = avail with text = R·photo and gap = f·photo, then
-  // clamp each to its natural max (letting text cap first hands slack to the photo).
-  let narrowPhotoH = isNarrow ? Math.min(narrowFullPhotoH, narrowAvail / (NARROW_TEXT_PHOTO_RATIO + NARROW_GAP_FRACTION + 1)) : 280;
-  let narrowTextH = Math.min(narrowFullTextH, NARROW_TEXT_PHOTO_RATIO * narrowPhotoH);
-  if (isNarrow && vh > 0 && narrowTextH >= narrowFullTextH) {
-    narrowTextH = narrowFullTextH;
-    narrowPhotoH = Math.min(narrowFullPhotoH, (narrowAvail - narrowFullTextH) / (1 + NARROW_GAP_FRACTION));
-  }
+  // Narrow hero (single column, elevator pad has moved to the bottom of the
+  // page): the intro reads as a full-width paragraph with the profile photo
+  // below it, both at a balanced size. Rather than shrinking the pair to fit one
+  // screen (which left them small and huddled on the left of wider/shorter
+  // screens), the column always fills the width and the font grows with the
+  // viewport up to a 72px cap — after which only the column keeps widening. If
+  // the pair runs past the bottom of the screen that's fine: the hero grows and
+  // the page scrolls to reveal the photo (see the hero's minHeight below).
+  const NARROW_IMG_ASPECT = 4032 / 3024; // height ÷ width (portrait 3:4)
+  const NARROW_GAP_FRACTION = 0.16; // gap between text and photo = fraction × photo height
+  // Font grows 46 → 72px across the narrow range (vw 390 → 850), then holds at 72.
+  const narrowFont = Math.min(72, Math.max(46, 46 + ((vw - 390) * (72 - 46)) / (850 - 390)));
+  const narrowLineHeight = narrowFont * (54 / 46); // preserve the original 46/54 line-height ratio
+  // Photo scales with the font so the text↔image proportion stays balanced.
+  const narrowPhotoW = 210 * (narrowFont / 46);
+  const narrowPhotoH = narrowPhotoW * NARROW_IMG_ASPECT;
   const narrowGap = narrowPhotoH * NARROW_GAP_FRACTION;
-  const narrowTextScale = narrowFullTextH > 0 ? narrowScale * (narrowTextH / narrowFullTextH) : narrowScale;
-  const narrowPhotoW = narrowPhotoH / NARROW_IMG_ASPECT;
+  const narrowPadTop = 72 + 24; // clear the fixed 72px nav + a 24px gap above the text
+  const narrowPadBottom = 72;
   const cvIsStack = vw < 680;
   const cvIsCompact = vw >= 680 && vw < 1000;
   // Wide layout (≥1000px): content is centered within the 1200px cap; keep a 32px min side gutter.
@@ -883,12 +846,14 @@ export default function AboutPage() {
 
       <div ref={topRef}>
         <div
-          ref={heroRef}
           style={{
             position: "relative",
             backgroundColor: HERO_BG,
+            // Narrow: at least one screen tall, but grows with the content so a
+            // large intro + photo can run past the fold and be reached by
+            // scrolling, rather than being shrunk to fit or clipped.
             ...(isNarrow
-              ? { height: "calc(100svh - 72px)" }
+              ? { minHeight: "calc(100svh - 72px)" }
               : { height: "calc(100svh - 72px)", minHeight: 600 }),
             borderRadius: "0 0 32px 32px",
             overflow: "hidden",
@@ -906,12 +871,12 @@ export default function AboutPage() {
                   pStyle={{
                     fontFamily: "var(--font-space-grotesk)",
                     fontWeight: 500,
-                    fontSize: 46 * narrowTextScale,
-                    lineHeight: `${54 * narrowTextScale}px`,
+                    fontSize: narrowFont,
+                    lineHeight: `${narrowLineHeight}px`,
                     letterSpacing: "-0.02em",
                     color: BODY,
                     margin: 0,
-                    width: 340 * narrowTextScale,
+                    width: "100%",
                   }}
                   soupHovered={soupHovered}
                   setSoupHovered={setSoupHovered}
@@ -923,7 +888,7 @@ export default function AboutPage() {
                   style={{ width: narrowPhotoW, height: narrowPhotoH, position: "relative", flexShrink: 0 }}
                 >
                   <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-                    <Image src="/sandy-qi.jpeg" fill sizes="210px" alt="Sandy Qi"
+                    <Image src="/sandy-qi.jpeg" fill sizes="360px" alt="Sandy Qi"
                       style={{ objectFit: "cover", objectPosition: "center top" }} priority />
                     <RevealCurtain />
                   </div>
