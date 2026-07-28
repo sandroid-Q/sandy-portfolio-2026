@@ -205,17 +205,16 @@ function ScrambleSpan({
       }}
       onClick={isTouch ? handleTap : undefined}
       style={{
-        // Clamp to 2 lines: mid-scramble the random characters are wider than the
-        // settled text and would spill onto a 3rd line, pushing the paragraph —
-        // and the profile photo below it — down and back up. Line-clamp reserves
-        // the 2-line box (resize-adaptive, no measurement); the settled text is
-        // unchanged and only a transient overflow frame is clipped.
-        display: "-webkit-inline-box",
-        WebkitBoxOrient: "vertical",
-        WebkitLineClamp: 2,
-        overflow: "hidden",
+        // Freeze the width so hover-swapping "senior product designer" ↔
+        // "hobby & meme collector" (and the per-char scramble) doesn't reflow the
+        // line — but cap it to the column (maxWidth) so a large responsive font
+        // wraps inside the paragraph instead of spilling past the right edge. No
+        // height clamp: the settled text must be fully visible and wrap to as many
+        // lines as it needs at any font size / screen width (never truncated).
+        display: "inline-block",
         verticalAlign: "top",
         width: fixedWidth,
+        maxWidth: "100%",
         color: hovered ? FEATURE : baseColor,
         transition: "color 0.2s",
         cursor: "default",
