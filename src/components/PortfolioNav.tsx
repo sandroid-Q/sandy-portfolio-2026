@@ -566,6 +566,14 @@ export default function PortfolioNav({
   const hamburgerColor = ink;
   const navLinkColor = ink;
 
+  // The bottom nav sits at the viewport bottom, always over the page body
+  // surface — never over the cover (the hero is 100svh-64px and the bottom nav
+  // is desktop-only). So it must follow the body ink, not the cover-based `ink`;
+  // otherwise a light-cover project's dark ink lands on the dark body (dark
+  // mode) — or a dark-cover project's light ink on the light body (light mode)
+  // — and the copyright + About text becomes invisible at default load.
+  const bottomInk = "var(--color-on-surface-primary)";
+
   const frostBg = mobileBgColor.startsWith("#")
     ? hexToRgba(mobileBgColor, 0.45)
     : `color-mix(in srgb, ${mobileBgColor} 50%, transparent)`;
@@ -818,7 +826,7 @@ export default function PortfolioNav({
                 fontFamily: "var(--font-space-grotesk)",
                 fontWeight: 300,
                 fontSize: 10,
-                color: ink,
+                color: bottomInk,
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
               }}
@@ -826,7 +834,7 @@ export default function PortfolioNav({
               © Sandy Qi 2026
             </span>
             <div style={{ pointerEvents: "auto", position: "relative", display: "inline-block" }}>
-              <NavLink href="/about" color={ink}>
+              <NavLink href="/about" color={bottomInk}>
                 About
               </NavLink>
               <motion.div
