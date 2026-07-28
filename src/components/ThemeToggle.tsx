@@ -45,6 +45,11 @@ export default function ThemeToggle({ color: overrideColor }: ThemeToggleProps) 
     } else {
       document.documentElement.removeAttribute("data-theme");
     }
+    // Remember the choice for this tab session only, so a hard reload keeps it
+    // (a new tab starts dark again — see the init script in layout.tsx).
+    try {
+      sessionStorage.setItem("theme", isDark ? "light" : "dark");
+    } catch {}
   };
 
   const color = pressed ? FEATURE_SECONDARY : (overrideColor ?? "var(--color-on-surface-primary)");

@@ -28,6 +28,13 @@ export const metadata: Metadata = {
   description: "Senior Product Designer based in Sydney",
 };
 
+// Runs before first paint so a light choice made earlier in this tab session is
+// applied without a flash of the default dark theme. Scope is sessionStorage on
+// purpose: a brand-new tab starts dark. Only an explicit "light" is honoured —
+// the default (and anything else) stays dark; the device's prefers-color-scheme
+// is intentionally ignored.
+const themeInitScript = `(function(){try{if(sessionStorage.getItem("theme")==="light"){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,6 +46,7 @@ export default function RootLayout({
       className={`${silkscreen.variable} ${spaceGrotesk.variable} ${spaceMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col">
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <AudioProvider>
           <CustomCursor />
           {children}
