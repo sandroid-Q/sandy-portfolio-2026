@@ -265,6 +265,11 @@ function PadButton({ btn, onDing, dark, bg, onFloorHover, onContact, onSurface, 
                 alt="About Sandy"
                 width={66}
                 height={66}
+                // Load with the page, not lazily after the pad has painted (it
+                // pops in otherwise). It's a fixed 66px, ~12KB webp, so skip the
+                // on-demand optimizer round-trip and serve the static file directly.
+                priority
+                unoptimized
                 style={{ borderRadius: 40 }}
               />
             </motion.div>
