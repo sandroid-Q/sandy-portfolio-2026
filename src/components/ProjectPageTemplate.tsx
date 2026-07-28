@@ -342,37 +342,25 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const [coverAspect, setCoverAspect] = useState<number | null>(null);
   const [coverX, setCoverX] = useState(0);
 
-  // Delay before the cover slides down. On a first-visit deep-link the intro
-  // LoadingScreen covers the page for ~4s (it sets `loadingShown` on mount, and
-  // begins fading at ~3.9s — see LoadingScreen.tsx), so hold the reveal until
-  // then; otherwise (in-app navigation, later loads) reveal immediately.
-  const [coverDelay] = useState(() => {
-    if (typeof window === "undefined") return 0;
-    return sessionStorage.getItem("loadingShown") ? 0 : 3.9;
-  });
-
-  // Cover slide-in. Guards keep it from ever looking glitchy on a janky load:
+  // Cover slide-in. The cover is decoupled from the LoadingScreen: it slides
+  // down as soon as its own image has decoded, no fixed delay. On a fast load
+  // that's near-instant (and the LoadingScreen never shows); on a slow load the
+  // LoadingScreen acts as filler while the image loads, and the cover has slid
+  // in behind it by the time it fades. Guards keep it from ever looking glitchy:
   // (1) it only starts once the image has actually decoded, so a slow load can't
   // reveal an empty frame; (2) it only starts while the tab is visible, so it's
   // never missed to a paused-while-hidden rAF; (3) the slide is a CSS transform
   // transition (below), which runs on the compositor thread and stays smooth
   // even while the main thread is busy — unlike a JS/framer-motion animation.
   const [imgReady, setImgReady] = useState(!project.coverImage);
-  const [delayDone, setDelayDone] = useState(coverDelay === 0);
   const [coverRevealed, setCoverRevealed] = useState(false);
-
-  useEffect(() => {
-    if (coverDelay === 0) return;
-    const t = setTimeout(() => setDelayDone(true), coverDelay * 1000);
-    return () => clearTimeout(t);
-  }, [coverDelay]);
 
   useEffect(() => {
     // Wait for the image to actually decode on every viewport (not just desktop):
     // revealing before it's painted makes the cover slide down into an empty
     // frame and pop in late — which reads as "the cover didn't load", especially
     // on a first, uncached mobile load. The 2.5s cap below bounds the wait.
-    if (coverRevealed || !delayDone || vw === 0 || !imgReady) return;
+    if (coverRevealed || vw === 0 || !imgReady) return;
 
     let raf1 = 0;
     let raf2 = 0;
@@ -405,14 +393,14 @@ export default function ProjectPageTemplate(project: ProjectData) {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
     };
-  }, [imgReady, delayDone, coverRevealed, vw]);
+  }, [imgReady, coverRevealed, vw]);
 
   useEffect(() => {
     // Safety net: reveal even if onLoad never fires (e.g. a cached image), so
     // the cover can never get stuck hidden.
-    const cap = setTimeout(() => setCoverRevealed(true), coverDelay * 1000 + 2500);
+    const cap = setTimeout(() => setCoverRevealed(true), 2500);
     return () => clearTimeout(cap);
-  }, [coverDelay]);
+  }, []);
 
   useEffect(() => {
     const update = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
@@ -537,7 +525,7 @@ export default function ProjectPageTemplate(project: ProjectData) {
                   position: "absolute",
                   inset: 0,
                   transform: coverRevealed ? "translateY(0)" : "translateY(-100%)",
-                  transition: `transform ${isMobile ? 0.95 : 1.35}s cubic-bezier(0.5, 0, 0.2, 1)`,
+                  transition: `transform ${isMobile ? 1.0 : 1.2}s cubic-bezier(0.16, 1, 0.3, 1)`,
                 }}
               >
                 <Image

@@ -26,8 +26,16 @@ const TRI_DELAY = ARROW_START;
 const CIRCLE_DELAY = ARROW_START + 0.2;
 const CIRCLE_DUR = 0.75;
 const HOVER_START = CIRCLE_DELAY + CIRCLE_DUR; // ~1.85s
-const EXIT_AT = 3.9; // let the sparkles finish + hover settle, then leave
 const FADE_DUR = 0.5;
+
+/* ─── Conditional appearance ───
+   The screen is filler for slow loads only. It stays hidden for a short grace
+   window; if the page becomes ready (Option 2: webfonts loaded + one paint)
+   before then, it never shows — so fast loads get no flash. If it does appear,
+   it stays up long enough for the intro to read, then leaves once ready. */
+const GRACE_MS = 250; // only appear if not ready this fast
+const MIN_VISIBLE_MS = 1500; // once shown, keep it up at least this long
+const MAX_MS = 6000; // hard cap so a stalled load can't pin it open
 
 /* Circle geometry: 32px button, 1.5px stroke → r = 15.25 */
 const R = 15.25;
@@ -42,28 +50,61 @@ const TRIANGLE_PATH =
   "M7.61495 0.501408C8.01584 -0.166734 8.98416 -0.166735 9.38505 0.501407L16.8513 12.9452C17.2641 13.6331 16.7685 14.5084 15.9663 14.5084H1.03373C0.231453 14.5084 -0.264088 13.6331 0.148678 12.9452L7.61495 0.501408Z";
 
 export default function LoadingScreen() {
-  const [show, setShow] = useState(true);
+  // Starts hidden — only mounts if the load is slow enough to need filler.
+  const [show, setShow] = useState(false);
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Play at most once per browser session — never on repeat nav / deep links.
+    if (sessionStorage.getItem("loadingShown")) return;
 
-    // Play once per browser session — don't replay on hard refresh / deep links.
-    // Hide on the next frame (not synchronously) to avoid a cascading render.
-    if (sessionStorage.getItem("loadingShown")) {
-      const raf = requestAnimationFrame(() => setShow(false));
-      return () => cancelAnimationFrame(raf);
-    }
-    sessionStorage.setItem("loadingShown", "1");
+    let ready = false;
+    let appeared = false;
+    let shownAt = 0;
+    let exitTimer: ReturnType<typeof setTimeout> | undefined;
 
-    const exitTimer = setTimeout(() => setExiting(true), EXIT_AT * 1000);
-    const doneTimer = setTimeout(
-      () => setShow(false),
-      (EXIT_AT + FADE_DUR) * 1000
-    );
+    const done = () => {
+      setExiting(true);
+      exitTimer = setTimeout(() => setShow(false), FADE_DUR * 1000);
+    };
+
+    const dismiss = () => {
+      if (!appeared) return; // never showed → nothing to fade out
+      // Keep it up long enough for the intro to read before leaving.
+      const visible = Date.now() - shownAt;
+      exitTimer = setTimeout(done, Math.max(0, MIN_VISIBLE_MS - visible));
+    };
+
+    const markReady = () => {
+      // Guarded so a late grace/cap firing after we're already ready is a no-op.
+      if (ready) return;
+      ready = true;
+      sessionStorage.setItem("loadingShown", "1");
+      dismiss();
+    };
+
+    // "Ready" (Option 2): webfonts loaded, then one paint so text lands styled.
+    (document.fonts?.ready ?? Promise.resolve()).then(() => {
+      requestAnimationFrame(markReady);
+    });
+
+    // Appear only if the page still isn't ready after the grace window.
+    const graceTimer = setTimeout(() => {
+      if (ready) return;
+      appeared = true;
+      shownAt = Date.now();
+      sessionStorage.setItem("loadingShown", "1");
+      setShow(true);
+    }, GRACE_MS);
+
+    // Hard cap so a stalled load can never pin the screen open forever.
+    const capTimer = setTimeout(markReady, MAX_MS);
+
     return () => {
-      clearTimeout(exitTimer);
-      clearTimeout(doneTimer);
+      clearTimeout(graceTimer);
+      clearTimeout(capTimer);
+      if (exitTimer) clearTimeout(exitTimer);
     };
   }, []);
 
@@ -72,9 +113,9 @@ export default function LoadingScreen() {
       {show && (
         <motion.div
           key="loading-screen"
-          initial={{ opacity: 1 }}
+          initial={{ opacity: 0 }}
           animate={{ opacity: exiting ? 0 : 1 }}
-          transition={{ duration: FADE_DUR, ease: "easeInOut" }}
+          transition={{ duration: exiting ? FADE_DUR : 0.2, ease: "easeInOut" }}
           style={{
             position: "fixed",
             inset: 0,
