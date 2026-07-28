@@ -711,8 +711,10 @@ function ArrowUp({ color, hovered }: { color: string; hovered: boolean }) {
 export default function AboutPage() {
   const topRef = useRef<HTMLDivElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
   const [vw, setVw] = useState(0);
   const [vh, setVh] = useState(0);
+  const [heroH, setHeroH] = useState(0);
   const [blurTop, setBlurTop] = useState(false);
   const [blurBottom, setBlurBottom] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
@@ -747,6 +749,21 @@ export default function AboutPage() {
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
+  }, []);
+
+  // Track the hero's true rendered height. It's `calc(100svh - 72px)`, which on
+  // mobile can differ from `window.innerHeight` (dynamic address bar) — so the
+  // intro sizing must fit this measured box, not innerHeight, or content spills
+  // past the hero's `overflow: hidden` edge and clips. A ResizeObserver also
+  // catches the address bar sliding in/out without a resize event.
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+    const measure = () => setHeroH(el.offsetHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   // Touch: dismiss the cat video when the user taps anywhere outside it. (The
@@ -817,8 +834,15 @@ export default function AboutPage() {
   const NARROW_GAP_FRACTION = 0.16; // gap = fraction × photo height
   const narrowFullTextH = 330 * narrowScale; // approx height of the intro paragraph at 46px
   const narrowFullPhotoH = 210 * narrowScale * NARROW_IMG_ASPECT; // ≈ 280 * narrowScale (photo at 210 wide)
-  const narrowHeroInner = Math.max(0, vh - 72); // hero is calc(100svh - 72px)
-  const narrowPadTop = Math.max(28, Math.min(110, 0.1 * narrowHeroInner));
+  // Prefer the hero's measured height; fall back to vh−72 before it's measured
+  // (first paint / SSR). This is the real box the intro must fit inside.
+  const narrowHeroInner = heroH > 0 ? heroH : Math.max(0, vh - 72);
+  // The hero starts at the top of the viewport behind the fixed 72px nav, so
+  // the intro's top padding is measured from y=0. On mobile, pin it to nav
+  // height + a 32px gap so "Hello, it's" clears the header cleanly.
+  const narrowPadTop = isMobile
+    ? 72 + 32
+    : Math.max(28, Math.min(110, 0.1 * narrowHeroInner));
   const narrowPadBottom = Math.max(24, Math.min(72, 0.07 * narrowHeroInner));
   const narrowAvail = Math.max(0, narrowHeroInner - narrowPadTop - narrowPadBottom); // text + gap + photo
   // Solve text + gap + photo = avail with text = R·photo and gap = f·photo, then
@@ -859,6 +883,7 @@ export default function AboutPage() {
 
       <div ref={topRef}>
         <div
+          ref={heroRef}
           style={{
             position: "relative",
             backgroundColor: HERO_BG,
