@@ -891,8 +891,8 @@ export default function AboutPage() {
                   isTouch={isTouch}
                 />
                 <div
-                  onMouseEnter={() => setProfileHovered(true)}
-                  onMouseLeave={() => setProfileHovered(false)}
+                  onMouseEnter={isTouch ? undefined : () => setProfileHovered(true)}
+                  onMouseLeave={isTouch ? undefined : () => setProfileHovered(false)}
                   style={{ width: narrowPhotoW, height: narrowPhotoH, position: "relative", flexShrink: 0 }}
                 >
                   <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
@@ -960,8 +960,8 @@ export default function AboutPage() {
                   {/* Medium only: photo under the text in the left column */}
                   {isMedium && (
                     <div
-                      onMouseEnter={() => setProfileHovered(true)}
-                      onMouseLeave={() => setProfileHovered(false)}
+                      onMouseEnter={isTouch ? undefined : () => setProfileHovered(true)}
+                      onMouseLeave={isTouch ? undefined : () => setProfileHovered(false)}
                       style={{ width: 210, height: mediumPhotoH, flexShrink: 0, position: "relative" }}
                     >
                       <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
@@ -1007,8 +1007,8 @@ export default function AboutPage() {
                   <ParallaxLayer mx={mx} my={my} enabled={!isNarrow} shift={12} tilt={8} scaleBoost={0.03}>
                     {/* Hover on the exact photo box only; nested overflow so overlay can spill outside */}
                     <div
-                      onMouseEnter={() => setProfileHovered(true)}
-                      onMouseLeave={() => setProfileHovered(false)}
+                      onMouseEnter={isTouch ? undefined : () => setProfileHovered(true)}
+                      onMouseLeave={isTouch ? undefined : () => setProfileHovered(false)}
                       style={{ width: 280, height: 373, position: "relative", flexShrink: 0 }}
                     >
                       <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
