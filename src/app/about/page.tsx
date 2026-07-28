@@ -823,6 +823,15 @@ export default function AboutPage() {
   // Wide layout (≥1000px): content is centered within the 1200px cap; keep a 32px min side gutter.
   const cvSidePad = cvIsStack || cvIsCompact ? "clamp(32px, 5vw, 96px)" : "32px";
 
+  // Narrow floor-nav pad: scale to leave a 16px gutter each side, exactly like
+  // the home page's mobile pad (same PAD_W/PAD_H and negative-margin trick that
+  // collapses the scaled element's full-size layout box).
+  const PAD_W = 392;
+  const PAD_H = 772;
+  const padScale = Math.min(1, (vw - 32) / PAD_W);
+  const padShrinkX = (PAD_W * (1 - padScale)) / 2;
+  const padShrinkY = PAD_H * (1 - padScale);
+
 
   const router = useRouter();
   const scrollToIntro = () => introRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1093,9 +1102,11 @@ export default function AboutPage() {
           <div style={{ display: "flex", justifyContent: "center" }}>
             <div
               style={{
-                transform: `scale(${Math.min(1, (vw - 48) / 340)})`,
+                transform: `scale(${padScale})`,
                 transformOrigin: "top center",
-                marginBottom: `${340 * (1 - Math.min(1, (vw - 48) / 340)) * -0.5}px`,
+                marginLeft: -padShrinkX,
+                marginRight: -padShrinkX,
+                marginBottom: -padShrinkY,
               }}
             >
               <ElevatorPad activeFloor="about" bg={HERO_BG} onContact={() => setContactOpen(true)} />

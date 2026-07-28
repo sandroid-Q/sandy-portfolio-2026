@@ -480,6 +480,15 @@ export default function ProjectPageTemplate(project: ProjectData) {
   const PAD_NATURAL_H = 774;
   const desktopPadScale = isMobile ? 1 : Math.min(1, (clampedVh - 216) / PAD_NATURAL_H);
 
+  // Narrow floor-nav pad: scale to leave a 16px gutter each side, exactly like
+  // the home page's mobile pad (same PAD_W/PAD_H and negative-margin trick that
+  // collapses the scaled element's full-size layout box).
+  const PAD_W = 392;
+  const PAD_H = 772;
+  const padScale = Math.min(1, (vw - 32) / PAD_W);
+  const padShrinkX = (PAD_W * (1 - padScale)) / 2;
+  const padShrinkY = PAD_H * (1 - padScale);
+
   const router = useRouter();
   const scrollToIntro = () => introRef.current?.scrollIntoView({ behavior: "smooth" });
   const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -794,9 +803,11 @@ export default function ProjectPageTemplate(project: ProjectData) {
           <div style={{ display: "flex", justifyContent: "center" }}>
             <div
               style={{
-                transform: `scale(${Math.min(1, (vw - 48) / 340)})`,
+                transform: `scale(${padScale})`,
                 transformOrigin: "top center",
-                marginBottom: `${340 * (1 - Math.min(1, (vw - 48) / 340)) * -0.5}px`,
+                marginLeft: -padShrinkX,
+                marginRight: -padShrinkX,
+                marginBottom: -padShrinkY,
               }}
             >
               {/* Sits on the page, so its hover center fill must match the page
