@@ -726,6 +726,19 @@ export default function AboutPage() {
     detect();
   }, []);
 
+  // Warm the browser cache for the soup cat clip so the first hover plays
+  // instantly. It only mounts on hover, so without this the ~1 MB download
+  // wouldn't start until then. `prefetch` keeps it low-priority — it won't
+  // compete with the page's critical resources on initial load.
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "prefetch";
+    link.as = "video";
+    link.href = "/soup-boing-smaller.mp4";
+    document.head.appendChild(link);
+    return () => { link.remove(); };
+  }, []);
+
   useEffect(() => {
     const update = () => {
       setVw(window.innerWidth);
