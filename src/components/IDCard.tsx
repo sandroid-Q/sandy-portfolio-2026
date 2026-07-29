@@ -23,10 +23,13 @@ const TAP_CARD_SPRING  = { type: "spring" as const, stiffness: 95,  damping: 8, 
 // the strap so its velocity-driven chain reaction settles quickly too.
 const TAP_STRAP_VELOCITY = 90;
 const TAP_CARD_VELOCITY  = 460;
-// Gravity lean from device orientation: gamma (left-right tilt, deg) → hang
-// angle, scaled and clamped so extreme tilts don't over-rotate the lanyard.
-const GRAVITY_SCALE = 0.8;
-const GRAVITY_MAX   = 32;
+// Gravity lean from device orientation → hang angle, scaled and clamped so
+// extreme tilts don't over-rotate the lanyard. Lower scale = less sensitive.
+// A small deadzone lets it settle to exactly straight-down when near-upright.
+const GRAVITY_SCALE    = 0.55;
+const GRAVITY_MAX      = 32;
+const GRAVITY_DEADZONE = 3; // deg
+const DEG              = Math.PI / 180;
 
 interface LanyardColors {
   strapTop: string;
@@ -251,11 +254,21 @@ export default function IDCard({ strapExtension = 0 }: { strapExtension?: number
 
   // ── Device orientation → gravity lean (mobile) ───────────────────────────
   const handleOrient = useCallback((e: DeviceOrientationEvent) => {
-    // gamma = left-right tilt in degrees. Tilt the phone right → the hanging
-    // lanyard leans right; tilt left → leans left. Scaled + clamped so a big
-    // tilt doesn't swing it past a natural hang.
-    const gamma = e.gamma ?? 0;
-    const angle = Math.max(-GRAVITY_MAX, Math.min(GRAVITY_MAX, -gamma * GRAVITY_SCALE));
+    // Lean toward where gravity actually points *within the screen plane*, from
+    // pitch (beta) and roll (gamma). atan2(cosβ·sinγ, sinβ) is 0 whenever the
+    // phone is upright (β≈90°) no matter what γ reads — so the card always
+    // returns to straight-down when the device is roughly perpendicular to the
+    // floor. It's gimbal-stable through vertical, unlike raw gamma (which is
+    // singular there and would leave the card stuck leaning). The card leans
+    // more as the phone is pitched back and rolled. Tilt right → lean right.
+    const beta  = (e.beta  ?? 90) * DEG;
+    const gamma = (e.gamma ??  0) * DEG;
+    const lean = Math.atan2(Math.cos(beta) * Math.sin(gamma), Math.sin(beta)) / DEG; // deg
+    let a = -lean * GRAVITY_SCALE;
+    // Deadzone (shifted, not hard-clipped, so there's no jump at its edge) so a
+    // near-upright hold rests at exactly straight-down instead of hovering off.
+    a = Math.abs(a) < GRAVITY_DEADZONE ? 0 : a - Math.sign(a) * GRAVITY_DEADZONE;
+    const angle = Math.max(-GRAVITY_MAX, Math.min(GRAVITY_MAX, a));
     gravityTarget.set(angle);
   }, [gravityTarget]);
 
