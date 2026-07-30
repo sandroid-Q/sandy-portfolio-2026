@@ -154,6 +154,64 @@ function EmailButton({ onClick, copied }: { onClick: () => void; copied: boolean
   );
 }
 
+// ─── LinkedIn button ────────────────────────────────────────────────────────
+// Deliberately a different style from the (solid-filled) email button: an
+// outlined/ghost pill at rest that fills solid on hover.
+
+function ExternalLinkIcon({ color }: { color: string }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }} aria-hidden>
+      <g stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.12s" }}>
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+        <path d="M15 3h6v6" />
+        <path d="M10 14 21 3" />
+      </g>
+    </svg>
+  );
+}
+
+function LinkedInButton() {
+  const [hovered, setHovered] = useState(false);
+
+  // Outlined at rest (transparent fill, blue border + ink), solid on hover.
+  const bg = hovered ? INK : "transparent";
+  const fg = hovered ? PAPER : INK;
+
+  return (
+    <motion.a
+      href="https://www.linkedin.com/in/sandra-qi/"
+      target="_blank"
+      rel="noopener noreferrer"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      animate={{ backgroundColor: bg }}
+      transition={{ duration: 0.12 }}
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+        padding: "12px 24px",
+        borderRadius: 16,
+        border: `1.5px solid ${INK}`,
+        cursor: "pointer",
+        outline: "none",
+        textDecoration: "none",
+        WebkitTapHighlightColor: "transparent",
+      }}
+    >
+      <span style={{
+        fontFamily: "var(--font-space-grotesk)", fontWeight: 400, fontSize: 14,
+        whiteSpace: "nowrap", color: fg, transition: "color 0.12s",
+      }}>
+        LinkedIn
+      </span>
+      <ExternalLinkIcon color={fg} />
+    </motion.a>
+  );
+}
+
 // ─── Coffee rain easter egg ───────────────────────────────────────────────────
 
 const DROP_COUNT = 36;
@@ -420,8 +478,12 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                   </span>
                 </div>
 
-                {/* Email button */}
-                <EmailButton onClick={copyEmail} copied={copied} />
+                {/* Contact buttons: email (solid) + LinkedIn (outlined), stacked
+                    at a shared width */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <EmailButton onClick={copyEmail} copied={copied} />
+                  <LinkedInButton />
+                </div>
               </motion.div>
             </div>
           </>
