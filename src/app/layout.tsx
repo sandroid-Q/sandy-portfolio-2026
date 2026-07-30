@@ -3,6 +3,8 @@ import { Silkscreen, Space_Grotesk, Space_Mono } from "next/font/google";
 import { AudioProvider } from "@/contexts/AudioContext";
 import CustomCursor from "@/components/CustomCursor";
 import LoadingScreen from "@/components/LoadingScreen";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const silkscreen = Silkscreen({
@@ -52,6 +54,11 @@ export default function RootLayout({
           {children}
           <LoadingScreen />
         </AudioProvider>
+        {/* Cookieless, privacy-friendly analytics (visitors, page views, device,
+            country, referrers) + Core Web Vitals. Only collects in production
+            once Analytics is enabled in the Vercel project dashboard. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
