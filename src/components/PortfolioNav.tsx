@@ -468,6 +468,7 @@ export default function PortfolioNav({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // "Exit" (menu) returns to the cover / entrance page.
   const handleLogoClick = () => {
     if (exiting) return;
     setExiting(true);
@@ -475,6 +476,11 @@ export default function PortfolioNav({
     onLogoClick?.();
     setTimeout(() => router.push("/"), 430);
   };
+
+  // The logo takes you to the home page (not the cover). Uses the plain
+  // transition-aware navigate (no full-screen sparkle overlay) — it's an
+  // in-site jump, not the dramatic cover exit.
+  const handleHome = () => navigate("/home");
 
   // Mobile-menu navigation: wrap the route change in a transition so we can
   // detect when it's still pending. Only reveal the full-screen sparkle overlay
@@ -675,7 +681,7 @@ export default function PortfolioNav({
             padding: isMobile ? "0 12px 0 24px" : "0 24px 0 36px",
           }}
         >
-        <LogoButton onClick={handleLogoClick} color={ink} />
+        <LogoButton onClick={handleHome} color={ink} />
 
         {isMobile ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
