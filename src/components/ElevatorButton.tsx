@@ -8,7 +8,7 @@ interface ElevatorButtonProps {
   className?: string;
 }
 
-export default function ElevatorButton({ isOpen, onClick, className }: ElevatorButtonProps) {
+export default function ElevatorButton({ onClick, className }: ElevatorButtonProps) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 

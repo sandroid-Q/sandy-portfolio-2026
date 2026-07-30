@@ -6,10 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAudio } from "@/contexts/AudioContext";
 
-const BROWN = "#4E3A34";
-const RED = "#DE211D";
-const BG = "#F3F2F0";
-
 // Button geometry (px). The two concentric rings are drawn as SVG circle
 // strokes so their outline can sweep on around the circle during the scroll
 // reveal; the fills and content sit in divs beneath the SVG overlay.

@@ -4,7 +4,6 @@ import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 const ON_SURFACE_PRIMARY = "#F8F8F8";
-const SURFACE_PRIMARY = "#0127BA";
 const PILASTER = 36; // width of the side rectangles flanking the doors
 const BEVEL = 12;    // chamfer depth — how far the cornice diagonals travel
 

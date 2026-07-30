@@ -13,7 +13,6 @@ import { useMouseParallax } from "@/components/useMouseParallax";
 import { useAudio } from "@/contexts/AudioContext";
 import IconButton from "@/components/ui/IconButton";
 
-const BG = "var(--color-surface-primary)";
 const HERO_BG = "var(--color-surface-primary)";
 const BROWN = "var(--color-on-surface-primary)";
 const HOVER_BROWN = "var(--color-on-surface-secondary)";

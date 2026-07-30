@@ -117,12 +117,12 @@ export default function Elevator({
     if (isOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasOpened(true);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       if (isCoarsePointer()) setHovered(true);
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setHovered(false);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setPressed(false);
     }
 

@@ -22,7 +22,7 @@ const STACK_W = 640;
 
 function shot(src: string, i: number, label: string) {
   // Constrained so the single card leaves side gutters for the arrows.
-  // eslint-disable-next-line @next/next/no-img-element
+   
   return <OptimizedImage key={i} src={src} alt={`${label} ${i + 1}`} sizes="(max-width: 600px) 90vw, 280px" style={{ display: "block", width: "100%", maxWidth: 280, borderRadius: 20, border: "1px solid var(--color-surface-secondary)", boxShadow: "var(--phone-shadow)" }} />;
 }
 

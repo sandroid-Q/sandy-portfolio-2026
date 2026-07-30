@@ -451,7 +451,6 @@ export default function ProjectPageTemplate(project: ProjectData) {
 
   const isMobile = vw < 640;
   const isNarrow = vw < 800;
-  const isTablet = vw < 1024;
   // Fluid side padding: 32px at 640px → 96px at 1280px, continuous
   const sidePad = "clamp(32px, calc(-32px + 10vw), 96px)";
 

@@ -11,10 +11,6 @@ import { useAudio } from "@/contexts/AudioContext";
 import { useScrollLock } from "@/hooks/useScrollLock";
 
 const BROWN = "#4E3A34";
-const TEXT_NAV = "#232122";
-const HOVER_COLOR = "#72503C";
-const NAV_LIGHT = "#F3F2F0";
-const DARK_RED = "#AE1819";
 const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 // Smooth eased fade for the frosted nav's edge — many alpha stops approximating
@@ -72,7 +68,6 @@ function NavLink({
   const { playNav } = useAudio();
   const originalText = (typeof children === "string" ? children : "").toUpperCase();
   const fontSize = menu ? 18 : 14;
-  const [hovered, setHovered] = useState(false);
   const [displayChars, setDisplayChars] = useState(originalText.split(""));
   const [charWidths, setCharWidths] = useState<number[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -127,11 +122,9 @@ function NavLink({
   );
 
   const handleEnter = () => {
-    setHovered(true);
     scramble();
   };
   const handleLeave = () => {
-    setHovered(false);
     if (intervalRef.current) clearInterval(intervalRef.current);
     setDisplayChars(originalText.split(""));
   };

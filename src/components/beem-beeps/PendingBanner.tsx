@@ -19,7 +19,7 @@ export default function PendingBanner() {
       {ITEMS.map((item) => (
         <div key={item.src} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: item.width, maxWidth: "100%" }}>
           <Caption>{item.caption}</Caption>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
           <OptimizedImage src={item.src} alt={item.alt} sizes="(max-width: 800px) 100vw, 700px" style={{ display: "block", width: "100%", borderRadius: 16, border: item.phone ? "1px solid var(--color-surface-secondary)" : undefined, boxShadow: item.phone ? "var(--phone-shadow)" : undefined }} />
         </div>
       ))}
