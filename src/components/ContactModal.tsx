@@ -256,8 +256,8 @@ function makeDrops() {
 
 function CoffeeRain({ onDone }: { onDone: () => void }) {
   const screenH = typeof window !== "undefined" ? window.innerHeight : 900;
-  // useRef so the pattern is generated once per mount (each press remounts via key).
-  const drops = useRef(makeDrops()).current;
+  // Generated once per mount (each press remounts via key) via lazy useState init.
+  const [drops] = useState(makeDrops);
 
   useEffect(() => {
     const maxMs = Math.max(...drops.map(d => (d.delay + d.duration) * 1000));
